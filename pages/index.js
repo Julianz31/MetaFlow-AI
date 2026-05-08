@@ -161,7 +161,8 @@ function App() {
       }
     } catch (error) {
       console.error('Error validando conexión con Meta:', error);
-      setConnection({ ok: false });
+      const errData = error.response?.data;
+      setConnection(errData?.ok === false ? errData : { ok: false });
     } finally {
       setConnectionLoading(false);
     }
@@ -252,7 +253,8 @@ function App() {
       return response.data;
     } catch (error) {
       console.error('Error conectando System User:', error);
-      setConnection({ ok: false });
+      const errData = error.response?.data;
+      setConnection(errData?.ok === false ? errData : { ok: false });
       throw error;
     } finally {
       setConnectionLoading(false);
@@ -1446,7 +1448,7 @@ function SettingsView({ connection, metaConnection, loading, onConnect, onRefres
       <div className={`status-box ${connection?.ok === false ? 'status-error' : ''}`}>
         {loading && <><FuturisticLoader small /> Validando conexión con Meta Ads...</>}
         {!loading && connection?.ok && `Conectado por System User a ${connection.account?.name || connection.adAccountId}.`}
-        {!loading && connection?.ok === false && 'No se pudo validar la conexión con Meta Ads.'}
+        {!loading && connection?.ok === false && (connection?.detail ? `Error: ${connection.detail}` : 'No se pudo validar la conexión con Meta Ads.')}
         {!loading && !connection && 'Aún no hay una conexión validada.'}
       </div>
       <label>

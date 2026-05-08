@@ -1,94 +1,56 @@
-# VAULT · App de Finanzas Personales
+# MetaFlow.AI
 
-Stack: **Next.js 14 · TypeScript · Supabase · Chart.js · Tailwind CSS**
+Dashboard y backend para revisar performance de Meta Ads, evaluar reglas de automatizacion y dejar acciones sugeridas en una cola de aprobacion.
 
----
+## Estructura
 
-## 🚀 Setup en 5 pasos
+- `backend/`: API Express, conexion con Supabase y Meta Marketing API.
+- `frontend/`: app React para dashboard, reglas, aprobacion y configuracion.
+- `database/schema.sql`: tablas base para reglas y cola de acciones.
 
-### 1. Instalar dependencias
+## Configuracion
+
+1. Copia `backend/.env.example` a `backend/.env` y completa las credenciales.
+2. Copia `frontend/.env.example` a `frontend/.env`.
+3. Ejecuta `database/schema.sql` en Supabase.
+
+## Desarrollo
+
+Backend:
 
 ```bash
+cd backend
 npm install
+npm start
 ```
 
-### 2. Crear proyecto en Supabase
+Por defecto la API usa `http://localhost:3000` y acepta el frontend local en `http://localhost:3002`.
 
-1. Ve a [supabase.com](https://supabase.com) y crea una cuenta gratuita
-2. Crea un nuevo proyecto
-3. Ve a **SQL Editor** y ejecuta el contenido de `supabase-schema.sql`
-4. Ve a **Settings → API** y copia tus keys
-
-### 3. Configurar variables de entorno
+Frontend:
 
 ```bash
-cp .env.local.example .env.local
+cd frontend
+npm install
+npm start
 ```
 
-Edita `.env.local` con tus keys de Supabase:
+## Endpoints principales
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://TU_PROYECTO.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key
-SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
-```
+- `GET /api/health`: confirma que la API esta viva.
+- `GET /api/meta/connection`: valida el System User Access Token contra la cuenta publicitaria.
+- `GET /api/stats`: trae inversion, ROAS agregado y acciones pendientes.
+- `GET /api/campaigns`: lista insights por campana para validar lectura.
+- `GET /api/campaign-objectives`: lista objetivos disponibles para crear campanas.
+- `GET /api/meta/assets`: lista Fan Pages disponibles y su Instagram conectado cuando Meta lo permite.
+- `POST /api/campaign-builder/generate-copy`: genera copys con IA y notas de cumplimiento.
+- `POST /api/campaign-builder/create`: crea campana, ad set, creativos y anuncios en estado `PAUSED`.
+- `POST /api/process-rules`: evalua reglas activas contra insights por campana y crea acciones pendientes.
 
-### 4. Correr en desarrollo
+## Notas
 
-```bash
-npm run dev
-```
-
-Abre [http://localhost:3000](http://localhost:3000)
-
-### 5. Deploy en producción (Vercel)
-
-```bash
-npx vercel
-```
-
-O conecta tu repo en [vercel.com](https://vercel.com) y agrega las variables de entorno.
-
----
-
-## 📁 Estructura del proyecto
-
-```
-src/
-├── app/
-│   ├── login/          # Autenticación
-│   ├── dashboard/      # Panel principal
-│   ├── inversiones/    # Portafolio
-│   ├── deudas/         # Gestión deudas
-│   ├── metas/          # Metas + IFI
-│   └── simulador/      # Simulador de escenarios
-├── components/
-│   ├── ui/             # Modal, Btn, KpiCard, Panel...
-│   ├── forms/          # FormTransaccion, FormInversion...
-│   └── layout/         # Sidebar
-├── hooks/
-│   └── useData.ts      # Todos los hooks de Supabase
-├── lib/
-│   ├── supabase.ts     # Cliente Supabase
-│   └── calculos.ts     # Cálculos financieros (IFI, simulador...)
-└── types/
-    └── index.ts        # Tipos TypeScript
-```
-
-## 🧮 Cálculos clave
-
-- **IFI** = (Renta pasiva mensual / Gastos mensuales) × 100
-- **Renta pasiva** = Capital total × 4% / 12 (Regla del 4%)
-- **Capital requerido** = Gastos anuales / 4%
-- **Estrategia Avalancha** = Pagar primero deuda con mayor tasa
-- **Simulador** = Interés compuesto mensual + ajuste por inflación
-
-## 🔐 Seguridad
-
-- Row Level Security (RLS) en todas las tablas
-- Cada usuario solo ve sus propios datos
-- Autenticación nativa de Supabase
-
----
-
-Construido con ❤️ en Medellín 🇨🇴
+- Los archivos `.env` no deben versionarse.
+- El token de Meta debe ser un System User Access Token guardado solo en `backend/.env`.
+- Asigna al System User unicamente la cuenta publicitaria que vas a administrar.
+- Para crear campanas desde creativos, configura `META_PAGE_ID`, `META_INSTAGRAM_ACCOUNT_ID`, `META_DESTINATION_URL`, `META_WHATSAPP_NUMBER`, y `META_PIXEL_ID` si vas a usar objetivo de ventas.
+- Para que la IA genere copys, configura `OPENAI_API_KEY`. Si no existe, la app usa un fallback local conservador.
+- Las acciones se guardan como `pending`; la ejecucion real sobre Meta debe quedar detras de aprobacion explicita.

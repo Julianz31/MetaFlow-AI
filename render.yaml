@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: metaflow-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGIN
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: META_GRAPH_VERSION
+        value: v25.0
+      - key: META_DATE_PRESET
+        value: last_7d

@@ -1419,6 +1419,7 @@ function CampaignDetailDrawer({ campaign, detail, loading, onClose, onOpenAdSet,
 function SettingsView({ connection, metaConnection, loading, onConnect, onRefresh, anthropicKey, onSaveAnthropicKey }) {
   const [draft, setDraft] = useState(metaConnection || { accessToken: '', adAccountId: '' });
   const [anthropicDraft, setAnthropicDraft] = useState(anthropicKey || '');
+  const [showToken, setShowToken] = useState(false);
 
   const handleChange = (event) => {
     setDraft(current => ({
@@ -1453,7 +1454,24 @@ function SettingsView({ connection, metaConnection, loading, onConnect, onRefres
       </div>
       <label>
         System User Access Token
-        <input name="accessToken" type="password" value={draft.accessToken || ''} onChange={handleChange} placeholder="EAAB..." />
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <input
+            name="accessToken"
+            type={showToken ? 'text' : 'password'}
+            value={draft.accessToken || ''}
+            onChange={handleChange}
+            placeholder="EAAB..."
+            style={{ flex: 1, paddingRight: '2.5rem' }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowToken(v => !v)}
+            style={{ position: 'absolute', right: '0.6rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted, #aaa)', fontSize: '1rem', padding: '0.2rem' }}
+            title={showToken ? 'Ocultar token' : 'Mostrar token'}
+          >
+            {showToken ? '🙈' : '👁️'}
+          </button>
+        </div>
       </label>
       <label>
         Ad Account ID

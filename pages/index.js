@@ -80,7 +80,7 @@ function App() {
   const [openaiKey, setOpenaiKey] = useState(() => { try { return localStorage.getItem('openai_key') || ''; } catch { return ''; } });
   const [imageGenLoading, setImageGenLoading] = useState(false);
   const [generatedImage, setGeneratedImage] = useState(null);
-  const [adForm, setAdForm] = useState({ productName: '', description: '', style: 'fotorrealista', colors: '', format: 'square', customPrompt: '', selectedProductId: '' });
+  const [adForm, setAdForm] = useState({ productName: '', description: '', style: 'fotorrealista', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'square', customPrompt: '', selectedProductId: '', productImageBase64: '', productImageName: '' });
 
   useEffect(() => {
     if (activeTab === 'dashboard') {
@@ -596,7 +596,7 @@ function App() {
       setImageGenLoading(true);
       setGeneratedImage(null);
       const headers = openaiKey ? { 'x-openai-key': openaiKey } : {};
-      const response = await axios.post(`${API_BASE_URL}/api/generate-image`, formData, { headers });
+      const response = await axios.post(`${API_BASE_URL}/api/generate-image`, formData, { headers, timeout: 90000 });
       setGeneratedImage(response.data.imageUrl);
     } catch (error) {
       alert(error.response?.data?.error || 'Error generando imagen');
@@ -2360,20 +2360,38 @@ function ProductsView({ products, loading, showForm, editingProduct, onNew, onEd
 function AdCreatorView({ products, loading, generatedImage, openaiKey, adForm, onFormChange, onGenerate, onSaveOpenaiKey, onClearImage }) {
   const [keyInput, setKeyInput] = useState(openaiKey || '');
   const [showKey, setShowKey] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef(null);
 
   const styles = [
-    { value: 'fotorrealista', label: 'Fotorrealista', desc: 'Fotografía de producto profesional' },
-    { value: 'minimalista', label: 'Minimalista', desc: 'Diseño limpio y moderno' },
-    { value: 'lifestyle', label: 'Lifestyle', desc: 'Ambiente natural y aspiracional' },
-    { value: 'lujo', label: 'Lujo', desc: 'Elegante, fondo oscuro premium' },
-    { value: 'social-media', label: 'Social Media', desc: 'Vibrante y listo para Instagram' },
+    { value: 'fotorrealista', label: 'Foto­rrealista', emoji: '📸' },
+    { value: 'minimalista', label: 'Minimalista', emoji: '⬜' },
+    { value: 'lifestyle', label: 'Lifestyle', emoji: '🌿' },
+    { value: 'lujo', label: 'Lujo', emoji: '✨' },
+    { value: 'social-media', label: 'Social Media', emoji: '📱' },
   ];
 
   const formats = [
-    { value: 'square', label: 'Cuadrado 1:1', desc: 'Feed de Instagram / Facebook' },
-    { value: 'vertical', label: 'Vertical 9:16', desc: 'Stories y Reels' },
-    { value: 'horizontal', label: 'Horizontal 16:9', desc: 'Banners y YouTube' },
+    { value: 'square', label: '1:1', sub: 'Feed' },
+    { value: 'vertical', label: '9:16', sub: 'Stories' },
+    { value: 'horizontal', label: '16:9', sub: 'Banner' },
   ];
+
+  const handleImageFile = (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64 = ev.target.result.split(',')[1];
+      onFormChange({ ...adForm, productImageBase64: base64, productImageName: file.name });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    handleImageFile(e.dataTransfer.files[0]);
+  };
 
   const handleProductSelect = (e) => {
     const p = products.find(x => x.id === e.target.value);
@@ -2395,26 +2413,32 @@ function AdCreatorView({ products, loading, generatedImage, openaiKey, adForm, o
       productName: adForm.productName,
       description: adForm.description,
       style: adForm.style,
-      colors: adForm.colors,
+      primaryColor: adForm.primaryColor,
+      secondaryColor: adForm.secondaryColor,
       format: adForm.format,
-      customPrompt: adForm.customPrompt || undefined
+      customPrompt: adForm.customPrompt || undefined,
+      productImageBase64: adForm.productImageBase64 || undefined,
     });
   };
 
   return (
     <div className="ad-creator-view">
       <div className="ad-creator-grid">
+
+        {/* ── LEFT PANEL ── */}
         <div className="ad-creator-panel">
-          <div className="panel-title">
-            <Wand2 size={20} color="#a78bfa" />
-            <span>Configurar imagen</span>
+          <div className="acp-section-title">
+            <Wand2 size={16} color="#a78bfa" />
+            Configurar anuncio
           </div>
 
           <form onSubmit={handleGenerate} className="ad-creator-form">
+
+            {/* Producto de vitrina */}
             {products.length > 0 && (
-              <div className="form-group">
-                <label>Seleccionar producto de la vitrina</label>
-                <select className="form-input" value={adForm.selectedProductId} onChange={handleProductSelect}>
+              <div className="acp-block">
+                <label className="acp-label">Producto de la vitrina</label>
+                <select className="acp-select" value={adForm.selectedProductId} onChange={handleProductSelect}>
                   <option value="">— Selecciona un producto —</option>
                   {products.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -2423,94 +2447,165 @@ function AdCreatorView({ products, loading, generatedImage, openaiKey, adForm, o
               </div>
             )}
 
-            <div className="form-group">
-              <label>Nombre del producto *</label>
-              <input className="form-input" value={adForm.productName} onChange={e => onFormChange({ ...adForm, productName: e.target.value })} placeholder="Ej: Zapatillas Runner Pro" required={!adForm.customPrompt} />
+            {/* Upload de imagen del producto */}
+            <div className="acp-block">
+              <label className="acp-label">Imagen del producto <span className="acp-optional">PNG · JPG · WEBP</span></label>
+              <div
+                className={`upload-zone ${dragOver ? 'drag-over' : ''} ${adForm.productImageBase64 ? 'has-image' : ''}`}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={e => handleImageFile(e.target.files[0])}
+                />
+                {adForm.productImageBase64 ? (
+                  <div className="upload-preview">
+                    <img src={`data:image/png;base64,${adForm.productImageBase64}`} alt="Producto" />
+                    <button type="button" className="upload-remove" onClick={(e) => { e.stopPropagation(); onFormChange({ ...adForm, productImageBase64: '', productImageName: '' }); }}>
+                      <XCircle size={16} />
+                    </button>
+                    <span className="upload-filename">{adForm.productImageName}</span>
+                  </div>
+                ) : (
+                  <div className="upload-placeholder">
+                    <div className="upload-icon-wrap"><Upload size={22} /></div>
+                    <p>Arrastra tu imagen aquí</p>
+                    <span>o haz clic para seleccionar</span>
+                  </div>
+                )}
+              </div>
+              <p className="acp-hint">La IA analizará la imagen para generar un anuncio fiel al producto.</p>
             </div>
 
-            <div className="form-group">
-              <label>Descripción del producto</label>
-              <textarea className="form-input" rows={2} value={adForm.description} onChange={e => onFormChange({ ...adForm, description: e.target.value })} placeholder="Material, características, público objetivo..." />
+            {/* Nombre + descripción */}
+            <div className="acp-block">
+              <label className="acp-label">Nombre del producto</label>
+              <input className="acp-input" value={adForm.productName} onChange={e => onFormChange({ ...adForm, productName: e.target.value })} placeholder="Ej: Zapatillas Runner Pro" required={!adForm.customPrompt && !adForm.productImageBase64} />
             </div>
 
-            <div className="form-group">
-              <label>Estilo visual</label>
-              <div className="style-grid">
+            <div className="acp-block">
+              <label className="acp-label">Descripción <span className="acp-optional">opcional</span></label>
+              <textarea className="acp-input" rows={2} value={adForm.description} onChange={e => onFormChange({ ...adForm, description: e.target.value })} placeholder="Material, características, público objetivo..." />
+            </div>
+
+            {/* Colores de marca */}
+            <div className="acp-block">
+              <label className="acp-label">Colores de marca</label>
+              <div className="brand-colors-row">
+                <div className="color-picker-item">
+                  <label className="color-picker-label">Primario</label>
+                  <div className="color-picker-wrap">
+                    <input
+                      type="color"
+                      className="color-native"
+                      value={adForm.primaryColor}
+                      onChange={e => onFormChange({ ...adForm, primaryColor: e.target.value })}
+                    />
+                    <div className="color-swatch" style={{ background: adForm.primaryColor }} />
+                    <span className="color-hex">{adForm.primaryColor.toUpperCase()}</span>
+                  </div>
+                </div>
+                <div className="color-divider" />
+                <div className="color-picker-item">
+                  <label className="color-picker-label">Secundario</label>
+                  <div className="color-picker-wrap">
+                    <input
+                      type="color"
+                      className="color-native"
+                      value={adForm.secondaryColor}
+                      onChange={e => onFormChange({ ...adForm, secondaryColor: e.target.value })}
+                    />
+                    <div className="color-swatch" style={{ background: adForm.secondaryColor }} />
+                    <span className="color-hex">{adForm.secondaryColor.toUpperCase()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Estilo visual */}
+            <div className="acp-block">
+              <label className="acp-label">Estilo visual</label>
+              <div className="style-chips">
                 {styles.map(s => (
                   <button type="button" key={s.value}
-                    className={`style-option ${adForm.style === s.value ? 'active' : ''}`}
+                    className={`style-chip ${adForm.style === s.value ? 'active' : ''}`}
                     onClick={() => onFormChange({ ...adForm, style: s.value })}>
-                    <strong>{s.label}</strong>
-                    <span>{s.desc}</span>
+                    <span className="style-chip-emoji">{s.emoji}</span>
+                    {s.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="form-group">
-              <label>Paleta de colores (opcional)</label>
-              <input className="form-input" value={adForm.colors} onChange={e => onFormChange({ ...adForm, colors: e.target.value })} placeholder="Ej: azul marino, dorado, blanco" />
-            </div>
-
-            <div className="form-group">
-              <label>Formato</label>
-              <div className="format-grid">
+            {/* Formato */}
+            <div className="acp-block">
+              <label className="acp-label">Formato</label>
+              <div className="format-chips">
                 {formats.map(f => (
                   <button type="button" key={f.value}
-                    className={`format-option ${adForm.format === f.value ? 'active' : ''}`}
+                    className={`format-chip ${adForm.format === f.value ? 'active' : ''}`}
                     onClick={() => onFormChange({ ...adForm, format: f.value })}>
-                    <strong>{f.label}</strong>
-                    <span>{f.desc}</span>
+                    <span className="format-chip-ratio">{f.label}</span>
+                    <span className="format-chip-sub">{f.sub}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="form-group">
-              <label>Prompt personalizado (opcional — reemplaza el automático)</label>
-              <textarea className="form-input" rows={3} value={adForm.customPrompt} onChange={e => onFormChange({ ...adForm, customPrompt: e.target.value })} placeholder="Describe exactamente la imagen que quieres generar..." />
-            </div>
-
-            <div className="form-group">
-              <label style={{ display: 'flex', justifyContent: 'space-between' }}>
-                API Key de OpenAI
+            {/* API Key */}
+            <div className="acp-block acp-key-block">
+              <div className="acp-key-row">
+                <label className="acp-label" style={{ margin: 0 }}>API Key OpenAI</label>
                 <button type="button" className="toggle-link" onClick={() => setShowKey(v => !v)}>{showKey ? 'Ocultar' : 'Mostrar'}</button>
-              </label>
+              </div>
               <input
-                className="form-input"
+                className="acp-input"
                 type={showKey ? 'text' : 'password'}
                 value={keyInput}
                 onChange={e => setKeyInput(e.target.value)}
                 onBlur={() => { if (keyInput) onSaveOpenaiKey(keyInput); }}
                 placeholder="sk-..."
               />
-              <p className="field-hint">Se guarda solo en tu navegador. Obtén una en platform.openai.com</p>
+              <p className="acp-hint">Se guarda solo en este navegador · platform.openai.com</p>
             </div>
 
-            <button type="submit" className="primary-button generate-button" disabled={loading}>
-              {loading ? <><Loader2 className="spin" size={18} /> Generando imagen...</> : <><Sparkles size={18} /> Generar imagen con IA</>}
+            <button type="submit" className="generate-cta" disabled={loading}>
+              {loading
+                ? <><Loader2 className="spin" size={18} /> Generando...</>
+                : <><Sparkles size={18} /> Generar imagen con IA</>}
             </button>
           </form>
         </div>
 
-        <div className="ad-creator-result">
-          <div className="panel-title">
-            <Image size={20} color="#a78bfa" />
-            <span>Imagen generada</span>
+        {/* ── RIGHT PANEL ── */}
+        <div className="ad-result-panel">
+          <div className="acp-section-title">
+            <Image size={16} color="#a78bfa" />
+            Resultado
           </div>
 
           {loading && (
             <div className="result-loading">
               <div className="ai-pulse" />
-              <p>DALL-E 3 está creando tu imagen...</p>
-              <p className="result-hint">Esto puede tomar 15-30 segundos</p>
+              <p>DALL-E 3 está generando tu anuncio...</p>
+              <p className="result-hint">Puede tomar entre 15 y 30 segundos</p>
             </div>
           )}
 
           {!loading && !generatedImage && (
             <div className="result-empty">
-              <Wand2 size={52} color="#6366f1" />
-              <p>Tu imagen aparecerá aquí</p>
+              <div className="result-empty-preview">
+                <div className="result-empty-inner">
+                  <Sparkles size={36} color="#6366f1" />
+                </div>
+              </div>
+              <p className="result-empty-title">Tu anuncio aparecerá aquí</p>
               <p className="result-hint">Configura los parámetros y haz clic en Generar</p>
             </div>
           )}
@@ -2520,15 +2615,16 @@ function AdCreatorView({ products, loading, generatedImage, openaiKey, adForm, o
               <img src={generatedImage} alt="Imagen generada" className="result-image" />
               <div className="result-actions">
                 <a href={generatedImage} download="anuncio-ia.png" target="_blank" rel="noreferrer" className="primary-button">
-                  <Upload size={16} /> Descargar
+                  <Upload size={15} /> Descargar
                 </a>
                 <button className="secondary-button" onClick={onClearImage}>
-                  <XCircle size={16} /> Limpiar
+                  <XCircle size={15} /> Nueva imagen
                 </button>
               </div>
             </div>
           )}
         </div>
+
       </div>
     </div>
   );

@@ -6,17 +6,23 @@ import {
   CheckCircle2,
   BarChart3,
   Edit2,
+  ExternalLink,
+  Image,
   LogOut,
   LayoutDashboard,
   Loader2,
+  Package,
   Plus,
   Send,
   Settings,
   ShieldCheck,
+  ShoppingBag,
+  Sparkles,
   ToggleLeft,
   ToggleRight,
   Trash2,
   Upload,
+  Wand2,
   XCircle,
   Zap
 } from 'lucide-react';
@@ -44,9 +50,12 @@ function App() {
   const [metaConnection, setMetaConnection] = useState(loadMetaConnection());
   const [anthropicKey, setAnthropicKey] = useState(loadAnthropicKey());
   const [approvalActions, setApprovalActions] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [approvalLoading, setApprovalLoading] = useState(false);
+  const [autoOptimizeLoading, setAutoOptimizeLoading] = useState(false);
   const [builderResult, setBuilderResult] = useState(null);
   const [builderLoading, setBuilderLoading] = useState(false);
+  const [batchUpload, setBatchUpload] = useState(null);
   const [copyLoading, setCopyLoading] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [campaignDetail, setCampaignDetail] = useState(null);
@@ -64,6 +73,14 @@ function App() {
   const [rulesLoading, setRulesLoading] = useState(false);
   const [editingRule, setEditingRule] = useState(null);
   const [showRuleForm, setShowRuleForm] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [openaiKey, setOpenaiKey] = useState(() => { try { return localStorage.getItem('openai_key') || ''; } catch { return ''; } });
+  const [imageGenLoading, setImageGenLoading] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState(null);
+  const [adForm, setAdForm] = useState({ productName: '', description: '', style: 'fotorrealista', colors: '', format: 'square', customPrompt: '', selectedProductId: '' });
 
   useEffect(() => {
     if (activeTab === 'dashboard') {
@@ -110,6 +127,16 @@ function App() {
     if (activeTab === 'analysis' && !analysisText && !analysisLoading) {
       fetchAnalysis();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'products') fetchProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'ad-creator') fetchProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
@@ -195,18 +222,54 @@ function App() {
     }
   };
 
+  const BATCH_SIZE = 5;
+  const BATCH_COOLDOWN_SECONDS = 320;
+
   const createCampaign = async (payload) => {
+    const allCreatives = payload.creatives || [];
+    const batches = [];
+    for (let i = 0; i < allCreatives.length; i += BATCH_SIZE) {
+      batches.push(allCreatives.slice(i, i + BATCH_SIZE));
+    }
+
     try {
       setBuilderLoading(true);
       setBuilderResult(null);
-      const response = await axios.post(`${API_BASE_URL}/api/campaign-builder/create`, {
+      setBatchUpload(null);
+
+      const firstResponse = await axios.post(`${API_BASE_URL}/api/campaign-builder/create`, {
         ...payload,
+        creatives: batches[0],
         userId: user.id
       }, metaRequestConfig(metaConnection));
-      setBuilderResult(response.data);
-      await fetchCampaignAnalysis();
-      await fetchApprovalActions();
-      setActiveTab('approval');
+
+      if (!firstResponse.data.success) {
+        setBuilderResult(firstResponse.data);
+        return;
+      }
+
+      if (batches.length === 1) {
+        setBuilderResult(firstResponse.data);
+        await fetchCampaignAnalysis();
+        await fetchApprovalActions();
+        setActiveTab('approval');
+        return;
+      }
+
+      const { campaign_id, adset_id } = firstResponse.data.result;
+      const remainingBatches = batches.slice(1);
+
+      setBatchUpload({
+        campaignId: campaign_id,
+        adsetId: adset_id,
+        payload: { ...payload, creatives: undefined },
+        remainingBatches,
+        completedBatches: 1,
+        totalBatches: batches.length,
+        completedAds: batches[0].length,
+        totalAds: allCreatives.length,
+        countdown: BATCH_COOLDOWN_SECONDS
+      });
     } catch (error) {
       console.error('Error creando campaña:', error);
       setBuilderResult({
@@ -215,6 +278,47 @@ function App() {
       });
     } finally {
       setBuilderLoading(false);
+    }
+  };
+
+  const uploadNextBatch = async () => {
+    if (!batchUpload || batchUpload.remainingBatches.length === 0) return;
+    const { campaignId, adsetId, payload, remainingBatches, completedBatches, completedAds, totalBatches, totalAds } = batchUpload;
+    const [nextBatch, ...rest] = remainingBatches;
+
+    try {
+      setBatchUpload(prev => ({ ...prev, countdown: null }));
+      await axios.post(`${API_BASE_URL}/api/campaign-builder/add-ads`, {
+        ...payload,
+        creatives: nextBatch,
+        campaignId,
+        adsetId
+      }, metaRequestConfig(metaConnection));
+
+      const newCompleted = completedBatches + 1;
+      const newCompletedAds = completedAds + nextBatch.length;
+
+      if (rest.length === 0) {
+        setBatchUpload(null);
+        setBuilderResult({ success: true, message: `Campaña creada con ${totalAds} creativos` });
+        await fetchCampaignAnalysis();
+        await fetchApprovalActions();
+        setActiveTab('approval');
+      } else {
+        setBatchUpload(prev => ({
+          ...prev,
+          remainingBatches: rest,
+          completedBatches: newCompleted,
+          completedAds: newCompletedAds,
+          countdown: BATCH_COOLDOWN_SECONDS
+        }));
+      }
+    } catch (error) {
+      console.error('Error subiendo tanda:', error);
+      setBatchUpload(prev => ({
+        ...prev,
+        error: error.response?.data?.error || 'Error subiendo creativos'
+      }));
     }
   };
 
@@ -282,12 +386,36 @@ function App() {
     try {
       setApprovalLoading(true);
       const response = await axios.get(`${API_BASE_URL}/api/approval-actions`);
-      setApprovalActions(response.data.actions || []);
+      const all = response.data.actions || [];
+      setNotifications(all.filter(a => a.action_suggested === 'suggest_new_campaign'));
+      setApprovalActions(all.filter(a => a.action_suggested !== 'suggest_new_campaign'));
     } catch (error) {
       console.error('Error cargando aprobación:', error);
       setApprovalActions([]);
+      setNotifications([]);
     } finally {
       setApprovalLoading(false);
+    }
+  };
+
+  const runAutoOptimize = async () => {
+    try {
+      setAutoOptimizeLoading(true);
+      await axios.post(`${API_BASE_URL}/api/auto-optimize`, { userId: user?.id }, metaRequestConfig(metaConnection));
+      await fetchApprovalActions();
+    } catch (error) {
+      console.error('Error en auto-optimización:', error);
+    } finally {
+      setAutoOptimizeLoading(false);
+    }
+  };
+
+  const dismissNotification = async (actionId) => {
+    try {
+      await axios.post(`${API_BASE_URL}/api/approval-actions/${actionId}/reject`);
+      await fetchApprovalActions();
+    } catch (error) {
+      console.error('Error descartando notificación:', error);
     }
   };
 
@@ -423,6 +551,65 @@ function App() {
     }
   };
 
+  const fetchProducts = async () => {
+    try {
+      setProductsLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/api/products`);
+      setProducts(response.data.products || []);
+    } catch (error) {
+      console.error('Error cargando productos:', error);
+    } finally {
+      setProductsLoading(false);
+    }
+  };
+
+  const saveProduct = async (productData) => {
+    try {
+      setProductsLoading(true);
+      if (editingProduct) {
+        await axios.put(`${API_BASE_URL}/api/products/${editingProduct.id}`, productData);
+      } else {
+        await axios.post(`${API_BASE_URL}/api/products`, productData);
+      }
+      setShowProductForm(false);
+      setEditingProduct(null);
+      await fetchProducts();
+    } catch (error) {
+      console.error('Error guardando producto:', error);
+    } finally {
+      setProductsLoading(false);
+    }
+  };
+
+  const deleteProduct = async (id) => {
+    if (!confirm('¿Eliminar este producto?')) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/api/products/${id}`);
+      await fetchProducts();
+    } catch (error) {
+      console.error('Error eliminando producto:', error);
+    }
+  };
+
+  const generateAdImage = async (formData) => {
+    try {
+      setImageGenLoading(true);
+      setGeneratedImage(null);
+      const headers = openaiKey ? { 'x-openai-key': openaiKey } : {};
+      const response = await axios.post(`${API_BASE_URL}/api/generate-image`, formData, { headers });
+      setGeneratedImage(response.data.imageUrl);
+    } catch (error) {
+      alert(error.response?.data?.error || 'Error generando imagen');
+    } finally {
+      setImageGenLoading(false);
+    }
+  };
+
+  const saveOpenaiKey = (key) => {
+    try { localStorage.setItem('openai_key', key); } catch {}
+    setOpenaiKey(key);
+  };
+
   const logout = () => {
     localStorage.removeItem('metaflow_user');
     setUser(null);
@@ -478,6 +665,18 @@ function App() {
             icon={<Bot size={20} />}
             label="Análisis IA"
             onClick={() => setActiveTab('analysis')}
+          />
+          <NavItem
+            active={activeTab === 'products'}
+            icon={<ShoppingBag size={20} />}
+            label="Productos"
+            onClick={() => setActiveTab('products')}
+          />
+          <NavItem
+            active={activeTab === 'ad-creator'}
+            icon={<Wand2 size={20} />}
+            label="Crear Imagen IA"
+            onClick={() => setActiveTab('ad-creator')}
           />
           <NavItem
             active={activeTab === 'guide'}
@@ -552,6 +751,9 @@ function App() {
             objectives={objectives}
             loading={builderLoading}
             result={builderResult}
+            batchUpload={batchUpload}
+            onBatchReady={uploadNextBatch}
+            onBatchTick={(seconds) => setBatchUpload(prev => prev ? { ...prev, countdown: seconds } : null)}
             onCreate={createCampaign}
             onGenerateCopy={generateCopy}
           />
@@ -559,10 +761,15 @@ function App() {
         {activeTab === 'approval' && (
           <ApprovalView
             actions={approvalActions}
+            notifications={notifications}
             loading={approvalLoading}
+            autoOptimizeLoading={autoOptimizeLoading}
             onRefresh={fetchApprovalActions}
             onPublish={publishApprovalAction}
             onReject={rejectApprovalAction}
+            onAutoOptimize={runAutoOptimize}
+            onDismissNotification={dismissNotification}
+            onCreateSimilar={(actionId) => { dismissNotification(actionId); setActiveTab('builder'); }}
             user={user}
           />
         )}
@@ -581,6 +788,32 @@ function App() {
           />
         )}
         {activeTab === 'guide' && <GuideView />}
+        {activeTab === 'products' && (
+          <ProductsView
+            products={products}
+            loading={productsLoading}
+            showForm={showProductForm}
+            editingProduct={editingProduct}
+            onNew={() => { setEditingProduct(null); setShowProductForm(true); }}
+            onEdit={(p) => { setEditingProduct(p); setShowProductForm(true); }}
+            onDelete={deleteProduct}
+            onSave={saveProduct}
+            onCancelForm={() => { setShowProductForm(false); setEditingProduct(null); }}
+          />
+        )}
+        {activeTab === 'ad-creator' && (
+          <AdCreatorView
+            products={products}
+            loading={imageGenLoading}
+            generatedImage={generatedImage}
+            openaiKey={openaiKey}
+            adForm={adForm}
+            onFormChange={(f) => setAdForm(f)}
+            onGenerate={generateAdImage}
+            onSaveOpenaiKey={saveOpenaiKey}
+            onClearImage={() => setGeneratedImage(null)}
+          />
+        )}
       </main>
       {selectedCampaign && (
         <CampaignDetailDrawer
@@ -733,7 +966,11 @@ const RULE_ACTIONS = [
   { value: 'reduce_budget',   label: 'Reducir presupuesto' },
   { value: 'notify',          label: 'Notificar' }
 ];
-const ACTION_LABEL = Object.fromEntries(RULE_ACTIONS.map(a => [a.value, a.label]));
+const ACTION_LABEL = {
+  ...Object.fromEntries(RULE_ACTIONS.map(a => [a.value, a.label])),
+  scale_budget_auto:    'Presupuesto escalado (+25%)',
+  suggest_new_campaign: 'Oportunidad detectada'
+};
 
 const OBJECTIVE_HINTS = {
   OUTCOME_SALES:      'Mayor número de compras al menor costo posible · Puja automática · Evento: Compra en Pixel',
@@ -984,7 +1221,16 @@ function CampaignCardContent({ campaign }) {
   );
 }
 
-function CampaignBuilderView({ assets, copyLoading, objectives, loading, result, onCreate, onGenerateCopy }) {
+function CampaignBuilderView({ assets, copyLoading, objectives, loading, result, batchUpload, onBatchReady, onBatchTick, onCreate, onGenerateCopy }) {
+  useEffect(() => {
+    if (!batchUpload || batchUpload.countdown === null || batchUpload.countdown <= 0) {
+      if (batchUpload && batchUpload.countdown === 0) onBatchReady();
+      return;
+    }
+    const timer = setTimeout(() => onBatchTick(batchUpload.countdown - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [batchUpload?.countdown]);
+
   const [form, setForm] = useState({
     objective: 'OUTCOME_SALES',
     country: 'CO',
@@ -1086,6 +1332,35 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
     }));
   };
 
+  if (batchUpload) {
+    const { completedAds, totalAds, completedBatches, totalBatches, countdown, error } = batchUpload;
+    const pct = Math.round((completedAds / totalAds) * 100);
+    const mins = Math.floor((countdown || 0) / 60);
+    const secs = String((countdown || 0) % 60).padStart(2, '0');
+    return (
+      <section className="card builder-panel" style={{ textAlign: 'center', padding: '48px 32px' }}>
+        <Zap size={36} style={{ color: '#6366f1', marginBottom: '16px' }} />
+        <h2>Subiendo creativos por tandas</h2>
+        <p className="muted-copy" style={{ marginBottom: '24px' }}>
+          Tanda {completedBatches} de {totalBatches} completada — {completedAds} de {totalAds} creativos subidos
+        </p>
+        <div style={{ background: '#e5e7eb', borderRadius: '999px', height: '8px', margin: '0 auto 24px', maxWidth: '400px' }}>
+          <div style={{ background: '#6366f1', borderRadius: '999px', height: '8px', width: `${pct}%`, transition: 'width 0.5s' }} />
+        </div>
+        {error ? (
+          <p style={{ color: '#ef4444' }}>{error}</p>
+        ) : countdown > 0 ? (
+          <>
+            <p style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '2px', margin: '0 0 8px' }}>{mins}:{secs}</p>
+            <p className="muted-copy">Esperando para no superar los límites de Meta Ads</p>
+          </>
+        ) : (
+          <p className="muted-copy"><FuturisticLoader small /> Subiendo siguiente tanda...</p>
+        )}
+      </section>
+    );
+  }
+
   return (
     <form className="builder-wizard" onSubmit={handleSubmit}>
       <section className="card builder-panel">
@@ -1153,7 +1428,7 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
             <label className="upload-zone" onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}>
               <Upload size={26} />
               <span>Arrastra o sube tus creativos</span>
-              <small>Imágenes JPG/PNG o videos MP4/MOV. La app creará un anuncio por creativo.</small>
+              <small>Imágenes JPG/PNG o videos MP4/MOV. La app creará un anuncio por creativo y subirá en tandas de 5.</small>
               <input type="file" accept="image/png,image/jpeg,video/mp4,video/quicktime" multiple onChange={handleFiles} />
             </label>
             {creatives.length > 0 && (
@@ -1537,59 +1812,97 @@ function SettingsView({ connection, metaConnection, loading, onConnect, onRefres
   );
 }
 
-function ApprovalView({ actions, loading, onPublish, onRefresh, onReject, user }) {
+function ApprovalView({ actions, notifications, loading, autoOptimizeLoading, onPublish, onRefresh, onReject, onAutoOptimize, onDismissNotification, onCreateSimilar, user }) {
   return (
-    <section className="card table-card">
-      <div className="approval-header">
-        <div>
-          <h2>Aprobación final</h2>
-          <p className="muted-copy">Campañas y acciones listas para revisar antes de publicar.</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {notifications.length > 0 && (
+        <section className="card">
+          <div className="approval-header">
+            <div>
+              <h2>Oportunidades detectadas</h2>
+              <p className="muted-copy">Campañas con alto rendimiento donde podrías lanzar nuevos creativos.</p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
+            {notifications.map((n) => (
+              <div key={n.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '16px', background: 'var(--bg-secondary, #f9fafb)', borderRadius: '10px', border: '1px solid var(--border, #e5e7eb)' }}>
+                <Sparkles size={22} style={{ color: '#f59e0b', flexShrink: 0, marginTop: '2px' }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <strong style={{ display: 'block', marginBottom: '4px' }}>{n.campaign_name}</strong>
+                  <p className="muted-copy" style={{ margin: 0 }}>{n.reason}</p>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                  <button className="primary-button compact-button" onClick={() => onCreateSimilar(n.id)}>
+                    <Plus size={15} /> Crear campaña similar
+                  </button>
+                  <button className="secondary-button compact-button" onClick={() => onDismissNotification(n.id)}>
+                    <XCircle size={15} /> Descartar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="card table-card">
+        <div className="approval-header">
+          <div>
+            <h2>Aprobación final</h2>
+            <p className="muted-copy">Campañas y acciones listas para revisar antes de publicar.</p>
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="secondary-button compact-button" onClick={onAutoOptimize} disabled={autoOptimizeLoading || loading}>
+              {autoOptimizeLoading ? <FuturisticLoader small /> : <Zap size={16} />}
+              Auto-optimizar
+            </button>
+            <button className="secondary-button compact-button" onClick={onRefresh} disabled={loading}>
+              {loading ? <FuturisticLoader small /> : <ShieldCheck size={18} />}
+              Actualizar
+            </button>
+          </div>
         </div>
-        <button className="secondary-button compact-button" onClick={onRefresh} disabled={loading}>
-          {loading ? <FuturisticLoader small /> : <ShieldCheck size={18} />}
-          Actualizar
-        </button>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Campaña</th>
-            <th>Acción Sugerida</th>
-            <th>Motivo</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {loading && (
+        <table>
+          <thead>
             <tr>
-              <td colSpan="4"><div className="empty-state"><FuturisticLoader small /> Cargando aprobación...</div></td>
+              <th>Campaña</th>
+              <th>Acción Sugerida</th>
+              <th>Motivo</th>
+              <th>Acciones</th>
             </tr>
-          )}
-          {!loading && actions.length === 0 && (
-            <tr>
-              <td>Campañas de {user.name}</td>
-              <td><span className="badge">Sin pendientes</span></td>
-              <td className="muted-copy">No hay acciones pendientes hoy</td>
-              <td className="approval-actions">
-                <button aria-label="Aprobar acción" disabled><CheckCircle2 size={20} /></button>
-                <button aria-label="Rechazar acción" disabled><XCircle size={20} /></button>
-              </td>
-            </tr>
-          )}
-          {!loading && actions.map((action) => (
-            <tr key={action.id}>
-              <td>{action.campaign_name || action.campaign_id}</td>
-              <td><span className="badge warning-badge">{ACTION_LABEL[action.action_suggested] || action.action_suggested}</span></td>
-              <td className="muted-copy">{action.reason}</td>
-              <td className="approval-actions">
-                <button aria-label="Publicar campaña" onClick={() => onPublish(action.id)} disabled={loading}><CheckCircle2 size={20} /></button>
-                <button aria-label="Rechazar acción" onClick={() => onReject(action.id)} disabled={loading}><XCircle size={20} /></button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </section>
+          </thead>
+          <tbody>
+            {loading && (
+              <tr>
+                <td colSpan="4"><div className="empty-state"><FuturisticLoader small /> Cargando aprobación...</div></td>
+              </tr>
+            )}
+            {!loading && actions.length === 0 && (
+              <tr>
+                <td>Campañas de {user.name}</td>
+                <td><span className="badge">Sin pendientes</span></td>
+                <td className="muted-copy">No hay acciones pendientes hoy</td>
+                <td className="approval-actions">
+                  <button aria-label="Aprobar acción" disabled><CheckCircle2 size={20} /></button>
+                  <button aria-label="Rechazar acción" disabled><XCircle size={20} /></button>
+                </td>
+              </tr>
+            )}
+            {!loading && actions.map((action) => (
+              <tr key={action.id}>
+                <td>{action.campaign_name || action.campaign_id}</td>
+                <td><span className="badge warning-badge">{ACTION_LABEL[action.action_suggested] || action.action_suggested}</span></td>
+                <td className="muted-copy">{action.reason}</td>
+                <td className="approval-actions">
+                  <button aria-label="Aprobar acción" onClick={() => onPublish(action.id)} disabled={loading}><CheckCircle2 size={20} /></button>
+                  <button aria-label="Rechazar acción" onClick={() => onReject(action.id)} disabled={loading}><XCircle size={20} /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    </div>
   );
 }
 
@@ -1602,7 +1915,9 @@ function getTitle(activeTab) {
     approval: 'Acciones Pendientes',
     settings: 'Conexión con Meta Ads',
     analysis: 'Análisis con IA',
-    guide: 'Guía de Configuración'
+    guide: 'Guía de Configuración',
+    products: 'Vitrina de Productos',
+    'ad-creator': 'Creador de Anuncios IA'
   };
 
   return titles[activeTab];
@@ -1899,6 +2214,324 @@ function metaRequestConfig(connection, anthropicKey) {
       ...(anthropicKey ? { 'x-anthropic-api-key': anthropicKey } : {})
     }
   };
+}
+
+function ProductsView({ products, loading, showForm, editingProduct, onNew, onEdit, onDelete, onSave, onCancelForm }) {
+  const emptyForm = { name: '', description: '', price: '', currency: 'COP', image_url: '', product_url: '', category: '', tags: '' };
+  const [form, setForm] = useState(editingProduct ? { ...emptyForm, ...editingProduct } : emptyForm);
+
+  useEffect(() => {
+    setForm(editingProduct ? { ...emptyForm, ...editingProduct } : emptyForm);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingProduct]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({ ...form, price: form.price ? parseFloat(form.price) : null });
+  };
+
+  return (
+    <div className="products-view">
+      <div className="products-header">
+        <p className="products-subtitle">Gestiona tu catálogo de productos y úsalos para crear anuncios.</p>
+        <button className="primary-button" onClick={onNew}>
+          <Plus size={16} /> Agregar Producto
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="modal-overlay">
+          <div className="modal-panel">
+            <div className="modal-header">
+              <h2>{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</h2>
+              <button className="icon-button" onClick={onCancelForm}><XCircle size={22} /></button>
+            </div>
+            <form className="product-form" onSubmit={handleSubmit}>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Nombre del producto *</label>
+                  <input className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ej: Camiseta Premium Negra" required />
+                </div>
+                <div className="form-group">
+                  <label>Categoría</label>
+                  <input className="form-input" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="Ej: Ropa, Electrónica, Hogar" />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Descripción</label>
+                <textarea className="form-input" rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Describe el producto para usarlo en la generación de anuncios..." />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Precio</label>
+                  <input className="form-input" type="number" step="0.01" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} placeholder="0.00" />
+                </div>
+                <div className="form-group">
+                  <label>Moneda</label>
+                  <select className="form-input" value={form.currency} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}>
+                    <option value="COP">COP</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="MXN">MXN</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-group">
+                <label>URL de imagen</label>
+                <input className="form-input" value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} placeholder="https://..." />
+              </div>
+              <div className="form-group">
+                <label>Link del producto</label>
+                <input className="form-input" value={form.product_url} onChange={e => setForm(f => ({ ...f, product_url: e.target.value }))} placeholder="https://tutienda.com/producto" />
+              </div>
+              <div className="form-group">
+                <label>Tags (separados por coma)</label>
+                <input className="form-input" value={form.tags} onChange={e => setForm(f => ({ ...f, tags: e.target.value }))} placeholder="oferta, nuevo, destacado" />
+              </div>
+              <div className="form-actions">
+                <button type="button" className="secondary-button" onClick={onCancelForm}>Cancelar</button>
+                <button type="submit" className="primary-button" disabled={loading}>
+                  {loading ? <Loader2 className="spin" size={16} /> : <CheckCircle2 size={16} />}
+                  {editingProduct ? 'Guardar cambios' : 'Crear producto'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {loading && !products.length && (
+        <div className="products-loading"><Loader2 className="spin" size={28} /><span>Cargando productos...</span></div>
+      )}
+
+      {!loading && products.length === 0 && !showForm && (
+        <div className="products-empty">
+          <Package size={48} color="#6366f1" />
+          <h3>No tienes productos aún</h3>
+          <p>Agrega tu primer producto para empezar a crear anuncios personalizados.</p>
+          <button className="primary-button" onClick={onNew}><Plus size={16} /> Agregar Producto</button>
+        </div>
+      )}
+
+      <div className="products-grid">
+        {products.map(product => (
+          <div key={product.id} className="product-card">
+            <div className="product-card-image">
+              {product.image_url
+                ? <img src={product.image_url} alt={product.name} />
+                : <div className="product-placeholder-img"><Package size={40} color="#6366f1" /></div>
+              }
+              {product.category && <span className="product-badge">{product.category}</span>}
+            </div>
+            <div className="product-card-body">
+              <h3 className="product-name">{product.name}</h3>
+              {product.description && <p className="product-desc">{product.description}</p>}
+              <div className="product-meta">
+                {product.price && (
+                  <span className="product-price">
+                    {Number(product.price).toLocaleString('es-CO')} {product.currency}
+                  </span>
+                )}
+                {product.product_url && (
+                  <a href={product.product_url} target="_blank" rel="noreferrer" className="product-link">
+                    <ExternalLink size={14} /> Ver producto
+                  </a>
+                )}
+              </div>
+              {product.tags && (
+                <div className="product-tags">
+                  {String(product.tags).split(',').map(t => t.trim()).filter(Boolean).map(tag => (
+                    <span key={tag} className="product-tag">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="product-card-actions">
+              <button className="icon-button" title="Editar" onClick={() => onEdit(product)}><Edit2 size={16} /></button>
+              <button className="icon-button danger" title="Eliminar" onClick={() => onDelete(product.id)}><Trash2 size={16} /></button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdCreatorView({ products, loading, generatedImage, openaiKey, adForm, onFormChange, onGenerate, onSaveOpenaiKey, onClearImage }) {
+  const [keyInput, setKeyInput] = useState(openaiKey || '');
+  const [showKey, setShowKey] = useState(false);
+
+  const styles = [
+    { value: 'fotorrealista', label: 'Fotorrealista', desc: 'Fotografía de producto profesional' },
+    { value: 'minimalista', label: 'Minimalista', desc: 'Diseño limpio y moderno' },
+    { value: 'lifestyle', label: 'Lifestyle', desc: 'Ambiente natural y aspiracional' },
+    { value: 'lujo', label: 'Lujo', desc: 'Elegante, fondo oscuro premium' },
+    { value: 'social-media', label: 'Social Media', desc: 'Vibrante y listo para Instagram' },
+  ];
+
+  const formats = [
+    { value: 'square', label: 'Cuadrado 1:1', desc: 'Feed de Instagram / Facebook' },
+    { value: 'vertical', label: 'Vertical 9:16', desc: 'Stories y Reels' },
+    { value: 'horizontal', label: 'Horizontal 16:9', desc: 'Banners y YouTube' },
+  ];
+
+  const handleProductSelect = (e) => {
+    const p = products.find(x => x.id === e.target.value);
+    if (p) {
+      onFormChange({ ...adForm, selectedProductId: p.id, productName: p.name, description: p.description || '' });
+    } else {
+      onFormChange({ ...adForm, selectedProductId: '', productName: '', description: '' });
+    }
+  };
+
+  const handleGenerate = (e) => {
+    e.preventDefault();
+    if (!openaiKey && !keyInput) {
+      alert('Necesitas ingresar tu API Key de OpenAI para generar imágenes.');
+      return;
+    }
+    if (keyInput && keyInput !== openaiKey) onSaveOpenaiKey(keyInput);
+    onGenerate({
+      productName: adForm.productName,
+      description: adForm.description,
+      style: adForm.style,
+      colors: adForm.colors,
+      format: adForm.format,
+      customPrompt: adForm.customPrompt || undefined
+    });
+  };
+
+  return (
+    <div className="ad-creator-view">
+      <div className="ad-creator-grid">
+        <div className="ad-creator-panel">
+          <div className="panel-title">
+            <Wand2 size={20} color="#a78bfa" />
+            <span>Configurar imagen</span>
+          </div>
+
+          <form onSubmit={handleGenerate} className="ad-creator-form">
+            {products.length > 0 && (
+              <div className="form-group">
+                <label>Seleccionar producto de la vitrina</label>
+                <select className="form-input" value={adForm.selectedProductId} onChange={handleProductSelect}>
+                  <option value="">— Selecciona un producto —</option>
+                  {products.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="form-group">
+              <label>Nombre del producto *</label>
+              <input className="form-input" value={adForm.productName} onChange={e => onFormChange({ ...adForm, productName: e.target.value })} placeholder="Ej: Zapatillas Runner Pro" required={!adForm.customPrompt} />
+            </div>
+
+            <div className="form-group">
+              <label>Descripción del producto</label>
+              <textarea className="form-input" rows={2} value={adForm.description} onChange={e => onFormChange({ ...adForm, description: e.target.value })} placeholder="Material, características, público objetivo..." />
+            </div>
+
+            <div className="form-group">
+              <label>Estilo visual</label>
+              <div className="style-grid">
+                {styles.map(s => (
+                  <button type="button" key={s.value}
+                    className={`style-option ${adForm.style === s.value ? 'active' : ''}`}
+                    onClick={() => onFormChange({ ...adForm, style: s.value })}>
+                    <strong>{s.label}</strong>
+                    <span>{s.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Paleta de colores (opcional)</label>
+              <input className="form-input" value={adForm.colors} onChange={e => onFormChange({ ...adForm, colors: e.target.value })} placeholder="Ej: azul marino, dorado, blanco" />
+            </div>
+
+            <div className="form-group">
+              <label>Formato</label>
+              <div className="format-grid">
+                {formats.map(f => (
+                  <button type="button" key={f.value}
+                    className={`format-option ${adForm.format === f.value ? 'active' : ''}`}
+                    onClick={() => onFormChange({ ...adForm, format: f.value })}>
+                    <strong>{f.label}</strong>
+                    <span>{f.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Prompt personalizado (opcional — reemplaza el automático)</label>
+              <textarea className="form-input" rows={3} value={adForm.customPrompt} onChange={e => onFormChange({ ...adForm, customPrompt: e.target.value })} placeholder="Describe exactamente la imagen que quieres generar..." />
+            </div>
+
+            <div className="form-group">
+              <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                API Key de OpenAI
+                <button type="button" className="toggle-link" onClick={() => setShowKey(v => !v)}>{showKey ? 'Ocultar' : 'Mostrar'}</button>
+              </label>
+              <input
+                className="form-input"
+                type={showKey ? 'text' : 'password'}
+                value={keyInput}
+                onChange={e => setKeyInput(e.target.value)}
+                onBlur={() => { if (keyInput) onSaveOpenaiKey(keyInput); }}
+                placeholder="sk-..."
+              />
+              <p className="field-hint">Se guarda solo en tu navegador. Obtén una en platform.openai.com</p>
+            </div>
+
+            <button type="submit" className="primary-button generate-button" disabled={loading}>
+              {loading ? <><Loader2 className="spin" size={18} /> Generando imagen...</> : <><Sparkles size={18} /> Generar imagen con IA</>}
+            </button>
+          </form>
+        </div>
+
+        <div className="ad-creator-result">
+          <div className="panel-title">
+            <Image size={20} color="#a78bfa" />
+            <span>Imagen generada</span>
+          </div>
+
+          {loading && (
+            <div className="result-loading">
+              <div className="ai-pulse" />
+              <p>DALL-E 3 está creando tu imagen...</p>
+              <p className="result-hint">Esto puede tomar 15-30 segundos</p>
+            </div>
+          )}
+
+          {!loading && !generatedImage && (
+            <div className="result-empty">
+              <Wand2 size={52} color="#6366f1" />
+              <p>Tu imagen aparecerá aquí</p>
+              <p className="result-hint">Configura los parámetros y haz clic en Generar</p>
+            </div>
+          )}
+
+          {!loading && generatedImage && (
+            <div className="result-image-wrapper">
+              <img src={generatedImage} alt="Imagen generada" className="result-image" />
+              <div className="result-actions">
+                <a href={generatedImage} download="anuncio-ia.png" target="_blank" rel="noreferrer" className="primary-button">
+                  <Upload size={16} /> Descargar
+                </a>
+                <button className="secondary-button" onClick={onClearImage}>
+                  <XCircle size={16} /> Limpiar
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default App;

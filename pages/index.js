@@ -937,6 +937,8 @@ function AuthView({ onAuth, initialMode = 'login' }) {
 
     try {
       if (mode === 'register') {
+        setError('El registro está temporalmente cerrado. Contáctanos para obtener acceso.');
+        return;
         const { data, error: err } = await supabase.auth.signUp({
           email: form.email,
           password: form.password,
@@ -1020,7 +1022,6 @@ function AuthView({ onAuth, initialMode = 'login' }) {
 
         <div className="auth-mode-tabs">
           <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => { setMode('login'); setError(''); }}>Iniciar sesión</button>
-          <button type="button" className={mode === 'register' ? 'active' : ''} onClick={() => { setMode('register'); setError(''); }}>Registrarse</button>
         </div>
 
         <div className="auth-fields">
@@ -1048,11 +1049,7 @@ function AuthView({ onAuth, initialMode = 'login' }) {
         </button>
 
         <p className="auth-footer-text">
-          {mode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
-          {' '}
-          <button type="button" className="auth-link" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}>
-            {mode === 'login' ? 'Regístrate gratis' : 'Inicia sesión'}
-          </button>
+          ¿Quieres acceso? Contáctanos para más información.
         </p>
       </form>
     </main>

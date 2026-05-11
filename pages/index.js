@@ -85,7 +85,7 @@ function App() {
   const [googleAiKey, setGoogleAiKey] = useState(() => { try { return localStorage.getItem('google_ai_key') || ''; } catch { return ''; } });
   const [imageGenLoading, setImageGenLoading] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
-  const [adForm, setAdForm] = useState({ productName: '', description: '', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'square', selectedProductId: '', productImageBase64: '', productImageName: '', angles: ['pain', 'desire', 'transformation', 'objection', 'urgency', 'authority'] });
+  const [adForm, setAdForm] = useState({ productName: '', description: '', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'square', selectedProductId: '', productImageBase64: '', productImageName: '', angles: ['pain', 'desire', 'transformation', 'objection', 'urgency', 'authority', 'comparison', 'guarantee', 'social_proof', 'curiosity', 'price'] });
   const [builderPrefill, setBuilderPrefill] = useState(null);
   const [libraryCreatives, setLibraryCreatives] = useState([]);
   const [libraryLoading, setLibraryLoading] = useState(false);
@@ -831,6 +831,7 @@ function App() {
             onGenerateCopy={generateCopy}
             prefill={builderPrefill}
             onPrefillApplied={() => setBuilderPrefill(null)}
+            onGoToCreator={() => setActiveTab('ad-creator')}
           />
         )}
         {activeTab === 'approval' && (
@@ -1396,7 +1397,7 @@ function CampaignCardContent({ campaign }) {
   );
 }
 
-function CampaignBuilderView({ assets, copyLoading, objectives, loading, result, batchUpload, onBatchReady, onBatchTick, onCreate, onGenerateCopy, prefill, onPrefillApplied }) {
+function CampaignBuilderView({ assets, copyLoading, objectives, loading, result, batchUpload, onBatchReady, onBatchTick, onCreate, onGenerateCopy, prefill, onPrefillApplied, onGoToCreator }) {
   useEffect(() => {
     if (!batchUpload || batchUpload.countdown === null || batchUpload.countdown <= 0) {
       if (batchUpload && batchUpload.countdown === 0) onBatchReady();
@@ -1615,6 +1616,14 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
 
         {step === 2 && (
           <div className="wizard-pane">
+            {creatives.length === 0 && (
+              <div className="no-creatives-banner">
+                <span className="no-creatives-text">¿No tienes imágenes? Créalas con IA en segundos</span>
+                <button type="button" className="no-creatives-btn" onClick={onGoToCreator}>
+                  Ir al Creador de Imágenes →
+                </button>
+              </div>
+            )}
             <label className="upload-zone" onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}>
               <Upload size={26} />
               <span>Arrastra o sube tus creativos</span>
@@ -2635,12 +2644,17 @@ function ResultCard({ img, onLaunch, onSave }) {
 }
 
 const ANGLE_OPTIONS = [
-  { value: 'pain',           label: 'Dolor',          emoji: '😣', desc: 'El problema que resuelves' },
-  { value: 'desire',         label: 'Deseo',           emoji: '✨', desc: 'La vida ideal con el producto' },
-  { value: 'transformation', label: 'Transformación',  emoji: '🔄', desc: 'Antes vs Después' },
-  { value: 'objection',      label: 'Objeción',        emoji: '🤔', desc: 'Vence el escepticismo' },
-  { value: 'urgency',        label: 'Urgencia',        emoji: '⚡', desc: 'Actúa ahora' },
-  { value: 'authority',      label: 'Autoridad',       emoji: '🏆', desc: 'Credibilidad y confianza' },
+  { value: 'pain',           label: 'Dolor',           emoji: '😣', desc: 'El problema que resuelves' },
+  { value: 'desire',         label: 'Deseo',            emoji: '✨', desc: 'La vida ideal con el producto' },
+  { value: 'transformation', label: 'Transformación',   emoji: '🔄', desc: 'Antes vs Después' },
+  { value: 'objection',      label: 'Objeción',         emoji: '🤔', desc: 'Vence el escepticismo' },
+  { value: 'urgency',        label: 'Urgencia',         emoji: '⚡', desc: 'Actúa ahora' },
+  { value: 'authority',      label: 'Autoridad',        emoji: '🏆', desc: 'Credibilidad y confianza' },
+  { value: 'comparison',     label: 'Comparativa',      emoji: '⚖️', desc: 'Nosotros vs la competencia' },
+  { value: 'guarantee',      label: 'Garantía',         emoji: '🛡️', desc: 'Sin riesgo, 100% garantizado' },
+  { value: 'social_proof',   label: 'Prueba Social',    emoji: '⭐', desc: 'Miles ya lo compraron' },
+  { value: 'curiosity',      label: 'Curiosidad',       emoji: '🤫', desc: 'El secreto que nadie te contó' },
+  { value: 'price',          label: 'Precio/Oferta',    emoji: '💰', desc: 'Descuento especial limitado' },
 ];
 
 function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm, onFormChange, onGenerate, onSaveGoogleAiKey, onClearImages, onLaunchInBuilder, onSaveCreative }) {

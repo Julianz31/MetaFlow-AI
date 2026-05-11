@@ -2342,6 +2342,29 @@ td {
 }
 .result-card-download:hover { background: rgba(99,102,241,0.25); }
 
+/* URL image loader */
+.url-image-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  align-items: center;
+}
+.url-image-row .acp-input { flex: 1; margin: 0; }
+.url-load-btn {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(99,102,241,0.4);
+  border-radius: 8px;
+  background: rgba(99,102,241,0.1);
+  color: #c4b5fd;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.url-load-btn:hover:not(:disabled) { background: rgba(99,102,241,0.2); }
+.url-load-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* Result card action buttons */
 .result-card-actions {
   display: flex;

@@ -2666,6 +2666,9 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
     }
   };
 
+  const [urlInput, setUrlInput] = useState('');
+  const [urlLoading, setUrlLoading] = useState(false);
+
   const handleImageFile = (file) => {
     if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
@@ -2674,6 +2677,29 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
       onFormChange({ ...adForm, productImageBase64: base64, productImageName: file.name });
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleImageUrl = async () => {
+    if (!urlInput.trim()) return;
+    try {
+      setUrlLoading(true);
+      const res = await fetch(urlInput.trim());
+      if (!res.ok) throw new Error('No se pudo cargar la imagen');
+      const blob = await res.blob();
+      if (!blob.type.startsWith('image/')) throw new Error('La URL no es una imagen válida');
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const base64 = ev.target.result.split(',')[1];
+        const name = urlInput.split('/').pop().split('?')[0] || 'imagen-url.jpg';
+        onFormChange({ ...adForm, productImageBase64: base64, productImageName: name });
+        setUrlInput('');
+      };
+      reader.readAsDataURL(blob);
+    } catch (err) {
+      alert('No se pudo cargar la imagen desde esa URL. Intenta descargarla y subirla manualmente.');
+    } finally {
+      setUrlLoading(false);
+    }
   };
 
   const handleDrop = (e) => {
@@ -2766,6 +2792,21 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
                 )}
               </div>
               <p className="acp-hint">Gemini analizará la imagen para generar creativos fieles al producto.</p>
+              {!adForm.productImageBase64 && (
+                <div className="url-image-row">
+                  <input
+                    className="acp-input"
+                    type="url"
+                    placeholder="O pega una URL de imagen externa..."
+                    value={urlInput}
+                    onChange={e => setUrlInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleImageUrl())}
+                  />
+                  <button type="button" className="url-load-btn" onClick={handleImageUrl} disabled={urlLoading || !urlInput.trim()}>
+                    {urlLoading ? <Loader2 size={14} className="spin" /> : 'Cargar'}
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="acp-block">
@@ -2776,6 +2817,31 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
             <div className="acp-block">
               <label className="acp-label">Descripción <span className="acp-optional">opcional</span></label>
               <textarea className="acp-input" rows={2} value={adForm.description} onChange={e => onFormChange({ ...adForm, description: e.target.value })} placeholder="Material, características, público objetivo..." />
+            </div>
+
+            {/* Colores de marca */}
+            <div className="acp-block">
+              <label className="acp-label">Colores de marca</label>
+              <div className="brand-colors-row">
+                <div className="color-picker-item">
+                  <label className="color-picker-label">Primario</label>
+                  <div className="color-picker-wrap">
+                    <input type="color" className="color-native" value={adForm.primaryColor} onChange={e => onFormChange({ ...adForm, primaryColor: e.target.value })} />
+                    <div className="color-swatch" style={{ background: adForm.primaryColor }} />
+                    <span className="color-hex">{adForm.primaryColor.toUpperCase()}</span>
+                  </div>
+                </div>
+                <div className="color-divider" />
+                <div className="color-picker-item">
+                  <label className="color-picker-label">Secundario</label>
+                  <div className="color-picker-wrap">
+                    <input type="color" className="color-native" value={adForm.secondaryColor} onChange={e => onFormChange({ ...adForm, secondaryColor: e.target.value })} />
+                    <div className="color-swatch" style={{ background: adForm.secondaryColor }} />
+                    <span className="color-hex">{adForm.secondaryColor.toUpperCase()}</span>
+                  </div>
+                </div>
+              </div>
+              <p className="acp-hint">Gemini usará estos colores como acento en los textos y elementos del creativo.</p>
             </div>
 
             {/* Ángulos de venta */}

@@ -552,10 +552,12 @@ function App() {
     }
   };
 
+  const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+
   const fetchProducts = async () => {
     try {
       setProductsLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/products?userId=${user?.id || ''}`);
+      const response = await axios.get(`${API_BASE_URL}/api/products`);
       setProducts(response.data.products || []);
     } catch (error) {
       console.error('Error cargando productos:', error);
@@ -568,9 +570,9 @@ function App() {
     try {
       setProductsLoading(true);
       if (editingProduct) {
-        await axios.put(`${API_BASE_URL}/api/products/${editingProduct.id}`, { ...productData, userId: user?.id });
+        await axios.put(`${API_BASE_URL}/api/products/${editingProduct.id}`, { ...productData, userEmail: user?.email });
       } else {
-        await axios.post(`${API_BASE_URL}/api/products`, { ...productData, userId: user?.id });
+        await axios.post(`${API_BASE_URL}/api/products`, { ...productData, userEmail: user?.email });
       }
       setShowProductForm(false);
       setEditingProduct(null);
@@ -585,7 +587,7 @@ function App() {
   const deleteProduct = async (id) => {
     if (!confirm('¿Eliminar este producto?')) return;
     try {
-      await axios.delete(`${API_BASE_URL}/api/products/${id}?userId=${user?.id || ''}`);
+      await axios.delete(`${API_BASE_URL}/api/products/${id}?userEmail=${encodeURIComponent(user?.email || '')}`);
       await fetchProducts();
     } catch (error) {
       console.error('Error eliminando producto:', error);
@@ -798,6 +800,7 @@ function App() {
             loading={productsLoading}
             showForm={showProductForm}
             editingProduct={editingProduct}
+            isAdmin={isAdmin}
             onNew={() => { setEditingProduct(null); setShowProductForm(true); }}
             onEdit={(p) => { setEditingProduct(p); setShowProductForm(true); }}
             onDelete={deleteProduct}
@@ -2263,7 +2266,7 @@ function metaRequestConfig(connection, anthropicKey) {
   };
 }
 
-function ProductsView({ products, loading, showForm, editingProduct, onNew, onEdit, onDelete, onSave, onCancelForm }) {
+function ProductsView({ products, loading, showForm, editingProduct, isAdmin, onNew, onEdit, onDelete, onSave, onCancelForm }) {
   const emptyForm = { name: '', description: '', price: '', currency: 'COP', image_url: '', product_url: '', category: '', tags: '' };
   const [form, setForm] = useState(editingProduct ? { ...emptyForm, ...editingProduct } : emptyForm);
 
@@ -2280,10 +2283,12 @@ function ProductsView({ products, loading, showForm, editingProduct, onNew, onEd
   return (
     <div className="products-view">
       <div className="products-header">
-        <p className="products-subtitle">Gestiona tu catálogo de productos y úsalos para crear anuncios.</p>
-        <button className="primary-button" onClick={onNew}>
-          <Plus size={16} /> Agregar Producto
-        </button>
+        <p className="products-subtitle">{isAdmin ? 'Gestiona el catálogo de productos visible para todos los usuarios.' : 'Explora los productos disponibles y úsalos para crear anuncios.'}</p>
+        {isAdmin && (
+          <button className="primary-button" onClick={onNew}>
+            <Plus size={16} /> Agregar Producto
+          </button>
+        )}
       </div>
 
       {showForm && (
@@ -2354,9 +2359,9 @@ function ProductsView({ products, loading, showForm, editingProduct, onNew, onEd
       {!loading && products.length === 0 && !showForm && (
         <div className="products-empty">
           <Package size={48} color="#6366f1" />
-          <h3>No tienes productos aún</h3>
-          <p>Agrega tu primer producto para empezar a crear anuncios personalizados.</p>
-          <button className="primary-button" onClick={onNew}><Plus size={16} /> Agregar Producto</button>
+          <h3>{isAdmin ? 'No hay productos aún' : 'El catálogo está vacío'}</h3>
+          <p>{isAdmin ? 'Agrega tu primer producto para que los usuarios puedan verlo.' : 'Pronto habrá productos disponibles aquí.'}</p>
+          {isAdmin && <button className="primary-button" onClick={onNew}><Plus size={16} /> Agregar Producto</button>}
         </div>
       )}
 
@@ -2393,10 +2398,12 @@ function ProductsView({ products, loading, showForm, editingProduct, onNew, onEd
                 </div>
               )}
             </div>
-            <div className="product-card-actions">
-              <button className="icon-button" title="Editar" onClick={() => onEdit(product)}><Edit2 size={16} /></button>
-              <button className="icon-button danger" title="Eliminar" onClick={() => onDelete(product.id)}><Trash2 size={16} /></button>
-            </div>
+            {isAdmin && (
+              <div className="product-card-actions">
+                <button className="icon-button" title="Editar" onClick={() => onEdit(product)}><Edit2 size={16} /></button>
+                <button className="icon-button danger" title="Eliminar" onClick={() => onDelete(product.id)}><Trash2 size={16} /></button>
+              </div>
+            )}
           </div>
         ))}
       </div>

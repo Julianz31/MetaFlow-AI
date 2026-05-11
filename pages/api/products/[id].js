@@ -1,8 +1,15 @@
 const { getSupabase } = require('../../../lib/supabase');
 
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+
 export default async function handler(req, res) {
   const supabase = getSupabase();
-  const { id, userId } = req.query;
+  const { id } = req.query;
+  const userEmail = req.body?.userEmail || req.query?.userEmail;
+
+  if (userEmail !== ADMIN_EMAIL) {
+    return res.status(403).json({ error: 'Solo el administrador puede modificar productos' });
+  }
 
   if (req.method === 'PUT') {
     const { name, description, price, currency, image_url, product_url, category, tags } = req.body;
@@ -19,10 +26,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'DELETE') {
-    let query = supabase.from('products').delete().eq('id', id);
-    if (userId) query = query.eq('user_id', userId);
-
-    const { error } = await query;
+    const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) return res.status(500).json({ error: error.message });
     return res.status(200).json({ success: true });
   }

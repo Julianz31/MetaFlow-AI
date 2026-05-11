@@ -10,6 +10,8 @@ const GEMINI_VISION_URL = (key) =>
 const GEMINI_IMAGE_URL = (key) =>
   `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${key}`;
 
+const NO_PRODUCT_RULE = `CRITICAL RULE: Do NOT generate, draw, or include any product, bottle, dropper, container, package, box, or physical item in the scene. The actual product image will be composited on top separately. Only generate people, environments, text overlays, graphic design elements, and layout.`;
+
 function formatHint(format) {
   if (format === 'vertical') return 'Format: vertical 9:16 portrait composition optimized for Stories/Reels.';
   if (format === 'horizontal') return 'Format: horizontal 16:9 landscape composition optimized for banners.';
@@ -39,6 +41,7 @@ DESIGN RULES:
 - Professional advertising typography — think top-tier agency work
 - ALL TEXT IN SPANISH, specific to the product's actual benefits
 
+${NO_PRODUCT_RULE}
 ${formatHint(format)}
 `.trim(),
   },
@@ -66,6 +69,7 @@ DESIGN RULES:
 - Professional advertising typography
 - ALL TEXT IN SPANISH
 
+${NO_PRODUCT_RULE}
 ${formatHint(format)}
 `.trim(),
   },
@@ -96,6 +100,7 @@ DESIGN RULES:
 - Professional agency-quality layout
 - ALL TEXT IN SPANISH
 
+${NO_PRODUCT_RULE}
 ${formatHint(format)}
 `.trim(),
   },
@@ -123,6 +128,7 @@ DESIGN RULES:
 - Leave a clear centered lower area for product placement overlay
 - ALL TEXT IN SPANISH, realistic testimonials specific to the product's benefits
 
+${NO_PRODUCT_RULE}
 ${formatHint(format)}
 `.trim(),
   },
@@ -151,6 +157,7 @@ DESIGN RULES:
 - Leave a clear centered middle area for product placement overlay
 - ALL TEXT IN SPANISH
 
+${NO_PRODUCT_RULE}
 ${formatHint(format)}
 `.trim(),
   },
@@ -179,6 +186,7 @@ DESIGN RULES:
 - Leave a clear centered lower area for product placement overlay
 - ALL TEXT IN SPANISH
 
+${NO_PRODUCT_RULE}
 ${formatHint(format)}
 `.trim(),
   },

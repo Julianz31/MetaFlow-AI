@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
+import { getSupabaseBrowser } from '../lib/supabase-browser';
 import {
   BookOpen,
   Bot,
@@ -554,7 +555,7 @@ function App() {
   const fetchProducts = async () => {
     try {
       setProductsLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/products`);
+      const response = await axios.get(`${API_BASE_URL}/api/products?userId=${user?.id || ''}`);
       setProducts(response.data.products || []);
     } catch (error) {
       console.error('Error cargando productos:', error);
@@ -567,9 +568,9 @@ function App() {
     try {
       setProductsLoading(true);
       if (editingProduct) {
-        await axios.put(`${API_BASE_URL}/api/products/${editingProduct.id}`, productData);
+        await axios.put(`${API_BASE_URL}/api/products/${editingProduct.id}`, { ...productData, userId: user?.id });
       } else {
-        await axios.post(`${API_BASE_URL}/api/products`, productData);
+        await axios.post(`${API_BASE_URL}/api/products`, { ...productData, userId: user?.id });
       }
       setShowProductForm(false);
       setEditingProduct(null);
@@ -584,7 +585,7 @@ function App() {
   const deleteProduct = async (id) => {
     if (!confirm('¿Eliminar este producto?')) return;
     try {
-      await axios.delete(`${API_BASE_URL}/api/products/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/products/${id}?userId=${user?.id || ''}`);
       await fetchProducts();
     } catch (error) {
       console.error('Error eliminando producto:', error);
@@ -610,13 +611,16 @@ function App() {
     setOpenaiKey(key);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const supabase = getSupabaseBrowser();
+    await supabase.auth.signOut();
     localStorage.removeItem('metaflow_user');
     setUser(null);
   };
 
   if (!user) {
-    return <AuthView onAuth={setUser} />;
+    const initialMode = isBrowser && window.location.search.includes('signup=1') ? 'register' : 'login';
+    return <AuthView onAuth={setUser} initialMode={initialMode} />;
   }
 
   return (
@@ -832,52 +836,95 @@ function App() {
   );
 }
 
-function AuthView({ onAuth }) {
-  const [mode, setMode] = useState('login');
+function AuthView({ onAuth, initialMode = 'login' }) {
+  const [mode, setMode] = useState(initialMode);
   const [form, setForm] = useState({ name: '', email: '', password: '' });
-  const handleChange = (event) => {
-    setForm(current => ({ ...current, [event.target.name]: event.target.value }));
-  };
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const nextUser = {
-      id: form.email || `user_${Date.now()}`,
-      name: form.name || form.email?.split('@')[0] || 'Usuario',
-      email: form.email
-    };
-    localStorage.setItem('metaflow_user', JSON.stringify(nextUser));
-    onAuth(nextUser);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    const supabase = getSupabaseBrowser();
+
+    try {
+      if (mode === 'register') {
+        const { data, error: err } = await supabase.auth.signUp({
+          email: form.email,
+          password: form.password,
+          options: { data: { name: form.name || form.email.split('@')[0] } }
+        });
+        if (err) { setError(err.message); return; }
+        const u = data.user;
+        const nextUser = { id: u.id, name: u.user_metadata?.name || form.email.split('@')[0], email: u.email };
+        localStorage.setItem('metaflow_user', JSON.stringify(nextUser));
+        onAuth(nextUser);
+      } else {
+        const { data, error: err } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
+        if (err) { setError(err.message === 'Invalid login credentials' ? 'Email o contraseña incorrectos' : err.message); return; }
+        const u = data.user;
+        const nextUser = { id: u.id, name: u.user_metadata?.name || u.email.split('@')[0], email: u.email };
+        localStorage.setItem('metaflow_user', JSON.stringify(nextUser));
+        onAuth(nextUser);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <main className="auth-shell">
-      <form className="card auth-card" onSubmit={handleSubmit}>
-        <div className="brand auth-brand">
+      <div className="auth-bg-glow" />
+      <form className="auth-card-new" onSubmit={handleSubmit}>
+        <div className="auth-logo">
           <div className="brand-mark"><Zap size={18} /></div>
           <span>MetaFlow.AI</span>
         </div>
-        <h1>{mode === 'login' ? 'Ingresa a tu copiloto de Ads' : 'Crea tu cuenta'}</h1>
-        <p className="muted-copy">Conecta tu System User, analiza campañas y crea anuncios con IA.</p>
-        {mode === 'register' && (
-          <label>
-            Nombre
-            <input name="name" value={form.name} onChange={handleChange} placeholder="Tu nombre" />
-          </label>
-        )}
-        <label>
-          Email
-          <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="tu@email.com" required />
-        </label>
-        <label>
-          Contraseña
-          <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="••••••••" required />
-        </label>
-        <button className="primary-button" type="submit">
-          {mode === 'login' ? 'Entrar' : 'Registrarme'}
+
+        <div className="auth-header">
+          <h1>{mode === 'login' ? 'Bienvenido de nuevo' : 'Crea tu cuenta gratis'}</h1>
+          <p>{mode === 'login' ? 'Ingresa para gestionar tus Meta Ads con IA.' : 'Empieza a optimizar tus anuncios con inteligencia artificial.'}</p>
+        </div>
+
+        <div className="auth-mode-tabs">
+          <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => { setMode('login'); setError(''); }}>Iniciar sesión</button>
+          <button type="button" className={mode === 'register' ? 'active' : ''} onClick={() => { setMode('register'); setError(''); }}>Registrarse</button>
+        </div>
+
+        <div className="auth-fields">
+          {mode === 'register' && (
+            <div className="auth-field">
+              <label>Nombre</label>
+              <input name="name" value={form.name} onChange={handleChange} placeholder="Tu nombre completo" autoComplete="name" />
+            </div>
+          )}
+          <div className="auth-field">
+            <label>Email</label>
+            <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="tu@email.com" required autoComplete="email" />
+          </div>
+          <div className="auth-field">
+            <label>Contraseña</label>
+            <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="Mínimo 6 caracteres" required autoComplete={mode === 'login' ? 'current-password' : 'new-password'} minLength={6} />
+          </div>
+        </div>
+
+        {error && <div className="auth-error"><XCircle size={14} />{error}</div>}
+
+        <button className="auth-submit" type="submit" disabled={loading}>
+          {loading ? <Loader2 className="spin" size={18} /> : <Sparkles size={18} />}
+          {mode === 'login' ? 'Entrar' : 'Crear cuenta'}
         </button>
-        <button className="secondary-button compact-button" type="button" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
-          {mode === 'login' ? 'Crear cuenta' : 'Ya tengo cuenta'}
-        </button>
+
+        <p className="auth-footer-text">
+          {mode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
+          {' '}
+          <button type="button" className="auth-link" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}>
+            {mode === 'login' ? 'Regístrate gratis' : 'Inicia sesión'}
+          </button>
+        </p>
       </form>
     </main>
   );

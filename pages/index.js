@@ -6,6 +6,7 @@ import {
   Bot,
   CheckCircle2,
   BarChart3,
+  BookMarked,
   ClipboardCopy,
   Download,
   Edit2,
@@ -16,6 +17,7 @@ import {
   Loader2,
   Package,
   Plus,
+  Rocket,
   Send,
   Settings,
   ShieldCheck,
@@ -84,6 +86,9 @@ function App() {
   const [imageGenLoading, setImageGenLoading] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
   const [adForm, setAdForm] = useState({ productName: '', description: '', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'square', selectedProductId: '', productImageBase64: '', productImageName: '', angles: ['pain', 'desire', 'transformation', 'objection', 'urgency', 'authority'] });
+  const [builderPrefill, setBuilderPrefill] = useState(null);
+  const [libraryCreatives, setLibraryCreatives] = useState([]);
+  const [libraryLoading, setLibraryLoading] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'dashboard') {
@@ -135,6 +140,11 @@ function App() {
 
   useEffect(() => {
     if (activeTab === 'products') fetchProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'library') fetchLibrary();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
@@ -615,6 +625,55 @@ function App() {
     setGoogleAiKey(key);
   };
 
+  const launchInBuilder = (img) => {
+    setBuilderPrefill({
+      headline: img.copy?.headline || '',
+      primaryText: img.copy?.primaryText || '',
+      description: img.copy?.description || '',
+      creative: {
+        name: `creativo-${img.angle}.jpg`,
+        type: 'image/jpeg',
+        size: 0,
+        dataUrl: img.imageUrl,
+      },
+    });
+    setActiveTab('builder');
+  };
+
+  const fetchLibrary = async () => {
+    if (!user?.email) return;
+    try {
+      setLibraryLoading(true);
+      const res = await axios.get(`${API_BASE_URL}/api/creatives?userEmail=${encodeURIComponent(user.email)}`);
+      setLibraryCreatives(res.data.creatives || []);
+    } catch (e) {
+      console.error('Error cargando biblioteca:', e);
+    } finally {
+      setLibraryLoading(false);
+    }
+  };
+
+  const saveCreative = async (img) => {
+    if (!user?.email) return;
+    await axios.post(`${API_BASE_URL}/api/creatives`, {
+      userEmail: user.email,
+      angle: img.angle,
+      label: img.label,
+      imageBase64: img.imageUrl,
+      headline: img.copy?.headline,
+      primaryText: img.copy?.primaryText,
+      description: img.copy?.description,
+      cta: img.copy?.cta,
+      productName: adForm.productName || '',
+    });
+  };
+
+  const deleteCreative = async (id) => {
+    if (!confirm('¿Eliminar este creativo de la biblioteca?')) return;
+    await axios.delete(`${API_BASE_URL}/api/creatives/${id}`);
+    setLibraryCreatives(prev => prev.filter(c => c.id !== id));
+  };
+
   const logout = async () => {
     const supabase = getSupabaseBrowser();
     await supabase.auth.signOut();
@@ -685,6 +744,12 @@ function App() {
             icon={<Wand2 size={20} />}
             label="Crear Imagen IA"
             onClick={() => setActiveTab('ad-creator')}
+          />
+          <NavItem
+            active={activeTab === 'library'}
+            icon={<BookMarked size={20} />}
+            label="Biblioteca"
+            onClick={() => setActiveTab('library')}
           />
           <NavItem
             active={activeTab === 'guide'}
@@ -764,6 +829,8 @@ function App() {
             onBatchTick={(seconds) => setBatchUpload(prev => prev ? { ...prev, countdown: seconds } : null)}
             onCreate={createCampaign}
             onGenerateCopy={generateCopy}
+            prefill={builderPrefill}
+            onPrefillApplied={() => setBuilderPrefill(null)}
           />
         )}
         {activeTab === 'approval' && (
@@ -821,6 +888,17 @@ function App() {
             onGenerate={generateAdImage}
             onSaveGoogleAiKey={saveGoogleAiKey}
             onClearImages={() => setGeneratedImages([])}
+            onLaunchInBuilder={launchInBuilder}
+            onSaveCreative={saveCreative}
+          />
+        )}
+        {activeTab === 'library' && (
+          <LibraryView
+            creatives={libraryCreatives}
+            loading={libraryLoading}
+            onDelete={deleteCreative}
+            onLaunch={launchInBuilder}
+            onRefresh={fetchLibrary}
           />
         )}
       </main>
@@ -1318,7 +1396,7 @@ function CampaignCardContent({ campaign }) {
   );
 }
 
-function CampaignBuilderView({ assets, copyLoading, objectives, loading, result, batchUpload, onBatchReady, onBatchTick, onCreate, onGenerateCopy }) {
+function CampaignBuilderView({ assets, copyLoading, objectives, loading, result, batchUpload, onBatchReady, onBatchTick, onCreate, onGenerateCopy, prefill, onPrefillApplied }) {
   useEffect(() => {
     if (!batchUpload || batchUpload.countdown === null || batchUpload.countdown <= 0) {
       if (batchUpload && batchUpload.countdown === 0) onBatchReady();
@@ -1327,6 +1405,21 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
     const timer = setTimeout(() => onBatchTick(batchUpload.countdown - 1), 1000);
     return () => clearTimeout(timer);
   }, [batchUpload?.countdown]);
+
+  useEffect(() => {
+    if (!prefill) return;
+    setForm(current => ({
+      ...current,
+      headline: prefill.headline || current.headline,
+      primaryText: prefill.primaryText || current.primaryText,
+      description: prefill.description || current.description,
+    }));
+    if (prefill.creative) {
+      setCreatives([prefill.creative]);
+      setStep(3);
+    }
+    onPrefillApplied?.();
+  }, [prefill]);
 
   const [form, setForm] = useState({
     objective: 'OUTCOME_SALES',
@@ -2466,8 +2559,10 @@ function ProductsView({ products, loading, showForm, editingProduct, isAdmin, on
   );
 }
 
-function ResultCard({ img }) {
+function ResultCard({ img, onLaunch, onSave }) {
   const [copied, setCopied] = useState(null);
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const copyToClipboard = (text, field) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -2476,14 +2571,27 @@ function ResultCard({ img }) {
     });
   };
 
+  const handleSave = async () => {
+    if (saved || saving || !onSave) return;
+    try {
+      setSaving(true);
+      await onSave(img);
+      setSaved(true);
+    } catch {
+      alert('Error guardando creativo. Verifica la configuración de Supabase.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const angle = ANGLE_OPTIONS.find(a => a.value === img.angle);
   const copy = img.copy;
 
   const copyFields = copy ? [
-    { key: 'headline',    label: 'Titular',       value: copy.headline },
+    { key: 'headline',    label: 'Titular',        value: copy.headline },
     { key: 'primaryText', label: 'Texto principal', value: copy.primaryText },
-    { key: 'description', label: 'Descripción',   value: copy.description },
-    { key: 'cta',         label: 'CTA',            value: copy.cta },
+    { key: 'description', label: 'Descripción',    value: copy.description },
+    { key: 'cta',         label: 'CTA',             value: copy.cta },
   ] : [];
 
   return (
@@ -2494,6 +2602,14 @@ function ResultCard({ img }) {
         <a href={img.imageUrl} download={`creativo-${img.angle}.jpg`} className="result-card-download">
           <Download size={13} /> Descargar
         </a>
+      </div>
+      <div className="result-card-actions">
+        <button className="rc-action-btn launch" onClick={() => onLaunch?.(img)}>
+          <Rocket size={13} /> Lanzar en Meta
+        </button>
+        <button className={`rc-action-btn save ${saved ? 'saved' : ''}`} onClick={handleSave} disabled={saved || saving}>
+          <BookMarked size={13} /> {saving ? 'Guardando…' : saved ? 'Guardado ✓' : 'Guardar'}
+        </button>
       </div>
       {copyFields.length > 0 && (
         <div className="copy-section">
@@ -2527,7 +2643,7 @@ const ANGLE_OPTIONS = [
   { value: 'authority',      label: 'Autoridad',       emoji: '🏆', desc: 'Credibilidad y confianza' },
 ];
 
-function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm, onFormChange, onGenerate, onSaveGoogleAiKey, onClearImages }) {
+function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm, onFormChange, onGenerate, onSaveGoogleAiKey, onClearImages, onLaunchInBuilder, onSaveCreative }) {
   const [keyInput, setKeyInput] = useState(googleAiKey || '');
   const [showKey, setShowKey] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -2760,7 +2876,7 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
               </div>
               <div className="result-grid">
                 {generatedImages.map(img => (
-                  <ResultCard key={img.angle} img={img} />
+                  <ResultCard key={img.angle} img={img} onLaunch={onLaunchInBuilder} onSave={onSaveCreative} />
                 ))}
               </div>
             </>
@@ -2768,6 +2884,67 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
         </div>
 
       </div>
+    </div>
+  );
+}
+
+function LibraryView({ creatives, loading, onDelete, onLaunch, onRefresh }) {
+  if (loading) {
+    return (
+      <div className="library-view">
+        <div className="result-loading" style={{ marginTop: 60 }}>
+          <div className="ai-pulse" />
+          <p>Cargando biblioteca...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="library-view">
+      <div className="library-header">
+        <div>
+          <h2 className="library-title">Biblioteca de creativos</h2>
+          <p className="library-subtitle">{creatives.length} creativo{creatives.length !== 1 ? 's' : ''} guardado{creatives.length !== 1 ? 's' : ''}</p>
+        </div>
+        <button className="secondary-button" onClick={onRefresh}>Actualizar</button>
+      </div>
+
+      {creatives.length === 0 ? (
+        <div className="library-empty">
+          <BookMarked size={40} color="#334155" />
+          <p>Aún no tienes creativos guardados.</p>
+          <p className="result-hint">Genera imágenes en el módulo "Crear Imagen IA" y guárdalas aquí.</p>
+        </div>
+      ) : (
+        <div className="library-grid">
+          {creatives.map(c => (
+            <div key={c.id} className="library-card">
+              <img src={c.image_url} alt={c.label} className="library-card-image" />
+              <div className="library-card-body">
+                <span className="library-card-angle">
+                  {ANGLE_OPTIONS.find(a => a.value === c.angle)?.emoji} {c.label}
+                </span>
+                {c.product_name && <span className="library-card-product">{c.product_name}</span>}
+                {c.headline && <p className="library-card-headline">"{c.headline}"</p>}
+              </div>
+              <div className="library-card-footer">
+                <button className="rc-action-btn launch" onClick={() => onLaunch({
+                  imageUrl: c.image_url,
+                  angle: c.angle,
+                  label: c.label,
+                  copy: { headline: c.headline, primaryText: c.primary_text, description: c.description, cta: c.cta },
+                })}>
+                  <Rocket size={13} /> Lanzar en Meta
+                </button>
+                <button className="rc-action-btn delete" onClick={() => onDelete(c.id)}>
+                  <Trash2 size={13} /> Eliminar
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

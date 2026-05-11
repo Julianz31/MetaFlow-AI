@@ -2534,6 +2534,7 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
       description: adForm.description,
       format: adForm.format,
       angles: selectedAngles,
+      primaryColor: adForm.primaryColor,
       productImageBase64: adForm.productImageBase64 || undefined,
     });
   };

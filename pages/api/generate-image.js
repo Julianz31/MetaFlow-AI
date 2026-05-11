@@ -3,8 +3,8 @@ import OpenAI from 'openai';
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
 
-  const apiKey = req.headers['x-openai-key'] || process.env.OPENAI_API_KEY;
-  if (!apiKey) return res.status(401).json({ error: 'Se requiere OPENAI_API_KEY' });
+  const apiKey = req.headers['x-openai-key'];
+  if (!apiKey) return res.status(401).json({ error: 'Se requiere tu API Key de OpenAI. Ingrésala en la sección de Crear Imagen.' });
 
   const { productName, description, style, primaryColor, secondaryColor, format, customPrompt, productImageBase64 } = req.body;
 

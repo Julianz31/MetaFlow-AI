@@ -6,6 +6,7 @@ import {
   Bot,
   CheckCircle2,
   BarChart3,
+  Download,
   Edit2,
   ExternalLink,
   Image,
@@ -78,10 +79,10 @@ function App() {
   const [productsLoading, setProductsLoading] = useState(false);
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [openaiKey, setOpenaiKey] = useState(() => { try { return localStorage.getItem('openai_key') || ''; } catch { return ''; } });
+  const [googleAiKey, setGoogleAiKey] = useState(() => { try { return localStorage.getItem('google_ai_key') || ''; } catch { return ''; } });
   const [imageGenLoading, setImageGenLoading] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState(null);
-  const [adForm, setAdForm] = useState({ productName: '', description: '', style: 'fotorrealista', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'square', customPrompt: '', selectedProductId: '', productImageBase64: '', productImageName: '' });
+  const [generatedImages, setGeneratedImages] = useState([]);
+  const [adForm, setAdForm] = useState({ productName: '', description: '', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'square', selectedProductId: '', productImageBase64: '', productImageName: '', angles: ['pain', 'desire', 'transformation', 'objection', 'urgency', 'authority'] });
 
   useEffect(() => {
     if (activeTab === 'dashboard') {
@@ -597,20 +598,20 @@ function App() {
   const generateAdImage = async (formData) => {
     try {
       setImageGenLoading(true);
-      setGeneratedImage(null);
-      const headers = openaiKey ? { 'x-openai-key': openaiKey } : {};
-      const response = await axios.post(`${API_BASE_URL}/api/generate-image`, formData, { headers, timeout: 90000 });
-      setGeneratedImage(response.data.imageUrl);
+      setGeneratedImages([]);
+      const headers = googleAiKey ? { 'x-google-ai-key': googleAiKey } : {};
+      const response = await axios.post(`${API_BASE_URL}/api/generate-image`, formData, { headers, timeout: 300000 });
+      setGeneratedImages(response.data.images || []);
     } catch (error) {
-      alert(error.response?.data?.error || 'Error generando imagen');
+      alert(error.response?.data?.error || 'Error generando imágenes');
     } finally {
       setImageGenLoading(false);
     }
   };
 
-  const saveOpenaiKey = (key) => {
-    try { localStorage.setItem('openai_key', key); } catch {}
-    setOpenaiKey(key);
+  const saveGoogleAiKey = (key) => {
+    try { localStorage.setItem('google_ai_key', key); } catch {}
+    setGoogleAiKey(key);
   };
 
   const logout = async () => {
@@ -812,13 +813,13 @@ function App() {
           <AdCreatorView
             products={products}
             loading={imageGenLoading}
-            generatedImage={generatedImage}
-            openaiKey={openaiKey}
+            generatedImages={generatedImages}
+            googleAiKey={googleAiKey}
             adForm={adForm}
             onFormChange={(f) => setAdForm(f)}
             onGenerate={generateAdImage}
-            onSaveOpenaiKey={saveOpenaiKey}
-            onClearImage={() => setGeneratedImage(null)}
+            onSaveGoogleAiKey={saveGoogleAiKey}
+            onClearImages={() => setGeneratedImages([])}
           />
         )}
       </main>
@@ -2464,25 +2465,37 @@ function ProductsView({ products, loading, showForm, editingProduct, isAdmin, on
   );
 }
 
-function AdCreatorView({ products, loading, generatedImage, openaiKey, adForm, onFormChange, onGenerate, onSaveOpenaiKey, onClearImage }) {
-  const [keyInput, setKeyInput] = useState(openaiKey || '');
+const ANGLE_OPTIONS = [
+  { value: 'pain',           label: 'Dolor',          emoji: '😣', desc: 'El problema que resuelves' },
+  { value: 'desire',         label: 'Deseo',           emoji: '✨', desc: 'La vida ideal con el producto' },
+  { value: 'transformation', label: 'Transformación',  emoji: '🔄', desc: 'Antes vs Después' },
+  { value: 'objection',      label: 'Objeción',        emoji: '🤔', desc: 'Vence el escepticismo' },
+  { value: 'urgency',        label: 'Urgencia',        emoji: '⚡', desc: 'Actúa ahora' },
+  { value: 'authority',      label: 'Autoridad',       emoji: '🏆', desc: 'Credibilidad y confianza' },
+];
+
+function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm, onFormChange, onGenerate, onSaveGoogleAiKey, onClearImages }) {
+  const [keyInput, setKeyInput] = useState(googleAiKey || '');
   const [showKey, setShowKey] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
-
-  const styles = [
-    { value: 'fotorrealista', label: 'Foto­rrealista', emoji: '📸' },
-    { value: 'minimalista', label: 'Minimalista', emoji: '⬜' },
-    { value: 'lifestyle', label: 'Lifestyle', emoji: '🌿' },
-    { value: 'lujo', label: 'Lujo', emoji: '✨' },
-    { value: 'social-media', label: 'Social Media', emoji: '📱' },
-  ];
 
   const formats = [
     { value: 'square', label: '1:1', sub: 'Feed' },
     { value: 'vertical', label: '9:16', sub: 'Stories' },
     { value: 'horizontal', label: '16:9', sub: 'Banner' },
   ];
+
+  const selectedAngles = adForm.angles || [];
+
+  const toggleAngle = (value) => {
+    if (selectedAngles.includes(value)) {
+      if (selectedAngles.length === 1) return;
+      onFormChange({ ...adForm, angles: selectedAngles.filter(a => a !== value) });
+    } else {
+      onFormChange({ ...adForm, angles: [...selectedAngles, value] });
+    }
+  };
 
   const handleImageFile = (file) => {
     if (!file || !file.type.startsWith('image/')) return;
@@ -2511,19 +2524,16 @@ function AdCreatorView({ products, loading, generatedImage, openaiKey, adForm, o
 
   const handleGenerate = (e) => {
     e.preventDefault();
-    if (!openaiKey && !keyInput) {
-      alert('Necesitas ingresar tu API Key de OpenAI para generar imágenes.');
+    if (!googleAiKey && !keyInput) {
+      alert('Necesitas ingresar tu API Key de Google AI Studio para generar imágenes.');
       return;
     }
-    if (keyInput && keyInput !== openaiKey) onSaveOpenaiKey(keyInput);
+    if (keyInput && keyInput !== googleAiKey) onSaveGoogleAiKey(keyInput);
     onGenerate({
       productName: adForm.productName,
       description: adForm.description,
-      style: adForm.style,
-      primaryColor: adForm.primaryColor,
-      secondaryColor: adForm.secondaryColor,
       format: adForm.format,
-      customPrompt: adForm.customPrompt || undefined,
+      angles: selectedAngles,
       productImageBase64: adForm.productImageBase64 || undefined,
     });
   };
@@ -2536,12 +2546,11 @@ function AdCreatorView({ products, loading, generatedImage, openaiKey, adForm, o
         <div className="ad-creator-panel">
           <div className="acp-section-title">
             <Wand2 size={16} color="#a78bfa" />
-            Configurar anuncio
+            Configurar creativos
           </div>
 
           <form onSubmit={handleGenerate} className="ad-creator-form">
 
-            {/* Producto de vitrina */}
             {products.length > 0 && (
               <div className="acp-block">
                 <label className="acp-label">Producto de la vitrina</label>
@@ -2554,7 +2563,6 @@ function AdCreatorView({ products, loading, generatedImage, openaiKey, adForm, o
               </div>
             )}
 
-            {/* Upload de imagen del producto */}
             <div className="acp-block">
               <label className="acp-label">Imagen del producto <span className="acp-optional">PNG · JPG · WEBP</span></label>
               <div
@@ -2587,13 +2595,12 @@ function AdCreatorView({ products, loading, generatedImage, openaiKey, adForm, o
                   </div>
                 )}
               </div>
-              <p className="acp-hint">La IA analizará la imagen para generar un anuncio fiel al producto.</p>
+              <p className="acp-hint">Gemini analizará la imagen para generar creativos fieles al producto.</p>
             </div>
 
-            {/* Nombre + descripción */}
             <div className="acp-block">
               <label className="acp-label">Nombre del producto</label>
-              <input className="acp-input" value={adForm.productName} onChange={e => onFormChange({ ...adForm, productName: e.target.value })} placeholder="Ej: Zapatillas Runner Pro" required={!adForm.customPrompt && !adForm.productImageBase64} />
+              <input className="acp-input" value={adForm.productName} onChange={e => onFormChange({ ...adForm, productName: e.target.value })} placeholder="Ej: Zapatillas Runner Pro" required={!adForm.productImageBase64} />
             </div>
 
             <div className="acp-block">
@@ -2601,50 +2608,23 @@ function AdCreatorView({ products, loading, generatedImage, openaiKey, adForm, o
               <textarea className="acp-input" rows={2} value={adForm.description} onChange={e => onFormChange({ ...adForm, description: e.target.value })} placeholder="Material, características, público objetivo..." />
             </div>
 
-            {/* Colores de marca */}
+            {/* Ángulos de venta */}
             <div className="acp-block">
-              <label className="acp-label">Colores de marca</label>
-              <div className="brand-colors-row">
-                <div className="color-picker-item">
-                  <label className="color-picker-label">Primario</label>
-                  <div className="color-picker-wrap">
-                    <input
-                      type="color"
-                      className="color-native"
-                      value={adForm.primaryColor}
-                      onChange={e => onFormChange({ ...adForm, primaryColor: e.target.value })}
-                    />
-                    <div className="color-swatch" style={{ background: adForm.primaryColor }} />
-                    <span className="color-hex">{adForm.primaryColor.toUpperCase()}</span>
-                  </div>
-                </div>
-                <div className="color-divider" />
-                <div className="color-picker-item">
-                  <label className="color-picker-label">Secundario</label>
-                  <div className="color-picker-wrap">
-                    <input
-                      type="color"
-                      className="color-native"
-                      value={adForm.secondaryColor}
-                      onChange={e => onFormChange({ ...adForm, secondaryColor: e.target.value })}
-                    />
-                    <div className="color-swatch" style={{ background: adForm.secondaryColor }} />
-                    <span className="color-hex">{adForm.secondaryColor.toUpperCase()}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Estilo visual */}
-            <div className="acp-block">
-              <label className="acp-label">Estilo visual</label>
-              <div className="style-chips">
-                {styles.map(s => (
-                  <button type="button" key={s.value}
-                    className={`style-chip ${adForm.style === s.value ? 'active' : ''}`}
-                    onClick={() => onFormChange({ ...adForm, style: s.value })}>
-                    <span className="style-chip-emoji">{s.emoji}</span>
-                    {s.label}
+              <label className="acp-label">
+                Ángulos de venta
+                <span className="acp-optional">{selectedAngles.length} seleccionado{selectedAngles.length !== 1 ? 's' : ''}</span>
+              </label>
+              <div className="angle-grid">
+                {ANGLE_OPTIONS.map(a => (
+                  <button
+                    type="button"
+                    key={a.value}
+                    className={`angle-card ${selectedAngles.includes(a.value) ? 'active' : ''}`}
+                    onClick={() => toggleAngle(a.value)}
+                  >
+                    <span className="angle-emoji">{a.emoji}</span>
+                    <span className="angle-label">{a.label}</span>
+                    <span className="angle-desc">{a.desc}</span>
                   </button>
                 ))}
               </div>
@@ -2665,10 +2645,10 @@ function AdCreatorView({ products, loading, generatedImage, openaiKey, adForm, o
               </div>
             </div>
 
-            {/* API Key */}
+            {/* API Key Google AI Studio */}
             <div className="acp-block acp-key-block">
               <div className="acp-key-row">
-                <label className="acp-label" style={{ margin: 0 }}>API Key OpenAI</label>
+                <label className="acp-label" style={{ margin: 0 }}>API Key · Google AI Studio</label>
                 <button type="button" className="toggle-link" onClick={() => setShowKey(v => !v)}>{showKey ? 'Ocultar' : 'Mostrar'}</button>
               </div>
               <input
@@ -2676,16 +2656,16 @@ function AdCreatorView({ products, loading, generatedImage, openaiKey, adForm, o
                 type={showKey ? 'text' : 'password'}
                 value={keyInput}
                 onChange={e => setKeyInput(e.target.value)}
-                onBlur={() => { if (keyInput) onSaveOpenaiKey(keyInput); }}
-                placeholder="sk-..."
+                onBlur={() => { if (keyInput) onSaveGoogleAiKey(keyInput); }}
+                placeholder="AIza..."
               />
-              <p className="acp-hint">Se guarda solo en este navegador · platform.openai.com</p>
+              <p className="acp-hint">Gratis en aistudio.google.com · se guarda solo en este navegador</p>
             </div>
 
             <button type="submit" className="generate-cta" disabled={loading}>
               {loading
-                ? <><Loader2 className="spin" size={18} /> Generando...</>
-                : <><Sparkles size={18} /> Generar imagen con IA</>}
+                ? <><Loader2 className="spin" size={18} /> Generando {selectedAngles.length} creativo{selectedAngles.length !== 1 ? 's' : ''}...</>
+                : <><Sparkles size={18} /> Generar {selectedAngles.length} creativo{selectedAngles.length !== 1 ? 's' : ''} con Gemini</>}
             </button>
           </form>
         </div>
@@ -2694,41 +2674,52 @@ function AdCreatorView({ products, loading, generatedImage, openaiKey, adForm, o
         <div className="ad-result-panel">
           <div className="acp-section-title">
             <Image size={16} color="#a78bfa" />
-            Resultado
+            Creativos generados
           </div>
 
           {loading && (
             <div className="result-loading">
               <div className="ai-pulse" />
-              <p>DALL-E 3 está generando tu anuncio...</p>
-              <p className="result-hint">Puede tomar entre 15 y 30 segundos</p>
+              <p>Gemini está generando {selectedAngles.length} creativo{selectedAngles.length !== 1 ? 's' : ''}...</p>
+              <p className="result-hint">Puede tomar entre 30 y 90 segundos</p>
             </div>
           )}
 
-          {!loading && !generatedImage && (
+          {!loading && generatedImages.length === 0 && (
             <div className="result-empty">
               <div className="result-empty-preview">
                 <div className="result-empty-inner">
                   <Sparkles size={36} color="#6366f1" />
                 </div>
               </div>
-              <p className="result-empty-title">Tu anuncio aparecerá aquí</p>
-              <p className="result-hint">Configura los parámetros y haz clic en Generar</p>
+              <p className="result-empty-title">Tus creativos aparecerán aquí</p>
+              <p className="result-hint">Selecciona ángulos y haz clic en Generar</p>
             </div>
           )}
 
-          {!loading && generatedImage && (
-            <div className="result-image-wrapper">
-              <img src={generatedImage} alt="Imagen generada" className="result-image" />
-              <div className="result-actions">
-                <a href={generatedImage} download="anuncio-ia.png" target="_blank" rel="noreferrer" className="primary-button">
-                  <Upload size={15} /> Descargar
-                </a>
-                <button className="secondary-button" onClick={onClearImage}>
-                  <XCircle size={15} /> Nueva imagen
+          {!loading && generatedImages.length > 0 && (
+            <>
+              <div className="result-actions" style={{ justifyContent: 'flex-end' }}>
+                <button className="secondary-button" onClick={onClearImages}>
+                  <XCircle size={15} /> Nueva generación
                 </button>
               </div>
-            </div>
+              <div className="result-grid">
+                {generatedImages.map(img => (
+                  <div key={img.angle} className="result-card">
+                    <img src={img.imageUrl} alt={img.label} className="result-card-image" />
+                    <div className="result-card-footer">
+                      <span className="result-card-label">
+                        {ANGLE_OPTIONS.find(a => a.value === img.angle)?.emoji} {img.label}
+                      </span>
+                      <a href={img.imageUrl} download={`creativo-${img.angle}.jpg`} className="result-card-download">
+                        <Download size={13} /> Descargar
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 

@@ -844,6 +844,7 @@ function AuthView({ onAuth, initialMode = 'login' }) {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [confirmEmail, setConfirmEmail] = useState('');
 
   const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -861,13 +862,26 @@ function AuthView({ onAuth, initialMode = 'login' }) {
           options: { data: { name: form.name || form.email.split('@')[0] } }
         });
         if (err) { setError(err.message); return; }
+
+        // If session is null, Supabase requires email confirmation
+        if (!data.session) {
+          setConfirmEmail(form.email);
+          return;
+        }
+
+        // Email confirmation disabled — log in directly
         const u = data.user;
         const nextUser = { id: u.id, name: u.user_metadata?.name || form.email.split('@')[0], email: u.email };
         localStorage.setItem('metaflow_user', JSON.stringify(nextUser));
         onAuth(nextUser);
       } else {
         const { data, error: err } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
-        if (err) { setError(err.message === 'Invalid login credentials' ? 'Email o contraseña incorrectos' : err.message); return; }
+        if (err) {
+          if (err.message === 'Invalid login credentials') setError('Email o contraseña incorrectos');
+          else if (err.message.includes('Email not confirmed')) setError('Debes confirmar tu email antes de ingresar. Revisa tu bandeja de entrada.');
+          else setError(err.message);
+          return;
+        }
         const u = data.user;
         const nextUser = { id: u.id, name: u.user_metadata?.name || u.email.split('@')[0], email: u.email };
         localStorage.setItem('metaflow_user', JSON.stringify(nextUser));
@@ -877,6 +891,37 @@ function AuthView({ onAuth, initialMode = 'login' }) {
       setLoading(false);
     }
   };
+
+  // ── Email confirmation screen ──
+  if (confirmEmail) {
+    return (
+      <main className="auth-shell">
+        <div className="auth-bg-glow" />
+        <div className="auth-card-new" style={{ textAlign: 'center' }}>
+          <div className="auth-logo" style={{ justifyContent: 'center' }}>
+            <div className="brand-mark"><Zap size={18} /></div>
+            <span>MetaFlow.AI</span>
+          </div>
+          <div style={{ fontSize: 52, margin: '8px 0' }}>📬</div>
+          <div className="auth-header">
+            <h1>Revisa tu correo</h1>
+            <p>Te enviamos un enlace de confirmación a:</p>
+            <p style={{ color: '#a78bfa', fontWeight: 700, marginTop: 6 }}>{confirmEmail}</p>
+          </div>
+          <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
+            Haz clic en el enlace del email para activar tu cuenta. Puede tardar unos minutos — revisa también la carpeta de spam.
+          </p>
+          <button
+            className="auth-submit"
+            style={{ marginTop: 4 }}
+            onClick={() => { setConfirmEmail(''); setMode('login'); setForm(f => ({ ...f, password: '' })); }}
+          >
+            Ir a iniciar sesión
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="auth-shell">
@@ -2238,10 +2283,18 @@ function saveMetaConnection(connection) {
   if (isBrowser) localStorage.setItem('metaflow_meta_connection', JSON.stringify(connection));
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function loadSessionUser() {
   if (!isBrowser) return null;
   try {
-    return JSON.parse(localStorage.getItem('metaflow_user'));
+    const user = JSON.parse(localStorage.getItem('metaflow_user'));
+    // Reject old fake sessions where id was the email, not a real UUID
+    if (!user || !UUID_REGEX.test(user.id)) {
+      localStorage.removeItem('metaflow_user');
+      return null;
+    }
+    return user;
   } catch {
     return null;
   }

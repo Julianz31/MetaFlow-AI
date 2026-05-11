@@ -6,6 +6,7 @@ import {
   Bot,
   CheckCircle2,
   BarChart3,
+  ClipboardCopy,
   Download,
   Edit2,
   ExternalLink,
@@ -2465,6 +2466,58 @@ function ProductsView({ products, loading, showForm, editingProduct, isAdmin, on
   );
 }
 
+function ResultCard({ img }) {
+  const [copied, setCopied] = useState(null);
+
+  const copyToClipboard = (text, field) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(field);
+      setTimeout(() => setCopied(null), 1800);
+    });
+  };
+
+  const angle = ANGLE_OPTIONS.find(a => a.value === img.angle);
+  const copy = img.copy;
+
+  const copyFields = copy ? [
+    { key: 'headline',    label: 'Titular',       value: copy.headline },
+    { key: 'primaryText', label: 'Texto principal', value: copy.primaryText },
+    { key: 'description', label: 'Descripción',   value: copy.description },
+    { key: 'cta',         label: 'CTA',            value: copy.cta },
+  ] : [];
+
+  return (
+    <div className="result-card">
+      <img src={img.imageUrl} alt={img.label} className="result-card-image" />
+      <div className="result-card-footer">
+        <span className="result-card-label">{angle?.emoji} {img.label}</span>
+        <a href={img.imageUrl} download={`creativo-${img.angle}.jpg`} className="result-card-download">
+          <Download size={13} /> Descargar
+        </a>
+      </div>
+      {copyFields.length > 0 && (
+        <div className="copy-section">
+          {copyFields.map(f => (
+            <div key={f.key} className="copy-field">
+              <div className="copy-field-header">
+                <span className="copy-field-label">{f.label}</span>
+                <button
+                  className={`copy-btn ${copied === f.key ? 'copied' : ''}`}
+                  onClick={() => copyToClipboard(f.value, f.key)}
+                >
+                  <ClipboardCopy size={12} />
+                  {copied === f.key ? '¡Copiado!' : 'Copiar'}
+                </button>
+              </div>
+              <p className="copy-field-value">{f.value}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const ANGLE_OPTIONS = [
   { value: 'pain',           label: 'Dolor',          emoji: '😣', desc: 'El problema que resuelves' },
   { value: 'desire',         label: 'Deseo',           emoji: '✨', desc: 'La vida ideal con el producto' },
@@ -2707,17 +2760,7 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
               </div>
               <div className="result-grid">
                 {generatedImages.map(img => (
-                  <div key={img.angle} className="result-card">
-                    <img src={img.imageUrl} alt={img.label} className="result-card-image" />
-                    <div className="result-card-footer">
-                      <span className="result-card-label">
-                        {ANGLE_OPTIONS.find(a => a.value === img.angle)?.emoji} {img.label}
-                      </span>
-                      <a href={img.imageUrl} download={`creativo-${img.angle}.jpg`} className="result-card-download">
-                        <Download size={13} /> Descargar
-                      </a>
-                    </div>
-                  </div>
+                  <ResultCard key={img.angle} img={img} />
                 ))}
               </div>
             </>

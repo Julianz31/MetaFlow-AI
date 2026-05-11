@@ -218,6 +218,50 @@ Be specific and factual based on what you see.`,
   return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
+const COPY_ANGLE_INSTRUCTIONS = {
+  pain:           'Connect with the audience\'s frustration and position the product as the relief they\'ve been looking for.',
+  desire:         'Paint the aspirational life the audience wants and show how the product gets them there.',
+  transformation: 'Contrast the before (struggle) vs after (success) journey with the product as the catalyst.',
+  objection:      'Acknowledge skepticism, use social proof and reassurance to build trust and remove doubt.',
+  urgency:        'Create FOMO and scarcity — make the audience feel they must act right now or miss out.',
+  authority:      'Establish expert credibility, science-backed results, and premium positioning.',
+};
+
+async function generateCopy(productContext, angleKey, angleLabel, apiKey) {
+  const instruction = COPY_ANGLE_INSTRUCTIONS[angleKey] || COPY_ANGLE_INSTRUCTIONS.desire;
+  const prompt = `Generate Facebook/Instagram ad copy in Spanish for a "${angleLabel}" angle ad.
+
+Product: ${productContext}
+
+Angle goal: ${instruction}
+
+Return ONLY a valid JSON object — no markdown, no explanation, no code block:
+{
+  "headline": "Max 40 chars. Punchy headline that fits the ${angleLabel} angle.",
+  "primaryText": "2-3 sentences. Emotional and persuasive body copy for the ${angleLabel} angle. Specific to this product.",
+  "description": "Max 30 chars. Short benefit or offer description.",
+  "cta": "One of: Comprar ahora | Ver más | Obtener oferta | Saber más | Aprovechar oferta | Lo quiero"
+}`;
+
+  const res = await fetch(GEMINI_VISION_URL(apiKey), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.8 },
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) return null;
+  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  try {
+    const clean = raw.replace(/```json|```/g, '').trim();
+    return JSON.parse(clean);
+  } catch {
+    return null;
+  }
+}
+
 async function generateScene(prompt, apiKey) {
   const res = await fetch(GEMINI_IMAGE_URL(apiKey), {
     method: 'POST',
@@ -294,7 +338,11 @@ export default async function handler(req, res) {
       selectedAngles.map(async (a) => {
         const angleConfig = ANGLES[a] || ANGLES.desire;
         const scenePrompt = angleConfig.buildPrompt(productContext, format, primaryColor);
-        const scene = await generateScene(scenePrompt, apiKey);
+
+        const [scene, copy] = await Promise.all([
+          generateScene(scenePrompt, apiKey),
+          generateCopy(productContext, a, angleConfig.label, apiKey),
+        ]);
 
         let imageUrl;
         if (productImageBase64) {
@@ -304,7 +352,7 @@ export default async function handler(req, res) {
           imageUrl = `data:${scene.mimeType};base64,${scene.data}`;
         }
 
-        return { imageUrl, angle: a, label: angleConfig.label };
+        return { imageUrl, angle: a, label: angleConfig.label, copy };
       })
     );
 

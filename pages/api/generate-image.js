@@ -10,7 +10,7 @@ const GEMINI_VISION_URL = (key) =>
 const GEMINI_IMAGE_URL = (key) =>
   `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${key}`;
 
-const NO_PRODUCT_RULE = `CRITICAL RULE: Do NOT generate, draw, or include any product, bottle, dropper, container, package, box, or physical item in the scene. The actual product image will be composited on top separately. Only generate people, environments, text overlays, graphic design elements, and layout.`;
+const NO_PRODUCT_RULE = `CRITICAL RULE: Do NOT include any physical product, object, item, or merchandise of any kind in the generated image — no bottles, droppers, boxes, bags, shoes, clothes, gadgets, food, supplements, creams, tools, or any other tangible object. The real product photo will be composited on top separately. Generate ONLY: people, environments/backgrounds, text overlays, and graphic design layout elements.`;
 
 function formatHint(format) {
   if (format === 'vertical') return 'Format: vertical 9:16 portrait composition optimized for Stories/Reels.';

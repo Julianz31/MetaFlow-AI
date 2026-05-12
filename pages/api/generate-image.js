@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-const { buildSvgTemplate, DIMS } = require('../../lib/adTemplates');
+const { buildTemplate, DIMS } = require('../../lib/adTemplates');
 
 export const config = {
   api: { bodyParser: { sizeLimit: '15mb' } },
@@ -199,7 +199,7 @@ async function generateBackground(scenePrompt, apiKey) {
 
 // ─── COMPOSITE: background + SVG template + product ──────────────────────────
 
-async function compositeAll({ backgroundBase64, svgTemplate, productBase64, format }) {
+async function compositeAll({ backgroundBase64, templatePng, productBase64, format }) {
   const { w, h } = DIMS[format] || DIMS.square;
 
   // 1. Resize background to exact ad dimensions
@@ -208,12 +208,7 @@ async function compositeAll({ backgroundBase64, svgTemplate, productBase64, form
     .jpeg({ quality: 95 })
     .toBuffer();
 
-  // 2. Render SVG template to a transparent PNG
-  const templatePng = await sharp(Buffer.from(svgTemplate))
-    .resize(w, h)
-    .png()
-    .toBuffer();
-
+  // 2. templatePng is already a PNG Buffer from @napi-rs/canvas at the correct size
   const layers = [{ input: templatePng, blend: 'over' }];
 
   // 3. Optionally composite product photo
@@ -288,13 +283,13 @@ export default async function handler(req, res) {
         // Inject product name into copy for templates that use it
         const enrichedCopy = { ...(copy || {}), productName: productName || '' };
 
-        // Build SVG template with real typography
-        const svgTemplate = buildSvgTemplate(a, enrichedCopy, primaryColor, format);
+        // Build Canvas template — returns a PNG Buffer directly
+        const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format);
 
         // Composite everything together
         const composited = await compositeAll({
           backgroundBase64: background.data,
-          svgTemplate,
+          templatePng,
           productBase64: productImageBase64 || null,
           format,
         });

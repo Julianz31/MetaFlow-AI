@@ -35,7 +35,7 @@ const API_BASE_URL = '';
 
 function App() {
   const [user, setUser] = useState(loadSessionUser());
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => { try { return localStorage.getItem('metaflow_tab') || 'dashboard'; } catch { return 'dashboard'; } });
   const [stats, setStats] = useState({
     inversion: '0.00',
     roas: '0.00x',
@@ -85,10 +85,25 @@ function App() {
   const [googleAiKey, setGoogleAiKey] = useState(() => { try { return localStorage.getItem('google_ai_key') || ''; } catch { return ''; } });
   const [imageGenLoading, setImageGenLoading] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
-  const [adForm, setAdForm] = useState({ productName: '', description: '', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'square', selectedProductId: '', productImageBase64: '', productImageName: '', angles: ['pain', 'desire', 'transformation', 'objection', 'urgency', 'authority', 'comparison', 'guarantee', 'social_proof', 'curiosity', 'price'] });
+  const [adForm, setAdForm] = useState(() => {
+    const defaults = { productName: '', description: '', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'square', selectedProductId: '', productImageBase64: '', productImageName: '', angles: ['pain', 'desire', 'transformation', 'objection', 'urgency', 'authority', 'comparison', 'guarantee', 'social_proof', 'curiosity', 'price'] };
+    try {
+      const saved = localStorage.getItem('metaflow_adform');
+      if (saved) return { ...defaults, ...JSON.parse(saved), productImageBase64: '', productImageName: '' };
+    } catch {}
+    return defaults;
+  });
   const [builderPrefill, setBuilderPrefill] = useState(null);
   const [libraryCreatives, setLibraryCreatives] = useState([]);
   const [libraryLoading, setLibraryLoading] = useState(false);
+
+  useEffect(() => { try { localStorage.setItem('metaflow_tab', activeTab); } catch {} }, [activeTab]);
+  useEffect(() => {
+    try {
+      const { productImageBase64, productImageName, ...rest } = adForm;
+      localStorage.setItem('metaflow_adform', JSON.stringify(rest));
+    } catch {}
+  }, [adForm]);
 
   useEffect(() => {
     if (activeTab === 'dashboard') {

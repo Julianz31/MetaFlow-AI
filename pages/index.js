@@ -2841,8 +2841,14 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
             </div>
 
             <div className="acp-block">
-              <label className="acp-label">Descripción <span className="acp-optional">opcional</span></label>
-              <textarea className="acp-input" rows={2} value={adForm.description} onChange={e => onFormChange({ ...adForm, description: e.target.value })} placeholder="Material, características, público objetivo..." />
+              <label className="acp-label">Descripción <span className="acp-optional">opcional pero recomendada</span></label>
+              <textarea className="acp-input" rows={4} value={adForm.description} onChange={e => onFormChange({ ...adForm, description: e.target.value })} placeholder="Ej: Sérum facial con vitamina C para mujeres de 28-45 años. Elimina manchas y piel opaca. Resultados visibles en 21 días." />
+              <p className="acp-hint">
+                Para mejores resultados incluye: <strong>qué es</strong> · <strong>qué problema resuelve</strong> · <strong>a quién va dirigido</strong> · <strong>resultado principal</strong>.<br />
+                Ej de belleza: <em>"Sérum con retinol para mujeres 30+. Reduce arrugas y manchas en 3 semanas."</em><br />
+                Ej de mascotas: <em>"Omega 3 líquido para perros. Mejora pelaje opaco y articulaciones en 1 semana."</em><br />
+                Ej de fitness: <em>"Proteína whey para hombres activos. Más músculo y recuperación rápida post-entreno."</em>
+              </p>
             </div>
 
             {/* Colores de marca */}

@@ -197,9 +197,31 @@ async function generateBackground(scenePrompt, apiKey) {
   return { data: imgPart.inlineData.data, mimeType: imgPart.inlineData.mimeType };
 }
 
+// ─── PRODUCT PLACEMENT (angle-aware, avoids text zones) ─────────────────────
+
+// Templates that reserve the left half for text and keep the right clear for product
+const RIGHT_SIDE_ANGLES = new Set(['pain', 'desire', 'authority', 'guarantee', 'curiosity']);
+
+function getProductPlacement(angle, w, h, pw) {
+  if (RIGHT_SIDE_ANGLES.has(angle)) {
+    // Text lives on the left ~50% — place product centered in the right half
+    const left = Math.max(
+      Math.round(w * 0.52),
+      Math.min(Math.round(w * 0.75 - pw / 2), w - pw - 16)
+    );
+    return { left, top: Math.round(h * 0.46) };
+  }
+  if (angle === 'comparison') {
+    // Bottle sits at the center divider between before/after panels
+    return { left: Math.max(0, Math.round((w - pw) / 2)), top: Math.round(h * 0.40) };
+  }
+  // All other templates: center horizontally, upper-middle vertically
+  return { left: Math.max(0, Math.round((w - pw) / 2)), top: Math.round(h * 0.44) };
+}
+
 // ─── COMPOSITE: background + SVG template + product ──────────────────────────
 
-async function compositeAll({ backgroundBase64, templatePng, productBase64, format }) {
+async function compositeAll({ backgroundBase64, templatePng, productBase64, format, angle }) {
   const { w, h } = DIMS[format] || DIMS.square;
 
   // 1. Resize background to exact ad dimensions
@@ -211,17 +233,16 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, form
   // 2. templatePng is already a PNG Buffer from @napi-rs/canvas at the correct size
   const layers = [{ input: templatePng, blend: 'over' }];
 
-  // 3. Optionally composite product photo
+  // 3. Optionally composite product photo using angle-aware placement
   if (productBase64) {
-    const targetH = Math.round(h * 0.38);
+    const targetH = Math.round(h * 0.34);
     const resizedProduct = await sharp(Buffer.from(productBase64, 'base64'))
       .resize({ height: targetH, fit: 'inside', withoutEnlargement: false })
       .png()
       .toBuffer();
 
     const { width: pw } = await sharp(resizedProduct).metadata();
-    const left = Math.round((w - pw) / 2);
-    const top = Math.round(h * 0.52);
+    const { left, top } = getProductPlacement(angle || 'desire', w, h, pw);
 
     layers.push({ input: resizedProduct, left, top, blend: 'over' });
   }
@@ -283,15 +304,18 @@ export default async function handler(req, res) {
         // Inject product name into copy for templates that use it
         const enrichedCopy = { ...(copy || {}), productName: productName || '' };
 
-        // Build Canvas template — returns a PNG Buffer directly
-        const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format);
+        const hasProduct = !!productImageBase64;
 
-        // Composite everything together
+        // Build Canvas template — pass hasProduct so text constrains to left half
+        const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct);
+
+        // Composite everything together with angle-aware product placement
         const composited = await compositeAll({
           backgroundBase64: background.data,
           templatePng,
           productBase64: productImageBase64 || null,
           format,
+          angle: a,
         });
 
         return { imageUrl: `data:image/jpeg;base64,${composited}`, angle: a, label, copy };

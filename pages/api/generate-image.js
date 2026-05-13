@@ -211,7 +211,7 @@ async function generateBackground(scenePrompt, apiKey) {
 // ─── PRODUCT PLACEMENT (angle-aware, avoids text zones) ─────────────────────
 
 // Templates that reserve the left half for text and keep the right clear for product
-const RIGHT_SIDE_ANGLES = new Set(['pain', 'desire', 'authority', 'guarantee', 'curiosity']);
+const RIGHT_SIDE_ANGLES = new Set(['pain', 'desire', 'authority', 'guarantee', 'curiosity', 'objection']);
 
 function getProductPlacement(angle, w, h, pw) {
   if (RIGHT_SIDE_ANGLES.has(angle)) {

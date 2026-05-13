@@ -127,8 +127,23 @@ const COPY_ANGLE_INSTRUCTIONS = {
   price:          'Highlight the deal, discount, or value stack — make the price feel like a steal.',
 };
 
+const ANGLE_EXTRA_FIELDS = {
+  pain:           `"b1": "Pain/problem bullet 1, max 32 chars, specific to product",\n  "b2": "Pain/problem bullet 2, max 32 chars",\n  "b3": "Pain/problem bullet 3, max 32 chars"`,
+  desire:         `"b1": "Key benefit 1, max 32 chars, specific to product",\n  "b2": "Key benefit 2, max 32 chars",\n  "b3": "Key benefit 3, max 32 chars"`,
+  transformation: `"b1": "Before state in 1 line, max 32 chars",\n  "a1": "After state in 1 line, max 32 chars"`,
+  objection:      `"p1": "Problem/doubt 1, max 28 chars",\n  "p2": "Problem/doubt 2, max 28 chars",\n  "p3": "Problem/doubt 3, max 28 chars",\n  "s1": "Solution 1, max 28 chars",\n  "s2": "Solution 2, max 28 chars",\n  "s3": "Solution 3, max 28 chars"`,
+  urgency:        `"f1": "Feature label, 2 words max",\n  "f2": "Feature label, 2 words max",\n  "f3": "Feature label, 2 words max",\n  "f4": "Feature label, 2 words max"`,
+  authority:      `"f1": "Credential or quality feature, max 36 chars",\n  "f2": "Credential or quality feature, max 36 chars",\n  "f3": "Credential or quality feature, max 36 chars",\n  "f4": "Credential or quality feature, max 36 chars"`,
+  comparison:     `"b1": "Before/without product state 1, max 26 chars",\n  "b2": "Before/without product state 2, max 26 chars",\n  "a1": "After/with product result 1, max 26 chars",\n  "a2": "After/with product result 2, max 26 chars"`,
+  guarantee:      `"b1": "Guarantee point 1, max 32 chars",\n  "b2": "Guarantee point 2, max 32 chars",\n  "b3": "Guarantee point 3, max 32 chars"`,
+  social_proof:   `"r1": "Short customer testimonial 1, max 52 chars",\n  "r2": "Short customer testimonial 2, max 52 chars"`,
+  curiosity:      `"h1": "Mystery/curiosity hint 1, max 38 chars",\n  "h2": "Mystery/curiosity hint 2, max 38 chars",\n  "h3": "Mystery/curiosity hint 3, max 38 chars"`,
+  price:          `"b1": "Scarcity or urgency line, max 44 chars"`,
+};
+
 async function generateCopy(productContext, angleKey, angleLabel, apiKey) {
   const instruction = COPY_ANGLE_INSTRUCTIONS[angleKey] || COPY_ANGLE_INSTRUCTIONS.desire;
+  const extraFields = ANGLE_EXTRA_FIELDS[angleKey] ? `,\n  ${ANGLE_EXTRA_FIELDS[angleKey]}` : '';
   const prompt = `Generate Facebook/Instagram ad copy in Spanish for a "${angleLabel}" angle ad.
 
 Product: ${productContext}
@@ -140,7 +155,7 @@ Return ONLY a valid JSON object — no markdown, no explanation, no code block:
   "headline": "Max 40 chars. Punchy headline that fits the ${angleLabel} angle.",
   "primaryText": "2-3 sentences. Emotional and persuasive body copy. Specific to this product.",
   "description": "Max 30 chars. Short benefit or offer description.",
-  "cta": "One of: Comprar ahora | Ver más | Obtener oferta | Saber más | Aprovechar oferta | Lo quiero"
+  "cta": "One of: Comprar ahora | Ver más | Obtener oferta | Saber más | Aprovechar oferta | Lo quiero"${extraFields}
 }`;
 
   const res = await fetch(GEMINI_VISION_URL(apiKey), {

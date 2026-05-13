@@ -215,19 +215,19 @@ const RIGHT_SIDE_ANGLES = new Set(['pain', 'desire', 'authority', 'guarantee', '
 
 function getProductPlacement(angle, w, h, pw) {
   if (RIGHT_SIDE_ANGLES.has(angle)) {
-    // Text lives on the left ~50% — center the product in the right half (w*0.5 to w)
     const rightHalfCenter = Math.round(w * 0.73);
     const left = Math.max(
       Math.round(w * 0.52),
       Math.min(rightHalfCenter - Math.round(pw / 2), w - pw - 20)
     );
-    return { left, top: Math.round(h * 0.43) };
+    // objection has 3 bullets above (ends ~y=450) — push product lower
+    const top = angle === 'objection' ? Math.round(h * 0.53) : Math.round(h * 0.43);
+    return { left, top };
   }
   if (angle === 'comparison') {
-    // Bottle centered on the VS divider between before/after panels
-    return { left: Math.max(0, Math.round((w - pw) / 2)), top: Math.round(h * 0.37) };
+    // Centered between the side cards, upper area
+    return { left: Math.max(0, Math.round((w - pw) / 2)), top: Math.round(h * 0.32) };
   }
-  // All other templates: center horizontally, upper-middle vertically
   return { left: Math.max(0, Math.round((w - pw) / 2)), top: Math.round(h * 0.41) };
 }
 

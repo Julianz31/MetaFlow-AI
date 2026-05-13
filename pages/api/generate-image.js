@@ -26,67 +26,78 @@ function formatHint(format) {
 const ANGLE_SCENES = {
   pain: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: A real person looking genuinely frustrated, stressed, or worried about the exact problem this product solves. Warm interior setting — home, bathroom, living room. Slightly dark, moody emotional tone. Authentic, relatable expression.
+MOOD: A real person (and their pet if this is a pet product) looking genuinely frustrated, stressed, or worried about the exact problem. Warm interior — home, living room. Slightly dark, moody emotional tone. Authentic, relatable expression.
+COMPOSITION: The person and any pets must be positioned on the LEFT 55% of the frame. The RIGHT side of the image must be naturally darker, relatively empty, and free of furniture or busy objects. This open right area is critical — a product bottle will be composited there.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   desire: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: A radiant, happy, successful-looking person who has achieved their ideal result. Golden hour or soft natural light. Premium clean environment — beautiful home, outdoors, wellness space. Warm aspirational feel. Genuine smile.
+MOOD: A radiant, happy person (with their pet if applicable) who has achieved their ideal result. Golden hour or soft natural light. Premium clean environment. Warm aspirational feel. Genuine smile.
+COMPOSITION: Person and pets must be on the LEFT 55% of the frame. The RIGHT side should be lighter, airy, and uncluttered — no furniture on the right. This open space is reserved for product placement.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   transformation: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: A person in a bright, warm, energizing environment — conveying positive change and growth. Vibrant lighting, premium space. The person looks confident and thriving.
+MOOD: A person (with their pet if applicable) in a bright, warm, energizing environment — conveying positive change. Vibrant lighting, premium space. Confident and thriving.
+COMPOSITION: Balanced framing. The bottom-center 35% of the image should be darker and less cluttered — no furniture in that zone. Subject positioned slightly upper-center.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   objection: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: A thoughtful, intelligent-looking person in a clean trustworthy home environment. Bright, calm, believable setting. Person's expression: moving from skeptical to reassured. Warm credible atmosphere.
+MOOD: A thoughtful person in a clean, trustworthy home environment. Expression moving from skeptical to reassured. Warm credible atmosphere.
+COMPOSITION: Person on the LEFT side of the frame. RIGHT side relatively open and uncluttered with a clean wall or soft background — reserved for product overlay.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   urgency: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: High-energy, dynamic scene. An excited, action-oriented person in a vibrant, colorful environment. Fast-paced feel, vivid contrasts, electric atmosphere.
+MOOD: High-energy, dynamic scene. Excited, action-oriented person in a vibrant, colorful environment. Fast-paced feel, vivid contrasts.
+COMPOSITION: Subject centered or slightly left. Lower-center area (bottom 35%) darker and less busy for product and text overlay.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   authority: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: Clean, premium, clinical or high-end environment. A confident professional-looking person. Crisp lighting, minimal modern aesthetic. Conveys expertise, trust, and quality. Think editorial/magazine look.
+MOOD: Clean, premium, bright environment. A confident professional-looking person — ideally a vet or expert — with a pet if applicable. Crisp natural lighting, minimal modern aesthetic. Conveys expertise, trust and quality.
+COMPOSITION: Person and pet positioned CENTER-LEFT of the frame. RIGHT side of the image should have an open clean wall or minimal background — no busy objects on the right. The person looks toward the center of the frame.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   comparison: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: A split-mood scene — one side feeling dull/gray/uninspiring, the other side bright/warm/premium. A person in a transitional or contrasting setting. Natural lighting with strong visual contrast.
+MOOD: Strong visual split — LEFT half dark, gloomy, desaturated (the BEFORE state, problem unsolved). RIGHT half bright, warm, vibrant with pink/rose tones (the AFTER state, problem solved). Each side has a person — left person looks sad/struggling, right person looks happy/thriving.
+COMPOSITION: Keep the CENTER strip (middle 15% of width) relatively clear and dark — a VS badge and product bottle will be placed there. No people or busy objects in the center strip.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   guarantee: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: Calm, peaceful, reassuring environment. A completely relaxed and satisfied person — zero-stress expression, content smile. Soft warm lighting. Conveys total safety, trust, and peace of mind.
+MOOD: Calm, peaceful, reassuring environment. Completely relaxed and satisfied person with their pet if applicable. Zero-stress expression, content smile. Soft warm lighting.
+COMPOSITION: Person and pet on the LEFT side of the frame. RIGHT side should be lighter, open, and uncluttered — clean wall or soft bokeh background on the right, reserved for product placement.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   social_proof: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: Warm, community-feel environment. A happy, glowing, relatable person — the kind others aspire to be like. Natural warm lighting, welcoming and friendly space.
+MOOD: Warm, community-feel environment. Happy, glowing, relatable person with a pet if applicable. Natural warm lighting, welcoming and friendly space.
+COMPOSITION: Subject in the upper-center area. Lower 40% of the image should be darker and less busy — reserved for testimonial cards and product overlay.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   curiosity: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: Intriguing, slightly dramatic, atmospheric. A person with a genuinely surprised or mind-blown expression. Slightly moody cinematic lighting — dark edges, focused center. A sense that something unexpected is being revealed.
+MOOD: Intriguing, slightly dramatic, atmospheric. Person with a genuinely surprised or mind-blown expression. Cinematic lighting — dark edges, bright center. Something unexpected being revealed.
+COMPOSITION: Person on the LEFT side of the frame. RIGHT side should be darker and atmospheric with minimal clutter — open space reserved for product placement.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   price: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: Energetic, celebratory, exciting. A happy person reacting with excitement to great news (a deal). Vibrant bright colors, dynamic movement feel, festive atmosphere.
+MOOD: Energetic, celebratory. Happy person reacting with excitement to great news. Vibrant bright colors, festive atmosphere.
+COMPOSITION: Balanced composition. Lower-center area (bottom 35%) should be darker and less busy — reserved for product and pricing text overlay.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 };
@@ -204,19 +215,20 @@ const RIGHT_SIDE_ANGLES = new Set(['pain', 'desire', 'authority', 'guarantee', '
 
 function getProductPlacement(angle, w, h, pw) {
   if (RIGHT_SIDE_ANGLES.has(angle)) {
-    // Text lives on the left ~50% — place product centered in the right half
+    // Text lives on the left ~50% — center the product in the right half (w*0.5 to w)
+    const rightHalfCenter = Math.round(w * 0.73);
     const left = Math.max(
       Math.round(w * 0.52),
-      Math.min(Math.round(w * 0.75 - pw / 2), w - pw - 16)
+      Math.min(rightHalfCenter - Math.round(pw / 2), w - pw - 20)
     );
-    return { left, top: Math.round(h * 0.46) };
+    return { left, top: Math.round(h * 0.43) };
   }
   if (angle === 'comparison') {
-    // Bottle sits at the center divider between before/after panels
-    return { left: Math.max(0, Math.round((w - pw) / 2)), top: Math.round(h * 0.40) };
+    // Bottle centered on the VS divider between before/after panels
+    return { left: Math.max(0, Math.round((w - pw) / 2)), top: Math.round(h * 0.37) };
   }
   // All other templates: center horizontally, upper-middle vertically
-  return { left: Math.max(0, Math.round((w - pw) / 2)), top: Math.round(h * 0.44) };
+  return { left: Math.max(0, Math.round((w - pw) / 2)), top: Math.round(h * 0.41) };
 }
 
 // ─── COMPOSITE: background + SVG template + product ──────────────────────────
@@ -235,9 +247,11 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, form
 
   // 3. Optionally composite product photo using angle-aware placement
   if (productBase64) {
-    const targetH = Math.round(h * 0.34);
+    // Use both height and width constraints so narrow bottles scale up properly
+    const targetH = Math.round(h * 0.40);
+    const targetW = Math.round(w * 0.26);
     const resizedProduct = await sharp(Buffer.from(productBase64, 'base64'))
-      .resize({ height: targetH, fit: 'inside', withoutEnlargement: false })
+      .resize({ height: targetH, width: targetW, fit: 'inside', withoutEnlargement: false })
       .png()
       .toBuffer();
 

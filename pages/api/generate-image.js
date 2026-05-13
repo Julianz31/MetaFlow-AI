@@ -26,77 +26,77 @@ function formatHint(format) {
 const ANGLE_SCENES = {
   pain: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: A real person (and their pet if this is a pet product) looking genuinely frustrated, stressed, or worried about the exact problem. Warm interior — home, living room. Slightly dark, moody emotional tone. Authentic, relatable expression.
-COMPOSITION: The person and any pets must be positioned on the LEFT 55% of the frame. The RIGHT side of the image must be naturally darker, relatively empty, and free of furniture or busy objects. This open right area is critical — a product bottle will be composited there.
+MOOD: A real person who is the target customer looking genuinely frustrated, stressed, or worried about the exact problem this product solves. The environment, setting, and lifestyle elements must match the product category (beauty → bathroom/vanity, fitness → gym/home, pet → living room with pet, food → kitchen, etc.). Slightly dark, moody emotional tone. Authentic, relatable expression.
+COMPOSITION: The person (and any relevant lifestyle elements) must be positioned on the LEFT 55% of the frame. The RIGHT side must be naturally darker, relatively empty, and free of busy objects — a product image will be composited there.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   desire: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: A radiant, happy person (with their pet if applicable) who has achieved their ideal result. Golden hour or soft natural light. Premium clean environment. Warm aspirational feel. Genuine smile.
-COMPOSITION: Person and pets must be on the LEFT 55% of the frame. The RIGHT side should be lighter, airy, and uncluttered — no furniture on the right. This open space is reserved for product placement.
+MOOD: A radiant, happy target customer who has achieved their ideal result from using this product. The setting must match the product category (beauty → bright bathroom or vanity, fitness → gym or outdoor, pet → living room with happy pet, food → modern kitchen, etc.). Golden hour or soft natural light. Aspirational feel. Genuine smile.
+COMPOSITION: Person and any lifestyle elements must be on the LEFT 55% of the frame. The RIGHT side should be lighter, airy, and uncluttered — no furniture or busy objects on the right. This open space is reserved for product placement.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   transformation: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: A person (with their pet if applicable) in a bright, warm, energizing environment — conveying positive change. Vibrant lighting, premium space. Confident and thriving.
-COMPOSITION: Balanced framing. The bottom-center 35% of the image should be darker and less cluttered — no furniture in that zone. Subject positioned slightly upper-center.
+MOOD: A target customer in a bright, energizing environment conveying positive change and growth. The setting must match the product category. Vibrant lighting, premium space. Person looks confident and thriving.
+COMPOSITION: Balanced framing. The bottom-center 35% of the image should be darker and less cluttered — subject positioned upper-center.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   objection: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: A thoughtful person in a clean, trustworthy home environment. Expression moving from skeptical to reassured. Warm credible atmosphere.
-COMPOSITION: Person on the LEFT side of the frame. RIGHT side relatively open and uncluttered with a clean wall or soft background — reserved for product overlay.
+MOOD: A thoughtful, intelligent-looking target customer in a clean, trustworthy environment matching the product category. Expression moving from skeptical to reassured. Warm, credible atmosphere.
+COMPOSITION: Person on the LEFT side of the frame. RIGHT side relatively open with a clean wall or soft bokeh background — reserved for product overlay.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   urgency: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: High-energy, dynamic scene. Excited, action-oriented person in a vibrant, colorful environment. Fast-paced feel, vivid contrasts.
+MOOD: High-energy, dynamic scene. Excited, action-oriented target customer in a vibrant environment matching the product category. Fast-paced feel, vivid contrasts.
 COMPOSITION: Subject centered or slightly left. Lower-center area (bottom 35%) darker and less busy for product and text overlay.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   authority: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: Clean, premium, bright environment. A confident professional-looking person — ideally a vet or expert — with a pet if applicable. Crisp natural lighting, minimal modern aesthetic. Conveys expertise, trust and quality.
-COMPOSITION: Person and pet positioned CENTER-LEFT of the frame. RIGHT side of the image should have an open clean wall or minimal background — no busy objects on the right. The person looks toward the center of the frame.
+MOOD: Clean, premium, bright environment. A confident expert or professional relevant to the product category (beauty → esthetician/dermatologist, fitness → trainer, pet → veterinarian, food → nutritionist, etc.). Crisp natural lighting, minimal modern aesthetic. Conveys expertise, trust, and quality.
+COMPOSITION: Person positioned CENTER-LEFT of the frame. RIGHT side of the image should have an open clean wall or minimal soft background — no busy objects on the right, reserved for product placement.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   comparison: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: Strong visual split — LEFT half dark, gloomy, desaturated (the BEFORE state, problem unsolved). RIGHT half bright, warm, vibrant with pink/rose tones (the AFTER state, problem solved). Each side has a person — left person looks sad/struggling, right person looks happy/thriving.
-COMPOSITION: Keep the CENTER strip (middle 15% of width) relatively clear and dark — a VS badge and product bottle will be placed there. No people or busy objects in the center strip.
+MOOD: Strong visual split — LEFT half dark, gloomy, desaturated (the BEFORE state without the product). RIGHT half bright, warm, vibrant (the AFTER state with the product). Each side has the target customer — left person looks sad/struggling, right person looks happy/thriving. Environment matches product category.
+COMPOSITION: Keep the CENTER strip (middle 15% of width) relatively clear and dark — a VS badge and product image will be placed there. No people or busy objects in the center strip.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   guarantee: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: Calm, peaceful, reassuring environment. Completely relaxed and satisfied person with their pet if applicable. Zero-stress expression, content smile. Soft warm lighting.
-COMPOSITION: Person and pet on the LEFT side of the frame. RIGHT side should be lighter, open, and uncluttered — clean wall or soft bokeh background on the right, reserved for product placement.
+MOOD: Calm, peaceful, reassuring environment matching the product category. Completely relaxed and satisfied target customer. Zero-stress expression, content smile. Soft warm lighting.
+COMPOSITION: Person and any lifestyle elements on the LEFT side of the frame. RIGHT side should be lighter, open, and uncluttered — clean wall or soft bokeh, reserved for product placement.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   social_proof: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: Warm, community-feel environment. Happy, glowing, relatable person with a pet if applicable. Natural warm lighting, welcoming and friendly space.
+MOOD: Warm, community-feel environment matching the product category. Happy, glowing, relatable target customer. Natural warm lighting, welcoming and friendly space.
 COMPOSITION: Subject in the upper-center area. Lower 40% of the image should be darker and less busy — reserved for testimonial cards and product overlay.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   curiosity: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: Intriguing, slightly dramatic, atmospheric. Person with a genuinely surprised or mind-blown expression. Cinematic lighting — dark edges, bright center. Something unexpected being revealed.
-COMPOSITION: Person on the LEFT side of the frame. RIGHT side should be darker and atmospheric with minimal clutter — open space reserved for product placement.
+MOOD: Intriguing, slightly dramatic, atmospheric. Target customer with a genuinely surprised or mind-blown expression. Cinematic lighting — dark edges, bright center. Environment matches product category. Something unexpected being revealed.
+COMPOSITION: Person on the LEFT side of the frame. RIGHT side darker and atmospheric with minimal clutter — open space reserved for product placement.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
   price: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: Energetic, celebratory. Happy person reacting with excitement to great news. Vibrant bright colors, festive atmosphere.
+MOOD: Energetic, celebratory. Happy target customer reacting with excitement. Vibrant bright colors, festive atmosphere. Environment matches product category.
 COMPOSITION: Balanced composition. Lower-center area (bottom 35%) should be darker and less busy — reserved for product and pricing text overlay.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),

@@ -217,10 +217,50 @@ Be specific and factual based on what you see.`,
   return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
+// ─── FULL DESIGN ANGLES (Gemini generates COMPLETE ad — no canvas template) ───
+
+// For these angles, Gemini renders the entire design (background + text + graphics).
+// Only the product photo is composited on top afterward.
+const FULL_DESIGN_ANGLES = new Set(['pain']);
+
+function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format) {
+  if (angle === 'pain') {
+    const rawHeadline = (copy?.headline || 'SUPERA TUS LÍMITES').toUpperCase();
+    const words = rawHeadline.split(' ');
+    const mid = Math.ceil(words.length / 2);
+    const line1 = words.slice(0, mid).join(' ');
+    const line2 = words.slice(mid).join(' ') || line1;
+    const subText = copy?.description || (copy?.primaryText || '').split('.')[0] || 'El secreto para una vida más activa y sana';
+    const hex = primaryColor || '#d946ef';
+
+    return `Design a COMPLETE, professional Facebook ad image at 1080x1080 pixels. Include ALL design elements: photorealistic background, typography, decorative graphics. This is the final production-ready ad image.
+
+PRODUCT CONTEXT: ${productContext}
+
+BACKGROUND SCENE:
+Warm cinematic interior — a modern, bright veterinary clinic or upscale pet care space. RIGHT 55% of the frame: a confident, smiling veterinarian in a white coat with a large healthy Labrador or Golden Retriever, warm amber-golden bokeh lighting, sharp 8K detail. LEFT LOWER quadrant (roughly x:0-40%, y:55-100%): a clean wooden table or sleek pedestal surface — keep this area CLEAN and relatively desaturated, a product will be placed here later.
+
+TYPOGRAPHY (place exactly):
+1. TOP AREA — Headline spanning the full width, two stacked lines, centered:
+   • Line 1: "${line1}" — ultra-bold Anton/Impact font, pure WHITE (#ffffff), font size fills ~80% canvas width, strong dark drop shadow for readability
+   • Line 2: "${line2}" — same massive font, color: ${hex} (bright magenta/pink), same size, dark drop shadow
+2. LOWER CENTER (above the table) — Semi-transparent dark rounded rectangle (pill card) with white body text: "${subText}" — clean modern sans-serif, ~22px equivalent
+
+DECORATIVE ELEMENTS:
+• Upper-right corner: 3-4 small floating pet icons (paw print, bone, fish silhouette) in white at ~55% opacity, scattered naturally
+• Subtle dark gradient vignette at the very top edge and very bottom edge
+
+STYLE: Premium commercial Facebook ad. Cinematic warm lighting. Conversion-optimized visual hierarchy (eye travels: headline → product zone lower-left → vet+dog right). DO NOT include prices, URLs, CTA buttons, or any product/supplement objects.
+
+${formatHint(format)}`.trim();
+  }
+  return null;
+}
+
 // ─── ICON PANEL GENERATION (AI hyperrealistic icons for feature strip) ────────
 
-// Angles that use the bottom feature strip with AI icons
-const ICON_STRIP_ANGLES = new Set(['pain', 'urgency', 'authority']);
+// Angles that use the bottom feature strip with AI icons (pain excluded — uses full design)
+const ICON_STRIP_ANGLES = new Set(['urgency', 'authority']);
 
 async function generateIconPanel(features, apiKey) {
   const list = features.map((f, i) => `${i + 1}. ${f}`).join(' | ');
@@ -290,21 +330,25 @@ function getProductPlacement(angle, w, h, pw) {
   return { left: Math.max(0, Math.round((w - pw) / 2)), top: Math.round(h * 0.41) };
 }
 
-// ─── COMPOSITE: background + SVG template + product ──────────────────────────
+// ─── COMPOSITE: background + template + product ───────────────────────────────
 
-async function compositeAll({ backgroundBase64, templatePng, productBase64, iconPanelBase64, format, angle }) {
+async function compositeAll({ backgroundBase64, templatePng, productBase64, iconPanelBase64, format, angle, fullDesign }) {
   const { w, h } = DIMS[format] || DIMS.square;
 
-  // 1. Resize background to exact ad dimensions
+  // 1. Resize background/full-design image to exact ad dimensions
   const bgBuffer = await sharp(Buffer.from(backgroundBase64, 'base64'))
     .resize(w, h, { fit: 'cover', position: 'center' })
     .jpeg({ quality: 95 })
     .toBuffer();
 
-  // 2. templatePng is already a PNG Buffer from @napi-rs/canvas at the correct size
-  const layers = [{ input: templatePng, blend: 'over' }];
+  const layers = [];
 
-  // 3. Optionally composite product photo using angle-aware placement
+  // 2. Canvas template layer — skipped for full-design angles (Gemini drew everything)
+  if (templatePng) {
+    layers.push({ input: templatePng, blend: 'over' });
+  }
+
+  // 3. Composite product photo with angle-aware placement
   if (productBase64) {
     const targetH = Math.round(h * 0.48);
     const targetW = Math.round(w * 0.32);
@@ -314,14 +358,23 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, icon
       .toBuffer();
 
     const { width: pw } = await sharp(resizedProduct).metadata();
-    const { left, top } = getProductPlacement(angle || 'desire', w, h, pw);
-    layers.push({ input: resizedProduct, left, top, blend: 'over' });
+
+    let placement;
+    if (fullDesign && angle === 'pain') {
+      // Full design Pain: product lower-left, matching the table zone in Gemini's scene
+      const cx = Math.round(w * 0.22);
+      placement = { left: Math.max(20, cx - Math.round(pw / 2)), top: Math.round(h * 0.54) };
+    } else {
+      placement = getProductPlacement(angle || 'desire', w, h, pw);
+    }
+
+    layers.push({ input: resizedProduct, ...placement, blend: 'over' });
   }
 
-  // 4. Composite AI-generated icon panel into the feature strip area (replaces canvas icons)
+  // 4. AI icon panel (canvas-template angles only)
   if (iconPanelBase64) {
     try {
-      const stripH = Math.round(h * 0.205);   // matches drawFeatureStrip height
+      const stripH = Math.round(h * 0.205);
       const iconAreaH = Math.round(stripH * 0.68);
       const iconTop = h - stripH + Math.round((stripH - iconAreaH) / 2) - 8;
       const resizedIcons = await sharp(Buffer.from(iconPanelBase64, 'base64'))
@@ -379,19 +432,41 @@ export default async function handler(req, res) {
     const results = await Promise.allSettled(
       selectedAngles.map(async (a) => {
         const label = ANGLE_LABELS[a] || a;
+
+        // ── FULL DESIGN PATH (Gemini generates complete ad image) ─────────────
+        if (FULL_DESIGN_ANGLES.has(a)) {
+          // Must be sequential: copy first → build design prompt → generate image
+          const copy = await generateCopy(productContext, a, label, apiKey);
+          const enrichedCopy = { ...(copy || {}), productName: productName || '' };
+          const designPrompt = buildFullDesignPrompt(a, productContext, enrichedCopy, primaryColor, format);
+          const fullImage = await generateBackground(designPrompt, apiKey);
+
+          const composited = await compositeAll({
+            backgroundBase64: fullImage.data,
+            templatePng: null,       // no canvas template — Gemini drew everything
+            productBase64: productImageBase64 || null,
+            iconPanelBase64: null,
+            format,
+            angle: a,
+            fullDesign: true,
+          });
+
+          return { imageUrl: `data:image/jpeg;base64,${composited}`, angle: a, label, copy };
+        }
+
+        // ── STANDARD PATH (Gemini background + canvas template) ──────────────
         const scenePromptFn = ANGLE_SCENES[a] || ANGLE_SCENES.desire;
         const scenePrompt = scenePromptFn(productContext, format);
 
-        // Background + copy generate in parallel (icon panel too, for eligible angles)
+        // Background + copy generate in parallel
         const [background, copy] = await Promise.all([
           generateBackground(scenePrompt, apiKey),
           generateCopy(productContext, a, label, apiKey),
         ]);
 
-        // Inject product name into copy for templates that use it
         const enrichedCopy = { ...(copy || {}), productName: productName || '' };
 
-        // Generate AI icon panel in parallel with template building (only for feature-strip angles)
+        // Generate AI icon panel in parallel with template building (feature-strip angles)
         const iconFeatures = ICON_STRIP_ANGLES.has(a) ? [
           enrichedCopy.f1 || enrichedCopy.b1 || 'Beneficio principal',
           enrichedCopy.f2 || enrichedCopy.b2 || 'Calidad premium',
@@ -407,7 +482,6 @@ export default async function handler(req, res) {
           iconFeatures ? generateIconPanel(iconFeatures, apiKey) : Promise.resolve(null),
         ]);
 
-        // Composite everything together with angle-aware product placement
         const composited = await compositeAll({
           backgroundBase64: background.data,
           templatePng,
@@ -415,6 +489,7 @@ export default async function handler(req, res) {
           iconPanelBase64,
           format,
           angle: a,
+          fullDesign: false,
         });
 
         return { imageUrl: `data:image/jpeg;base64,${composited}`, angle: a, label, copy };

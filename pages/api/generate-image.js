@@ -14,6 +14,7 @@ const GEMINI_IMAGE_URL = (key) =>
 // Gemini now generates BACKGROUND SCENES ONLY — no text, no logos, no product.
 // All design/text is handled by our SVG templates composited on top.
 const NO_TEXT_RULE = `CRITICAL: Do NOT add any text, words, letters, logos, watermarks, or graphic design elements to the image. Generate ONLY a clean photorealistic background scene with people and/or environment. No product objects of any kind. The design layer will be added separately.`;
+const QUALITY_RULE = `QUALITY: Cinematic, professional photography. 8K ultra-sharp detail. Dramatic, well-composed lighting. Rich colors with intentional highlights. Magazine-quality shot.`;
 
 function formatHint(format) {
   if (format === 'vertical') return 'Vertical 9:16 portrait framing, optimized for Stories/Reels.';
@@ -26,16 +27,18 @@ function formatHint(format) {
 const ANGLE_SCENES = {
   pain: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: A real person who is the target customer looking genuinely frustrated, stressed, or worried about the exact problem this product solves. The environment, setting, and lifestyle elements must match the product category (beauty → bathroom/vanity, fitness → gym/home, pet → living room with pet, food → kitchen, etc.). Slightly dark, moody emotional tone. Authentic, relatable expression.
+MOOD: A real person who is the target customer looking genuinely frustrated, stressed, or worried about the exact problem this product solves. The environment, setting, and lifestyle elements must match the product category (beauty → bathroom/vanity, fitness → gym/home, pet → living room with pet, food → kitchen, etc.). Dark, dramatic, moody emotional tone with cinematic contrast. Authentic, relatable expression.
 COMPOSITION: The person (and any relevant lifestyle elements) must be positioned on the LEFT 55% of the frame. The RIGHT side must be naturally darker, relatively empty, and free of busy objects — a product image will be composited there.
 ${NO_TEXT_RULE}
+${QUALITY_RULE}
 ${formatHint(format)}`.trim(),
 
   desire: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: A radiant, happy target customer who has achieved their ideal result from using this product. The setting must match the product category (beauty → bright bathroom or vanity, fitness → gym or outdoor, pet → living room with happy pet, food → modern kitchen, etc.). Golden hour or soft natural light. Aspirational feel. Genuine smile.
+MOOD: A radiant, happy target customer who has achieved their ideal result from using this product. The setting must match the product category (beauty → bright bathroom or vanity, fitness → gym or outdoor, pet → living room with happy pet, food → modern kitchen, etc.). Golden hour or warm cinematic light. Aspirational feel. Genuine smile. Vibrant, rich colors.
 COMPOSITION: Person and any lifestyle elements must be on the RIGHT 55% of the frame. The LEFT side should be lighter, airy, and uncluttered — no furniture or busy objects on the left. This open space is reserved for product placement.
 ${NO_TEXT_RULE}
+${QUALITY_RULE}
 ${formatHint(format)}`.trim(),
 
   transformation: (ctx, format) => `
@@ -43,6 +46,7 @@ Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
 MOOD: A target customer in a bright, energizing environment conveying positive change and growth. The setting must match the product category. Vibrant lighting, premium space. Person looks confident and thriving.
 COMPOSITION: Balanced framing. The bottom-center 35% of the image should be darker and less cluttered — subject positioned upper-center.
 ${NO_TEXT_RULE}
+${QUALITY_RULE}
 ${formatHint(format)}`.trim(),
 
   objection: (ctx, format) => `
@@ -50,6 +54,7 @@ Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
 MOOD: A thoughtful, intelligent-looking target customer in a clean, trustworthy environment matching the product category. Expression moving from skeptical to reassured. Warm, credible atmosphere.
 COMPOSITION: Person on the LEFT side of the frame. RIGHT side relatively open with a clean wall or soft bokeh background — reserved for product overlay.
 ${NO_TEXT_RULE}
+${QUALITY_RULE}
 ${formatHint(format)}`.trim(),
 
   urgency: (ctx, format) => `
@@ -57,6 +62,7 @@ Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
 MOOD: High-energy, dynamic scene. Excited, action-oriented target customer in a vibrant environment matching the product category. Fast-paced feel, vivid contrasts.
 COMPOSITION: Subject centered or slightly left. Lower-center area (bottom 35%) darker and less busy for product and text overlay.
 ${NO_TEXT_RULE}
+${QUALITY_RULE}
 ${formatHint(format)}`.trim(),
 
   authority: (ctx, format) => `
@@ -64,6 +70,7 @@ Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
 MOOD: Clean, premium, bright environment. A confident expert or professional relevant to the product category (beauty → esthetician/dermatologist, fitness → trainer, pet → veterinarian, food → nutritionist, etc.). Crisp natural lighting, minimal modern aesthetic. Conveys expertise, trust, and quality.
 COMPOSITION: Person positioned CENTER-LEFT of the frame. RIGHT side of the image should have an open clean wall or minimal soft background — no busy objects on the right, reserved for product placement.
 ${NO_TEXT_RULE}
+${QUALITY_RULE}
 ${formatHint(format)}`.trim(),
 
   comparison: (ctx, format) => `
@@ -71,6 +78,7 @@ Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
 MOOD: Strong visual split — LEFT half dark, gloomy, desaturated (the BEFORE state without the product). RIGHT half bright, warm, vibrant (the AFTER state with the product). Each side has the target customer — left person looks sad/struggling, right person looks happy/thriving. Environment matches product category.
 COMPOSITION: Keep the CENTER strip (middle 15% of width) relatively clear and dark — a VS badge and product image will be placed there. No people or busy objects in the center strip.
 ${NO_TEXT_RULE}
+${QUALITY_RULE}
 ${formatHint(format)}`.trim(),
 
   guarantee: (ctx, format) => `
@@ -78,6 +86,7 @@ Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
 MOOD: Calm, peaceful, reassuring environment matching the product category. Completely relaxed and satisfied target customer. Zero-stress expression, content smile. Soft warm lighting.
 COMPOSITION: Person and any lifestyle elements on the LEFT side of the frame. RIGHT side should be lighter, open, and uncluttered — clean wall or soft bokeh, reserved for product placement.
 ${NO_TEXT_RULE}
+${QUALITY_RULE}
 ${formatHint(format)}`.trim(),
 
   social_proof: (ctx, format) => `
@@ -85,6 +94,7 @@ Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
 MOOD: Warm, community-feel environment matching the product category. Happy, glowing, relatable target customer. Natural warm lighting, welcoming and friendly space.
 COMPOSITION: Subject in the upper-center area. Lower 40% of the image should be darker and less busy — reserved for testimonial cards and product overlay.
 ${NO_TEXT_RULE}
+${QUALITY_RULE}
 ${formatHint(format)}`.trim(),
 
   curiosity: (ctx, format) => `
@@ -92,6 +102,7 @@ Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
 MOOD: Intriguing, slightly dramatic, atmospheric. Target customer with a genuinely surprised or mind-blown expression. Cinematic lighting — dark edges, bright center. Environment matches product category. Something unexpected being revealed.
 COMPOSITION: Person on the LEFT side of the frame. RIGHT side darker and atmospheric with minimal clutter — open space reserved for product placement.
 ${NO_TEXT_RULE}
+${QUALITY_RULE}
 ${formatHint(format)}`.trim(),
 
   price: (ctx, format) => `
@@ -99,6 +110,7 @@ Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
 MOOD: Energetic, celebratory. Happy target customer reacting with excitement. Vibrant bright colors, festive atmosphere. Environment matches product category.
 COMPOSITION: Balanced composition. Lower-center area (bottom 35%) should be darker and less busy — reserved for product and pricing text overlay.
 ${NO_TEXT_RULE}
+${QUALITY_RULE}
 ${formatHint(format)}`.trim(),
 };
 
@@ -205,6 +217,32 @@ Be specific and factual based on what you see.`,
   return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
+// ─── ICON PANEL GENERATION (AI hyperrealistic icons for feature strip) ────────
+
+// Angles that use the bottom feature strip with AI icons
+const ICON_STRIP_ANGLES = new Set(['pain', 'urgency', 'authority']);
+
+async function generateIconPanel(features, apiKey) {
+  const list = features.map((f, i) => `${i + 1}. ${f}`).join(' | ');
+  const prompt = `Create a horizontal row of exactly 4 individual icon illustrations on a pure white (#ffffff) background. Each icon is a clean, modern, hyperrealistic flat illustration with a magenta-pink color (#d946ef). The 4 icons must represent these product benefits in order from left to right: ${list}. Style: modern icon set, slight 3D depth, clean drop shadow, vibrant magenta/pink tones, no gradients in icons. White background only. Each icon occupies exactly 1/4 of the image width. No text, no labels, no borders between icons. Professional quality, sharp and detailed.`;
+
+  try {
+    const res = await fetch(GEMINI_IMAGE_URL(apiKey), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
+      }),
+    });
+    const data = await res.json();
+    const imgPart = data.candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
+    return imgPart ? imgPart.inlineData.data : null;
+  } catch {
+    return null;
+  }
+}
+
 // ─── BACKGROUND GENERATION ───────────────────────────────────────────────────
 
 async function generateBackground(scenePrompt, apiKey) {
@@ -254,7 +292,7 @@ function getProductPlacement(angle, w, h, pw) {
 
 // ─── COMPOSITE: background + SVG template + product ──────────────────────────
 
-async function compositeAll({ backgroundBase64, templatePng, productBase64, format, angle }) {
+async function compositeAll({ backgroundBase64, templatePng, productBase64, iconPanelBase64, format, angle }) {
   const { w, h } = DIMS[format] || DIMS.square;
 
   // 1. Resize background to exact ad dimensions
@@ -268,7 +306,6 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, form
 
   // 3. Optionally composite product photo using angle-aware placement
   if (productBase64) {
-    // Use both height and width constraints so narrow bottles scale up properly
     const targetH = Math.round(h * 0.48);
     const targetW = Math.round(w * 0.32);
     const resizedProduct = await sharp(Buffer.from(productBase64, 'base64'))
@@ -278,8 +315,23 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, form
 
     const { width: pw } = await sharp(resizedProduct).metadata();
     const { left, top } = getProductPlacement(angle || 'desire', w, h, pw);
-
     layers.push({ input: resizedProduct, left, top, blend: 'over' });
+  }
+
+  // 4. Composite AI-generated icon panel into the feature strip area (replaces canvas icons)
+  if (iconPanelBase64) {
+    try {
+      const stripH = Math.round(h * 0.205);   // matches drawFeatureStrip height
+      const iconAreaH = Math.round(stripH * 0.68);
+      const iconTop = h - stripH + Math.round((stripH - iconAreaH) / 2) - 8;
+      const resizedIcons = await sharp(Buffer.from(iconPanelBase64, 'base64'))
+        .resize(w, iconAreaH, { fit: 'fill' })
+        .png()
+        .toBuffer();
+      layers.push({ input: resizedIcons, left: 0, top: iconTop, blend: 'over' });
+    } catch {
+      // icon panel composite failed — canvas fallback icons remain visible
+    }
   }
 
   const result = await sharp(bgBuffer)
@@ -330,7 +382,7 @@ export default async function handler(req, res) {
         const scenePromptFn = ANGLE_SCENES[a] || ANGLE_SCENES.desire;
         const scenePrompt = scenePromptFn(productContext, format);
 
-        // Background + copy generate in parallel
+        // Background + copy generate in parallel (icon panel too, for eligible angles)
         const [background, copy] = await Promise.all([
           generateBackground(scenePrompt, apiKey),
           generateCopy(productContext, a, label, apiKey),
@@ -339,17 +391,28 @@ export default async function handler(req, res) {
         // Inject product name into copy for templates that use it
         const enrichedCopy = { ...(copy || {}), productName: productName || '' };
 
+        // Generate AI icon panel in parallel with template building (only for feature-strip angles)
+        const iconFeatures = ICON_STRIP_ANGLES.has(a) ? [
+          enrichedCopy.f1 || enrichedCopy.b1 || 'Beneficio principal',
+          enrichedCopy.f2 || enrichedCopy.b2 || 'Calidad premium',
+          enrichedCopy.f3 || enrichedCopy.b3 || 'Uso seguro diario',
+          enrichedCopy.f4 || enrichedCopy.cta || 'Resultados garantizados',
+        ] : null;
+
         const hasProduct = !!productImageBase64;
         const variation = Math.floor(Math.random() * 2);
 
-        // Build Canvas template — pass hasProduct so text constrains to left half
-        const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct, variation);
+        const [templatePng, iconPanelBase64] = await Promise.all([
+          Promise.resolve(buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct, variation)),
+          iconFeatures ? generateIconPanel(iconFeatures, apiKey) : Promise.resolve(null),
+        ]);
 
         // Composite everything together with angle-aware product placement
         const composited = await compositeAll({
           backgroundBase64: background.data,
           templatePng,
           productBase64: productImageBase64 || null,
+          iconPanelBase64,
           format,
           angle: a,
         });

@@ -242,7 +242,13 @@ const NO_LABEL_RULE = `CRITICAL RENDERING RULES:
 function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format, hasProduct = false) {
   const prompt = _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct);
   if (!prompt) return null;
-  return prompt;
+  const dims = format === 'vertical' ? '1080x1920' : format === 'horizontal' ? '1920x1080' : '1080x1080';
+  const safeZone = `\nCANVAS & SAFE ZONE RULES:
+• Output image MUST be exactly ${dims} pixels (${format === 'vertical' ? '9:16 portrait' : format === 'horizontal' ? '16:9 landscape' : '1:1 square'} aspect ratio). Do NOT generate a different size or add letterbox/pillarbox bands.
+• ALL text, headlines, buttons, badges, price tags, and graphic elements must be placed at least 72px from EVERY edge of the canvas.
+• No text or element may be partially clipped, cut, or hidden by the frame boundary.
+• Text blocks must be SHORT enough to fit entirely within the safe zone — truncate or condense rather than overflow.`;
+  return prompt + safeZone;
 }
 
 function _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct) {
@@ -250,6 +256,7 @@ function _buildPromptBody(angle, productContext, copy, primaryColor, format, has
   const sub    = copy?.description || (copy?.primaryText || '').split('.')[0] || '';
   const hex    = primaryColor || '#6366f1';
   const fmt    = formatHint(format);
+  const dims   = format === 'vertical' ? '1080x1920' : format === 'horizontal' ? '1920x1080' : '1080x1080';
   const ctx    = productContext;
   const b1 = copy?.b1 || ''; const b2 = copy?.b2 || ''; const b3 = copy?.b3 || '';
   const a1 = copy?.a1 || ''; const a2 = copy?.a2 || '';
@@ -268,7 +275,7 @@ function _buildPromptBody(angle, productContext, copy, primaryColor, format, has
 
   // ── PAIN ─────────────────────────────────────────────────────────────────────
   if (angle === 'pain') return `
-Design a COMPLETE 1080x1080 professional Facebook ad. Every design element must be included — background scene, typography, overlays, decorative graphics. World-class advertising quality.
+Design a COMPLETE ${dims} professional Facebook ad. Every design element must be included — background scene, typography, overlays, decorative graphics. World-class advertising quality.
 
 PRODUCT: ${ctx}
 
@@ -295,7 +302,7 @@ ${NO_LABEL_RULE}`.trim();
 
   // ── DESIRE ───────────────────────────────────────────────────────────────────
   if (angle === 'desire') return `
-Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+Design a COMPLETE ${dims} professional Facebook ad. World-class advertising quality.
 
 PRODUCT: ${ctx}
 
@@ -322,7 +329,7 @@ ${NO_LABEL_RULE}`.trim();
 
   // ── TRANSFORMATION ───────────────────────────────────────────────────────────
   if (angle === 'transformation') return `
-Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+Design a COMPLETE ${dims} professional Facebook ad. World-class advertising quality.
 
 PRODUCT: ${ctx}
 
@@ -352,7 +359,7 @@ ${NO_LABEL_RULE}`.trim();
 
   // ── OBJECTION ────────────────────────────────────────────────────────────────
   if (angle === 'objection') return `
-Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+Design a COMPLETE ${dims} professional Facebook ad. World-class advertising quality.
 
 PRODUCT: ${ctx}
 
@@ -383,7 +390,7 @@ ${NO_LABEL_RULE}`.trim();
 
   // ── URGENCY ──────────────────────────────────────────────────────────────────
   if (angle === 'urgency') return `
-Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+Design a COMPLETE ${dims} professional Facebook ad. World-class advertising quality.
 
 PRODUCT: ${ctx}
 
@@ -409,7 +416,7 @@ ${NO_LABEL_RULE}`.trim();
 
   // ── AUTHORITY ────────────────────────────────────────────────────────────────
   if (angle === 'authority') return `
-Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+Design a COMPLETE ${dims} professional Facebook ad. World-class advertising quality.
 
 PRODUCT: ${ctx}
 
@@ -438,7 +445,7 @@ ${NO_LABEL_RULE}`.trim();
 
   // ── COMPARISON ───────────────────────────────────────────────────────────────
   if (angle === 'comparison') return `
-Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+Design a COMPLETE ${dims} professional Facebook ad. World-class advertising quality.
 
 PRODUCT: ${ctx}
 
@@ -470,7 +477,7 @@ ${NO_LABEL_RULE}`.trim();
 
   // ── GUARANTEE ────────────────────────────────────────────────────────────────
   if (angle === 'guarantee') return `
-Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+Design a COMPLETE ${dims} professional Facebook ad. World-class advertising quality.
 
 PRODUCT: ${ctx}
 
@@ -498,7 +505,7 @@ ${NO_LABEL_RULE}`.trim();
 
   // ── SOCIAL PROOF ─────────────────────────────────────────────────────────────
   if (angle === 'social_proof') return `
-Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+Design a COMPLETE ${dims} professional Facebook ad. World-class advertising quality.
 
 PRODUCT: ${ctx}
 
@@ -530,7 +537,7 @@ ${NO_LABEL_RULE}`.trim();
 
   // ── CURIOSITY ────────────────────────────────────────────────────────────────
   if (angle === 'curiosity') return `
-Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+Design a COMPLETE ${dims} professional Facebook ad. World-class advertising quality.
 
 PRODUCT: ${ctx}
 
@@ -559,7 +566,7 @@ ${NO_LABEL_RULE}`.trim();
 
   // ── PRICE ────────────────────────────────────────────────────────────────────
   if (angle === 'price') return `
-Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+Design a COMPLETE ${dims} professional Facebook ad. World-class advertising quality.
 
 PRODUCT: ${ctx}
 

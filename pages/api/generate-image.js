@@ -258,10 +258,12 @@ function _buildPromptBody(angle, productContext, copy, primaryColor, format, has
   const s1 = copy?.s1 || ''; const s2 = copy?.s2 || ''; const s3 = copy?.s3 || '';
   const r1 = copy?.r1 || ''; const r2 = copy?.r2 || '';
 
-  // When the product image is passed as multimodal input, Gemini places it in the scene.
   const productRule = hasProduct
-    ? `\nPRODUCT INTEGRATION: The product image provided as the first input must be placed in the designated product zone described in the layout below. Integrate it naturally: match the scene lighting, add a subtle drop shadow, correct perspective. The product label/packaging must remain clearly readable. Do NOT distort or stylize the product — keep it photorealistic.`
+    ? `\nPRODUCT INTEGRATION: The product image provided as the first input must be placed in the designated product zone. Integrate it naturally: match the scene lighting, correct perspective. The product label/packaging must remain clearly readable. Do NOT distort or stylize the product — keep it photorealistic.`
     : `\nPRODUCT ZONE: Leave the designated product zone as a clean, neutral surface (table, pedestal, or empty space) — a product photo will be composited there later.`;
+
+  // Shared scene adaptation rule — used by all angles
+  const SCENE_ADAPT = `SCENE RULE: Derive ALL visual elements (setting, person demographics, props, environment, wardrobe) EXCLUSIVELY from the PRODUCT context above. Auto-detect the product category and use the appropriate setting: beauty/skincare → bright vanity, bathroom, mirror, glowing skin; pet products → home with owner and pet; fitness/supplements → gym or outdoor, active person; food/nutrition → kitchen or dining table; fashion/apparel → lifestyle setting; health/pharma → clinical or home wellness space. The scene must make it immediately obvious what type of product this ad is for. Match the gender, age, and demographic of the target audience from the product description.`;
 
   // ── PAIN ─────────────────────────────────────────────────────────────────────
   if (angle === 'pain') return `
@@ -270,21 +272,22 @@ Design a COMPLETE 1080x1080 professional Facebook ad. Every design element must 
 PRODUCT: ${ctx}
 
 BACKGROUND SCENE (photorealistic, 8K):
-Warm cinematic interior. RIGHT 60%: a genuinely worried pet owner (woman or man) sitting on the floor beside a lethargic large dog — warm but slightly moody amber lighting, cinematic depth-of-field bokeh. LEFT LOWER quadrant (x 0–38%, y 58–100%): a clean wooden table surface with soft ambient light — keep this area NEUTRAL AND CLEAR, product will be composited here later.
+${SCENE_ADAPT}
+MOOD: The target customer on the RIGHT 60% of the frame showing genuine frustration, worry, or pain about the exact problem this product solves — moody amber lighting, cinematic depth-of-field bokeh. LEFT LOWER quadrant (x 0–38%, y 58–100%): a clean surface (table, shelf, or counter appropriate to the product category) — keep this area NEUTRAL AND CLEAR.
 
 TYPOGRAPHY (render all text sharply):
 1. TOP — Full-width near-black overlay band (h≈38% of canvas). Inside this band:
    • Line 1: "${h1}" — ultra-bold Impact/Anton font, pure WHITE, font size fills ~82% canvas width, no shadow
    • Line 2: "${h2}" — same ultra-bold font, color ${hex}, same massive size, no shadow
 2. CENTER-LEFT — Semi-transparent dark pill/card, white text inside: "${sub}"
-3. LOWER-LEFT panel (above table, x 2–42%, y 58–82%) — Three white bullet lines on a dark translucent strip:
-   • "${b1 || 'Dolor articular crónico'}"
-   • "${b2 || 'Falta de energía diaria'}"
-   • "${b3 || 'Preocupación constante'}"
+3. LOWER-LEFT panel (x 2–42%, y 58–82%) — Three white bullet lines on a dark translucent strip:
+   • "${b1}"
+   • "${b2}"
+   • "${b3}"
 
-DECORATIVE: 3–4 small floating pet icons (paw print, bone, fish) in white ~50% opacity in upper-right corner. Dark vignette top & bottom edges.
+DECORATIVE: 3–4 small floating thematic icons relevant to the product category in white ~50% opacity in upper-right corner. Dark vignette top & bottom edges.
 
-STYLE: Premium emotional Facebook ad. Cinematic 8K. Dramatic moody tone. High visual hierarchy: headline → bullet pain points → product zone. NO product objects, NO prices, NO URLs.
+STYLE: Premium emotional Facebook ad. Cinematic 8K. Dramatic moody tone. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${NO_LABEL_RULE}`.trim();
@@ -296,21 +299,22 @@ Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising qu
 PRODUCT: ${ctx}
 
 BACKGROUND SCENE (photorealistic, 8K):
-Bright golden-hour lifestyle interior. RIGHT 58%: a radiant, happy pet owner playing joyfully with a healthy, energetic large dog — warm golden sunlight streaming in, bokeh, vibrant colors. LEFT area: a bright clean surface (marble or white table, x 0–38%, y 40–85%) where product will be placed — keep this zone NEUTRAL AND CLEAN.
+${SCENE_ADAPT}
+MOOD: The target customer on the RIGHT 58% of the frame, radiant and happy after experiencing the product's results — warm golden sunlight, bokeh, vibrant colors. LEFT area: a bright clean surface appropriate to the product category (x 0–38%, y 40–85%) — keep this zone NEUTRAL AND CLEAN.
 
 TYPOGRAPHY:
 1. TOP — Gradient dark-to-transparent overlay (h≈36%). Inside:
    • Line 1: "${h1}" — ultra-bold white Anton/Impact, fills ~82% canvas width, no shadow
    • Line 2: "${h2}" — same font, color ${hex}, no shadow
 2. CENTER — Small floating white rounded badge: "✓ ${sub}"
-3. LOWER-LEFT (above surface, x 2–42%, y 62–80%) — Three benefit lines in clean white semi-transparent card:
-   • "✓ ${b1 || 'Pelaje brillante y sano'}"
-   • "✓ ${b2 || 'Energía desbordante'}"
-   • "✓ ${b3 || 'Bienestar garantizado'}"
+3. LOWER-LEFT (x 2–42%, y 62–80%) — Three benefit lines in clean white semi-transparent card:
+   • "✓ ${b1}"
+   • "✓ ${b2}"
+   • "✓ ${b3}"
 
 DECORATIVE: Warm golden bokeh circles floating upper area. Thin ${hex} accent line below headline band. Soft warm vignette edges.
 
-STYLE: Aspirational, warm, magazine-quality Facebook ad. Cinematic golden-hour lighting. Life-affirming energy. NO product objects, NO prices, NO URLs.
+STYLE: Aspirational, warm, magazine-quality Facebook ad. Cinematic golden-hour lighting. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${NO_LABEL_RULE}`.trim();
@@ -321,10 +325,12 @@ Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising qu
 
 PRODUCT: ${ctx}
 
+${SCENE_ADAPT}
+
 LAYOUT — SPLIT BEFORE/AFTER:
-LEFT HALF (x 0–50%): Desaturated, slightly dark, moody atmosphere. Person with tired/sad-looking pet. Subtle dark blue-grey tone.
-RIGHT HALF (x 50–100%): Vibrant, warm, bright, full color. Same person happy and energetic with pet thriving. Warm golden light.
-CENTER DIVIDER: Thin vertical accent line in ${hex} with a glowing effect.
+LEFT HALF (x 0–50%): Desaturated, slightly dark, moody atmosphere. Target customer in the BEFORE state — struggling with the problem this product solves. Derive the specific struggle and setting from the product context. Subtle dark blue-grey tone.
+RIGHT HALF (x 50–100%): Vibrant, warm, bright, full color. Same target customer in the AFTER state — thriving after using this product, in the same setting now transformed. Warm golden light.
+CENTER DIVIDER: Thin vertical accent line in ${hex}.
 
 TYPOGRAPHY:
 1. TOP SPANNING BANNER (full width, h≈22%, dark semi-transparent):
@@ -332,13 +338,13 @@ TYPOGRAPHY:
    • Right of center: "${h2}" — ultra-bold ${hex}, same size
 2. LEFT PANEL LABEL (x 5%, y 32%): "ANTES" — bold white, small caps
 3. RIGHT PANEL LABEL (x 55%, y 32%): "DESPUÉS" — bold ${hex}, small caps
-4. LEFT lower card: "${b1 || 'Sin energía ni vitalidad'}"
-5. RIGHT lower card: "${a1 || 'Activo y lleno de vida'}"
+4. LEFT lower card: "${b1}"
+5. RIGHT lower card: "${a1}"
 6. Bottom center — small sub-text pill: "${sub}"
 
 DECORATIVE: Arrow pointing right in ${hex} at the center divider. Sparkle/star elements on the right side. Dark vignette.
 
-STYLE: Dramatic transformation contrast. Premium commercial quality. Clear visual narrative. NO product objects, NO prices, NO URLs.
+STYLE: Dramatic transformation contrast. Premium commercial quality. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${NO_LABEL_RULE}`.trim();
@@ -350,25 +356,26 @@ Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising qu
 PRODUCT: ${ctx}
 
 BACKGROUND SCENE:
-Clean, modern, bright living space. CENTER-RIGHT: a thoughtful, intelligent-looking person holding their pet, expression moving from skeptical to reassured. Crisp natural lighting, white and warm tones. Minimal, premium aesthetic.
+${SCENE_ADAPT}
+MOOD: CENTER-RIGHT: a thoughtful, intelligent-looking target customer for this product, expression moving from skeptical to reassured. Crisp natural lighting, white and warm tones. Minimal, premium aesthetic.
 
 TYPOGRAPHY:
 1. TOP BAND (full width, white background, h≈20%, clean):
-   • "${h1} ${h2}" — bold dark (#111) serif or sans-serif, centered, large but not massive
+   • "${h1} ${h2}" — bold dark (#111) sans-serif, centered, large
 2. LOWER HALF split panel:
    LEFT panel (x 2–48%, dark background): "¿DUDAS?" header in ${hex}, then:
-   • "✗ ${p1 || 'Resultados tardíos'}"
-   • "✗ ${p2 || 'Ingredientes dudosos'}"
-   • "✗ ${p3 || 'Sin garantía real'}"
+   • "✗ ${p1}"
+   • "✗ ${p2}"
+   • "✗ ${p3}"
    RIGHT panel (x 52–98%, ${hex} background): "LA VERDAD" header in white, then:
-   • "✓ ${s1 || 'Resultados en 7 días'}"
-   • "✓ ${s2 || 'Fórmula 100% natural'}"
-   • "✓ ${s3 || 'Garantía 30 días'}"
+   • "✓ ${s1}"
+   • "✓ ${s2}"
+   • "✓ ${s3}"
 3. Bottom center: "${sub}" — small italic white text on dark strip
 
 DECORATIVE: Clean divider line center. Trust badge icon (shield) bottom-right. Clean, sharp text panels.
 
-STYLE: Professional, trustworthy, reassuring. Clean advertising design. NO product objects, NO prices, NO URLs.
+STYLE: Professional, trustworthy, reassuring. Clean advertising design. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${NO_LABEL_RULE}`.trim();
@@ -380,20 +387,21 @@ Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising qu
 PRODUCT: ${ctx}
 
 BACKGROUND SCENE:
-High-energy, dynamic scene. Active pet owner running or playing with an energetic pet — vivid colors, dramatic lighting, motion feel. Dark dramatic gradient overlay covering 65% of the image for text readability.
+${SCENE_ADAPT}
+MOOD: High-energy, dynamic scene. The target customer in an active, excited state — vivid colors, dramatic lighting, motion feel. Dark dramatic gradient overlay covering 65% of the image for text readability.
 
 TYPOGRAPHY:
-1. TOP — Bold urgency badge: "⚡ OFERTA LIMITADA" — rounded pill, ${hex} background, white bold text
+1. TOP — Bold urgency badge: "OFERTA LIMITADA" — rounded pill, ${hex} background, white bold text
 2. CENTER — Main headline:
    • "${h1}" — ultra-bold white, massive Impact/Anton font, fills ~85% width, no shadow
    • "${h2}" — ultra-bold ${hex}, same massive size
 3. BELOW HEADLINE — White sub-text: "${sub}"
 4. LOWER BAND (dark strip, full width): 4 feature labels in white, separated by vertical dividers:
-   "${f1 || 'Acción inmediata'}"  |  "${f2 || 'Resultados rápidos'}"  |  "${f3 || 'Stock limitado'}"  |  "${f4 || 'Envío hoy'}"
+   "${f1}"  |  "${f2}"  |  "${f3}"  |  "${f4}"
 
-DECORATIVE: Timer icon or hourglass beside the urgency badge. Red/orange accent glow on bottom strip. Diagonal energy lines in background overlay.
+DECORATIVE: Timer/hourglass icon beside the urgency badge. Red/orange accent glow on bottom strip. Diagonal energy lines in background overlay.
 
-STYLE: High-energy, urgent, conversion-driven. Bold, loud, dynamic. Product zone: lower-right (keep x 55–95%, y 55–90% clear of text). NO product objects, NO prices, NO URLs.
+STYLE: High-energy, urgent, conversion-driven. Bold, loud, dynamic. Product zone: lower-right (x 55–95%, y 55–90%). NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${NO_LABEL_RULE}`.trim();
@@ -405,23 +413,24 @@ Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising qu
 PRODUCT: ${ctx}
 
 BACKGROUND SCENE:
-Premium, minimal, bright professional setting. LEFT-CENTER: a confident expert professional (veterinarian, nutritionist, or specialist relevant to the product category) in a clean white coat, warm natural lighting, slight bokeh background. Premium, credible, clean aesthetic.
+${SCENE_ADAPT}
+MOOD: Premium, minimal, bright professional setting. LEFT-CENTER: a confident expert professional relevant to the product category (beauty product → dermatologist or esthetician; pet product → veterinarian; fitness product → personal trainer or nutritionist; food product → chef or nutritionist; health product → doctor or pharmacist) in a clean white or professional coat. Warm natural lighting, slight bokeh. Credible, premium, trustworthy.
 
 TYPOGRAPHY:
 1. TOP BAND (white or very light, h≈24%):
    • "${h1}" — bold dark heavy sans-serif, large, centered
    • "${h2}" — bold ${hex}, same size, on second line
 2. RIGHT SIDE (x 52–98%, stacked credential cards):
-   • Card 1: shield/award icon + "${f1 || 'Fórmula veterinaria'}"
-   • Card 2: medal icon + "${f2 || 'Testado clínicamente'}"
-   • Card 3: star icon + "${f3 || 'Ingredientes premium'}"
-   • Card 4: checkmark icon + "${f4 || '+ 10.000 mascotas'}"
+   • Card 1: shield icon + "${f1}"
+   • Card 2: medal icon + "${f2}"
+   • Card 3: star icon + "${f3}"
+   • Card 4: checkmark icon + "${f4}"
    Each card: white background, ${hex} left border accent, dark bold text
 3. Bottom left: "${sub}" — small white text on ${hex} band
 
-DECORATIVE: Premium gold or ${hex} accent lines. Clean grid layout. Certification seal graphic bottom-right. Clean, sharp elements.
+DECORATIVE: Premium ${hex} accent lines. Certification seal graphic bottom-right. Clean, sharp elements.
 
-STYLE: Expert, premium, minimal, trust-building. Clinical precision meets premium branding. NO product objects, NO prices, NO URLs.
+STYLE: Expert, premium, minimal, trust-building. Clinical precision meets premium branding. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${NO_LABEL_RULE}`.trim();
@@ -432,28 +441,28 @@ Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising qu
 
 PRODUCT: ${ctx}
 
+${SCENE_ADAPT}
+
 LAYOUT — COMPARISON SPLIT:
 TOP BANNER (full width, h≈18%, ${hex} background): "${h1} ${h2}" — ultra-bold white, centered, large
 
 UPPER PHOTO STRIP (h≈40%, split):
-LEFT PHOTO (x 0–50%): Moody, slightly desaturated scene — sad/worried person with unhealthy-looking pet, dark cool tones.
-RIGHT PHOTO (x 50–100%): Bright, vibrant — happy person running/playing with energetic healthy pet, warm golden tones.
+LEFT PHOTO (x 0–50%): Moody, desaturated — the target customer in the BEFORE/WITHOUT-PRODUCT state, struggling, dark cool tones. Derive the specific scene from the product context.
+RIGHT PHOTO (x 50–100%): Bright, vibrant — the same target customer in the AFTER/WITH-PRODUCT state, thriving, warm golden tones. Derive the specific scene from the product context.
 
 LOWER COMPARISON PANEL (h≈42%, split):
 LEFT (x 0–50%, dark background #1a1a2e):
    • "OTROS" header — bold white, large
-   • "✗ ${b1 || 'Resultados inconsistentes'}"
-   • "✗ ${b2 || 'Ingredientes desconocidos'}"
-   • "✗ ${b1 || 'Sin garantía real'}"
+   • "✗ ${b1}"
+   • "✗ ${b2}"
 RIGHT (x 50–100%, ${hex} background):
    • "NOSOTROS" header — bold white, large
-   • "✓ ${a1 || 'Resultados desde el día 7'}"
-   • "✓ ${a2 || 'Fórmula 100% natural'}"
-   • "✓ ${a1 || 'Garantía 30 días'}"
+   • "✓ ${a1}"
+   • "✓ ${a2}"
 
-CENTER COLUMN (x 44–56%): Vertical white divider with "VS" badge at the photo/panel junction. Product zone: bottom-center (x 40–60%, y 55–100%) — KEEP THIS AREA CLEAR for product compositing.
+CENTER COLUMN (x 44–56%): Vertical white divider with "VS" badge. Product zone: bottom-center (x 40–60%, y 55–100%) — KEEP CLEAR.
 
-STYLE: Clean, professional, high-contrast split. No ambiguity. Clear winner layout. Premium advertising quality. NO product objects, NO prices, NO URLs.
+STYLE: Clean, professional, high-contrast split. Clear winner layout. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${NO_LABEL_RULE}`.trim();
@@ -465,22 +474,23 @@ Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising qu
 PRODUCT: ${ctx}
 
 BACKGROUND SCENE:
-Calm, warm, peaceful interior. Completely relaxed and satisfied person holding their healthy, content pet — gentle warm light, soft bokeh, serene atmosphere. RIGHT 55% of frame. LEFT lower area (x 0–40%, y 50–95%): clean neutral surface for product placement — keep CLEAR.
+${SCENE_ADAPT}
+MOOD: Calm, warm, peaceful. Completely relaxed and satisfied target customer in a setting appropriate for the product category — gentle warm light, soft bokeh, serene atmosphere. RIGHT 55% of frame. LEFT lower area (x 0–40%, y 50–95%): clean neutral surface — keep CLEAR.
 
 TYPOGRAPHY:
-1. TOP-CENTER — Large guarantee seal/badge (hexagonal or shield shape, ${hex} color): inside the badge "GARANTÍA 30 DÍAS" in white bold text
+1. TOP-CENTER — Large guarantee seal/badge (hexagonal or shield shape, ${hex} color): "GARANTÍA 30 DÍAS" in white bold text inside the badge
 2. BELOW BADGE — Headline:
    • "${h1}" — ultra-bold white, large Anton/Impact font
    • "${h2}" — ultra-bold ${hex}, same size
 3. CENTER — White sub-text pill: "${sub}"
-4. LOWER-LEFT (above surface, dark card): three guarantee points:
-   • "✓ ${b1 || 'Devolución sin preguntas'}"
-   • "✓ ${b2 || 'Resultados visibles o reembolso'}"
-   • "✓ ${b3 || 'Soporte 24/7 incluido'}"
+4. LOWER-LEFT (dark card): three guarantee points:
+   • "✓ ${b1}"
+   • "✓ ${b2}"
+   • "✓ ${b3}"
 
-DECORATIVE: Soft golden glow around guarantee badge. Checkmark animation-feel icons. Trust-building color palette (greens, golds, ${hex} accents).
+DECORATIVE: Soft golden glow around guarantee badge. Checkmark icons. Trust-building palette (greens, golds, ${hex} accents).
 
-STYLE: Safe, reassuring, zero-risk feel. Warm, premium, trust-driven. NO product objects, NO prices, NO URLs.
+STYLE: Safe, reassuring, zero-risk feel. Warm, premium, trust-driven. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${NO_LABEL_RULE}`.trim();
@@ -492,26 +502,27 @@ Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising qu
 PRODUCT: ${ctx}
 
 BACKGROUND SCENE:
-Warm, community-feel lifestyle interior. TOP HALF: happy, glowing pet owner with healthy thriving pet — natural warm lighting, genuine smile, relatable. LOWER HALF: slightly blurred or darkened to accommodate text panels.
+${SCENE_ADAPT}
+MOOD: Warm, community-feel. TOP HALF: happy, glowing target customer who has benefited from this product — natural warm lighting, genuine smile, relatable setting. LOWER HALF: slightly blurred or darkened to accommodate text panels.
 
 TYPOGRAPHY:
-1. TOP BANNER (${hex} background, h≈16%): "★★★★★  +10.000 mascotas satisfechas" — bold white, centered
+1. TOP BANNER (${hex} background, h≈16%): "★★★★★  +10.000 clientes satisfechos" — bold white, centered
 2. BELOW PHOTO (left aligned): "${h1}" — ultra-bold white, large
    "${h2}" — ${hex}, same style
 3. TWO TESTIMONIAL CARDS side by side (lower half):
-   LEFT card (white background, rounded corners, shadow):
-   • Circular avatar placeholder (initials or silhouette)
-   • "${r1 || 'Mi perro está como nuevo, increíble cambio en 2 semanas.'}"
-   • "★★★★★" in ${hex}
-   RIGHT card (white background, rounded corners, shadow):
+   LEFT card (white background, rounded corners):
    • Circular avatar placeholder
-   • "${r2 || 'No lo cambio por nada, resultados reales y rápidos.'}"
+   • "${r1}"
+   • "★★★★★" in ${hex}
+   RIGHT card (white background, rounded corners):
+   • Circular avatar placeholder
+   • "${r2}"
    • "★★★★★" in ${hex}
 4. Bottom strip (${hex}): "${sub}" white bold centered
 
 DECORATIVE: Star icons scattered subtly. Social proof number badge top. Warm vignette.
 
-STYLE: Warm, community, validated. Trust through numbers and real testimonials feel. NO product objects, NO prices, NO URLs.
+STYLE: Warm, community, validated. Trust through real testimonials. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${NO_LABEL_RULE}`.trim();
@@ -523,23 +534,24 @@ Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising qu
 PRODUCT: ${ctx}
 
 BACKGROUND SCENE:
-Dark, atmospheric, cinematic. A mysterious but intriguing scene — a person leaning in to look at something surprising, dramatic single-light spotlight effect, deep shadows, rich dark tones. The scene should feel like a revelation is about to happen.
+${SCENE_ADAPT}
+MOOD: Dark, atmospheric, cinematic. The target customer leaning in to discover something surprising about the product — dramatic single-light spotlight effect, deep shadows, rich dark tones. The scene should feel like a revelation is about to happen.
 
 TYPOGRAPHY:
 1. CENTER — Giant question mark "?" as a design element (very large, ${hex}, semi-transparent, behind the main text)
-2. TOP-LEFT area — Main headline, dramatic placement:
+2. TOP-LEFT area — Main headline:
    • "${h1}" — ultra-bold white, large Anton/Impact
    • "${h2}" — ultra-bold ${hex}, same size, line below
 3. CENTER — Three mystery/hint pills (dark background, ${hex} border, white text):
-   • "◆ ${copy?.h1 || 'El ingrediente que los veterinarios callan'}"
-   • "◆ ${copy?.h2 || 'Resultados en solo 7 días'}"
-   • "◆ ${copy?.h3 || '9 de cada 10 dueños lo recomiendan'}"
+   • "◆ ${copy?.h1 || sub}"
+   • "◆ ${copy?.h2 || b1}"
+   • "◆ ${copy?.h3 || b2}"
 4. BOTTOM — "${sub}" — white italic on dark strip
 Product zone: RIGHT LOWER (x 52–92%, y 55–92%) — keep CLEAR.
 
-DECORATIVE: Dramatic vignette. Spotlight beam effect. Small dots/particles floating. Cinematic letterbox bars top and bottom (thin dark bands).
+DECORATIVE: Dramatic vignette. Spotlight beam effect. Floating particles. Cinematic letterbox bands.
 
-STYLE: Intriguing, mysterious, irresistible. Dark cinematic drama. Must-click feel. NO product objects, NO prices, NO URLs.
+STYLE: Intriguing, mysterious, irresistible. Dark cinematic drama. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${NO_LABEL_RULE}`.trim();
@@ -551,7 +563,8 @@ Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising qu
 PRODUCT: ${ctx}
 
 BACKGROUND SCENE:
-Energetic, celebratory lifestyle. Happy excited person with pet celebrating. Vibrant bright colors, festive confetti-like atmosphere, dynamic lighting. Upper 50%.
+${SCENE_ADAPT}
+MOOD: Energetic, celebratory. The target customer excited and celebrating — vibrant bright colors, festive confetti-like atmosphere, dynamic lighting. Upper 50%.
 
 TYPOGRAPHY:
 1. TOP LEFT — Small ${hex} pill badge: "🏷 OFERTA ESPECIAL"

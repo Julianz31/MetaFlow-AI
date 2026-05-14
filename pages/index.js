@@ -83,6 +83,7 @@ function App() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [googleAiKey, setGoogleAiKey] = useState(() => { try { return localStorage.getItem('google_ai_key') || ''; } catch { return ''; } });
+  const [subscription, setSubscription] = useState(null); // null = loading, object = loaded
   const [imageGenLoading, setImageGenLoading] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
   const [adForm, setAdForm] = useState(() => {
@@ -98,6 +99,14 @@ function App() {
   const [libraryLoading, setLibraryLoading] = useState(false);
 
   useEffect(() => { try { localStorage.setItem('metaflow_tab', activeTab); } catch {} }, [activeTab]);
+
+  // Verificar suscripción cuando hay usuario logueado
+  useEffect(() => {
+    if (!user?.email) return;
+    axios.get(`/api/payments/status?email=${encodeURIComponent(user.email)}`)
+      .then(r => setSubscription(r.data))
+      .catch(() => setSubscription({ status: 'inactive', isActive: false }));
+  }, [user?.email]);
   useEffect(() => {
     try {
       const { productImageBase64, productImageName, ...rest } = adForm;
@@ -723,9 +732,29 @@ function App() {
     return <AuthView onAuth={setUser} initialMode={initialMode} />;
   }
 
+  // Suscripción: null = verificando, objeto = verificado
+  if (subscription === null) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#030509', color: '#94a3b8', fontSize: 15 }}>
+        Verificando suscripción…
+      </div>
+    );
+  }
+
+  if (!subscription.isActive) {
+    if (isBrowser) window.location.href = '/pricing';
+    return null;
+  }
+
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      {subscription?.gracePeriod && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, background: 'linear-gradient(90deg,#b45309,#92400e)', color: '#fef3c7', fontSize: 13, fontWeight: 600, textAlign: 'center', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+          ⚠️ Tu suscripción venció — tienes {subscription.daysLeft} día{subscription.daysLeft !== 1 ? 's' : ''} de gracia.{' '}
+          <a href="/pricing" style={{ color: '#fef3c7', textDecoration: 'underline' }}>Renovar ahora</a>
+        </div>
+      )}
+      <aside className="sidebar" style={subscription?.gracePeriod ? { marginTop: 40 } : {}}>
         <div className="brand">
           <div className="brand-mark">
             <Zap size={18} />

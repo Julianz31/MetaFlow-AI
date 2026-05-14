@@ -553,7 +553,7 @@ export default function Landing() {
                     {plan.cta}
                   </Link>
                   <p style={{ textAlign: 'center', color: '#64748b', fontSize: 12, marginTop: 12, marginBottom: 0 }}>
-                    🔒 Pago seguro con Wompi · Cancela cuando quieras
+                    🔒 Pago 100% seguro · Cancela cuando quieras
                   </p>
                 </div>
               ))}

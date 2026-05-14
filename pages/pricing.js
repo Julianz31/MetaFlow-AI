@@ -140,7 +140,7 @@ export default function PricingPage() {
             {error && <p className="pricing-error">{error}</p>}
 
             <p className="pricing-guarantee">
-              🔒 Pago 100% seguro con Wompi · Cancela cuando quieras
+              🔒 Pago 100% seguro · Cancela cuando quieras
             </p>
           </div>
         </div>

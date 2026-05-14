@@ -269,8 +269,8 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, form
   // 3. Optionally composite product photo using angle-aware placement
   if (productBase64) {
     // Use both height and width constraints so narrow bottles scale up properly
-    const targetH = Math.round(h * 0.40);
-    const targetW = Math.round(w * 0.26);
+    const targetH = Math.round(h * 0.48);
+    const targetW = Math.round(w * 0.32);
     const resizedProduct = await sharp(Buffer.from(productBase64, 'base64'))
       .resize({ height: targetH, width: targetW, fit: 'inside', withoutEnlargement: false })
       .png()
@@ -340,9 +340,10 @@ export default async function handler(req, res) {
         const enrichedCopy = { ...(copy || {}), productName: productName || '' };
 
         const hasProduct = !!productImageBase64;
+        const variation = Math.floor(Math.random() * 2);
 
         // Build Canvas template — pass hasProduct so text constrains to left half
-        const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct);
+        const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct, variation);
 
         // Composite everything together with angle-aware product placement
         const composited = await compositeAll({

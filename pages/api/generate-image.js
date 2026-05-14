@@ -243,12 +243,19 @@ function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format
   const prompt = _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct);
   if (!prompt) return null;
   const dims = format === 'vertical' ? '1080x1920' : format === 'horizontal' ? '1920x1080' : '1080x1080';
-  const safeZone = `\nCANVAS & SAFE ZONE RULES:
-• Output image MUST be exactly ${dims} pixels (${format === 'vertical' ? '9:16 portrait' : format === 'horizontal' ? '16:9 landscape' : '1:1 square'} aspect ratio). Do NOT generate a different size or add letterbox/pillarbox bands.
-• ALL text, headlines, buttons, badges, price tags, and graphic elements must be placed at least 72px from EVERY edge of the canvas.
-• No text or element may be partially clipped, cut, or hidden by the frame boundary.
-• Text blocks must be SHORT enough to fit entirely within the safe zone — truncate or condense rather than overflow.`;
-  return prompt + safeZone;
+  const aspectLabel = format === 'vertical' ? '9:16 portrait' : format === 'horizontal' ? '16:9 landscape' : '1:1 square';
+
+  const prefix = `⚠️ MANDATORY CANVAS RULES — APPLY BEFORE ANY OTHER INSTRUCTION:
+1. Canvas size: ${dims} pixels (${aspectLabel}). Fill completely — no letterbox, no pillarbox.
+2. TOP SAFE ZONE: The first 9% of canvas height from the top edge is FORBIDDEN for any content. No text, no band, no badge, no overlay may have ANY pixel above y=9%. Any layout element described as "TOP" or "UPPER" must be shifted so its topmost edge sits at y=9%, not y=0.
+3. ALL text characters (including ascenders/descenders) must start at or below y=9% and end at or above y=94%. No letter may be clipped by the frame.
+4. Left and right margins: no element within 5% of left or right edge.
+
+`;
+
+  const suffix = `\n\nFINAL CHECK: Scan every element. If any text, band, or graphic has even one pixel above y=9% of canvas height — move it down. The top 9% must be visually empty.`;
+
+  return prefix + prompt + suffix;
 }
 
 function _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct) {
@@ -284,7 +291,7 @@ ${SCENE_ADAPT}
 MOOD: The target customer on the RIGHT 60% of the frame showing genuine frustration, worry, or pain about the exact problem this product solves — moody amber lighting, cinematic depth-of-field bokeh. LEFT LOWER quadrant (x 0–38%, y 58–100%): a clean surface (table, shelf, or counter appropriate to the product category) — keep this area NEUTRAL AND CLEAR.
 
 TYPOGRAPHY (render all text sharply):
-1. TOP — Full-width near-black overlay band (h≈38% of canvas). Inside this band:
+1. TOP BAND — Full-width near-black overlay (y=9%–47% of canvas, h≈38%). Inside this band:
    • Line 1: "${h1}" — ultra-bold Impact/Anton font, pure WHITE, font size fills ~82% canvas width, no shadow
    • Line 2: "${h2}" — same ultra-bold font, color ${hex}, same massive size, no shadow
 2. CENTER-LEFT — Semi-transparent dark pill/card, white text inside: "${sub}"
@@ -311,7 +318,7 @@ ${SCENE_ADAPT}
 MOOD: The target customer on the RIGHT 58% of the frame, radiant and happy after experiencing the product's results — warm golden sunlight, bokeh, vibrant colors. LEFT area: a bright clean surface appropriate to the product category (x 0–38%, y 40–85%) — keep this zone NEUTRAL AND CLEAN.
 
 TYPOGRAPHY:
-1. TOP — Gradient dark-to-transparent overlay (h≈36%). Inside:
+1. TOP BAND — Gradient dark-to-transparent overlay (y=9%–45% of canvas, h≈36%). Inside this band:
    • Line 1: "${h1}" — ultra-bold white Anton/Impact, fills ~82% canvas width, no shadow
    • Line 2: "${h2}" — same font, color ${hex}, no shadow
 2. CENTER — Small floating white rounded badge: "✓ ${sub}"
@@ -341,11 +348,11 @@ RIGHT HALF (x 50–100%): Vibrant, warm, bright, full color. Same target custome
 CENTER DIVIDER: Thin vertical accent line in ${hex}.
 
 TYPOGRAPHY:
-1. TOP SPANNING BANNER (full width, h≈22%, dark semi-transparent):
+1. TOP SPANNING BANNER (full width, y=9%–31% of canvas, h≈22%, dark semi-transparent):
    • Left of center: "${h1}" — ultra-bold white, large
    • Right of center: "${h2}" — ultra-bold ${hex}, same size
-2. LEFT PANEL LABEL (x 5%, y 32%): "ANTES" — bold white, small caps
-3. RIGHT PANEL LABEL (x 55%, y 32%): "DESPUÉS" — bold ${hex}, small caps
+2. LEFT PANEL LABEL (x 5%, y 34%): "ANTES" — bold white, small caps
+3. RIGHT PANEL LABEL (x 55%, y 34%): "DESPUÉS" — bold ${hex}, small caps
 4. LEFT lower card: "${b1}"
 5. RIGHT lower card: "${a1}"
 6. Bottom center — small sub-text pill: "${sub}"
@@ -368,7 +375,7 @@ ${SCENE_ADAPT}
 MOOD: CENTER-RIGHT: a thoughtful, intelligent-looking target customer for this product, expression moving from skeptical to reassured. Crisp natural lighting, white and warm tones. Minimal, premium aesthetic.
 
 TYPOGRAPHY:
-1. TOP BAND (full width, white background, h≈20%, clean):
+1. TOP BAND (full width, white background, y=9%–29% of canvas, h≈20%):
    • "${h1} ${h2}" — bold dark (#111) sans-serif, centered, large
 2. LOWER HALF split panel:
    LEFT panel (x 2–48%, dark background): "¿DUDAS?" header in ${hex}, then:
@@ -399,7 +406,7 @@ ${SCENE_ADAPT}
 MOOD: High-energy, dynamic scene. The target customer in an active, excited state — vivid colors, dramatic lighting, motion feel. Dark dramatic gradient overlay covering 65% of the image for text readability.
 
 TYPOGRAPHY:
-1. TOP — Bold urgency badge: "OFERTA LIMITADA" — rounded pill, ${hex} background, white bold text
+1. TOP AREA (y=9%–18%): Bold urgency badge: "OFERTA LIMITADA" — rounded pill, ${hex} background, white bold text
 2. CENTER — Main headline:
    • "${h1}" — ultra-bold white, massive Impact/Anton font, fills ~85% width, no shadow
    • "${h2}" — ultra-bold ${hex}, same massive size
@@ -425,7 +432,7 @@ ${SCENE_ADAPT}
 MOOD: Premium, minimal, bright professional setting. LEFT-CENTER: a confident expert professional relevant to the product category (beauty product → dermatologist or esthetician; pet product → veterinarian; fitness product → personal trainer or nutritionist; food product → chef or nutritionist; health product → doctor or pharmacist) in a clean white or professional coat. Warm natural lighting, slight bokeh. Credible, premium, trustworthy.
 
 TYPOGRAPHY:
-1. TOP BAND (white or very light, h≈24%):
+1. TOP BAND (white or very light, y=9%–33% of canvas, h≈24%):
    • "${h1}" — bold dark heavy sans-serif, large, centered
    • "${h2}" — bold ${hex}, same size, on second line
 2. RIGHT SIDE (x 52–98%, stacked credential cards):
@@ -452,7 +459,7 @@ PRODUCT: ${ctx}
 ${SCENE_ADAPT}
 
 LAYOUT — COMPARISON SPLIT:
-TOP BANNER (full width, h≈18%, ${hex} background): "${h1} ${h2}" — ultra-bold white, centered, large
+TOP BANNER (full width, y=9%–27% of canvas, h≈18%, ${hex} background): "${h1} ${h2}" — ultra-bold white, centered, large
 
 UPPER PHOTO STRIP (h≈40%, split):
 LEFT PHOTO (x 0–50%): Moody, desaturated — the target customer in the BEFORE/WITHOUT-PRODUCT state, struggling, dark cool tones. Derive the specific scene from the product context.
@@ -486,7 +493,7 @@ ${SCENE_ADAPT}
 MOOD: Calm, warm, peaceful. Completely relaxed and satisfied target customer in a setting appropriate for the product category — gentle warm light, soft bokeh, serene atmosphere. RIGHT 55% of frame. LEFT lower area (x 0–40%, y 50–95%): clean neutral surface — keep CLEAR.
 
 TYPOGRAPHY:
-1. TOP-CENTER — Large guarantee seal/badge (hexagonal or shield shape, ${hex} color): "GARANTÍA 30 DÍAS" in white bold text inside the badge
+1. TOP-CENTER (y=9%–22%): Large guarantee seal/badge (hexagonal or shield shape, ${hex} color): "GARANTÍA 30 DÍAS" in white bold text inside the badge
 2. BELOW BADGE — Headline:
    • "${h1}" — ultra-bold white, large Anton/Impact font
    • "${h2}" — ultra-bold ${hex}, same size
@@ -514,7 +521,7 @@ ${SCENE_ADAPT}
 MOOD: Warm, community-feel. TOP HALF: happy, glowing target customer who has benefited from this product — natural warm lighting, genuine smile, relatable setting. LOWER HALF: slightly blurred or darkened to accommodate text panels.
 
 TYPOGRAPHY:
-1. TOP BANNER (${hex} background, h≈16%): "★★★★★  +10.000 clientes satisfechos" — bold white, centered
+1. TOP BANNER (${hex} background, y=9%–25% of canvas, h≈16%): "★★★★★  +10.000 clientes satisfechos" — bold white, centered
 2. BELOW PHOTO (left aligned): "${h1}" — ultra-bold white, large
    "${h2}" — ${hex}, same style
 3. TWO TESTIMONIAL CARDS side by side (lower half):
@@ -547,7 +554,7 @@ MOOD: Dark, atmospheric, cinematic. The target customer leaning in to discover s
 
 TYPOGRAPHY:
 1. CENTER — Giant question mark "?" as a design element (very large, ${hex}, semi-transparent, behind the main text)
-2. TOP-LEFT area — Main headline:
+2. TOP-LEFT area (y=9%–32%): Main headline:
    • "${h1}" — ultra-bold white, large Anton/Impact
    • "${h2}" — ultra-bold ${hex}, same size, line below
 3. CENTER — Three mystery/hint pills (dark background, ${hex} border, white text):
@@ -575,8 +582,8 @@ ${SCENE_ADAPT}
 MOOD: Energetic, celebratory. The target customer excited and celebrating — vibrant bright colors, festive confetti-like atmosphere, dynamic lighting. Upper 50%.
 
 TYPOGRAPHY:
-1. TOP LEFT — Small ${hex} pill badge: "🏷 OFERTA ESPECIAL"
-2. UPPER CENTER — Headline:
+1. TOP-LEFT (y=9%–17%): Small ${hex} pill badge: "🏷 OFERTA ESPECIAL"
+2. UPPER CENTER (y=17%–36%): Headline:
    • "${h1}" — ultra-bold white, large, no shadow
    • "${h2}" — ultra-bold ${hex}, same size
 3. CENTER — Large value display box (white background, rounded, shadow):

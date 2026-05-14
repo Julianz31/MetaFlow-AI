@@ -34,7 +34,7 @@ ${formatHint(format)}`.trim(),
   desire: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
 MOOD: A radiant, happy target customer who has achieved their ideal result from using this product. The setting must match the product category (beauty → bright bathroom or vanity, fitness → gym or outdoor, pet → living room with happy pet, food → modern kitchen, etc.). Golden hour or soft natural light. Aspirational feel. Genuine smile.
-COMPOSITION: Person and any lifestyle elements must be on the LEFT 55% of the frame. The RIGHT side should be lighter, airy, and uncluttered — no furniture or busy objects on the right. This open space is reserved for product placement.
+COMPOSITION: Person and any lifestyle elements must be on the RIGHT 55% of the frame. The LEFT side should be lighter, airy, and uncluttered — no furniture or busy objects on the left. This open space is reserved for product placement.
 ${NO_TEXT_RULE}
 ${formatHint(format)}`.trim(),
 
@@ -226,9 +226,15 @@ async function generateBackground(scenePrompt, apiKey) {
 // ─── PRODUCT PLACEMENT (angle-aware, avoids text zones) ─────────────────────
 
 // Templates that reserve the left half for text and keep the right clear for product
-const RIGHT_SIDE_ANGLES = new Set(['pain', 'desire', 'authority', 'guarantee', 'curiosity', 'objection']);
+const RIGHT_SIDE_ANGLES = new Set(['pain', 'authority', 'guarantee', 'curiosity', 'objection']);
 
 function getProductPlacement(angle, w, h, pw) {
+  // desire: background has scene on RIGHT — product composited on LEFT
+  if (angle === 'desire') {
+    const leftCenter = Math.round(w * 0.22);
+    const left = Math.max(20, leftCenter - Math.round(pw / 2));
+    return { left, top: Math.round(h * 0.36) };
+  }
   if (RIGHT_SIDE_ANGLES.has(angle)) {
     const rightHalfCenter = Math.round(w * 0.73);
     const left = Math.max(

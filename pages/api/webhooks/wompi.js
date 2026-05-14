@@ -50,11 +50,12 @@ export default async function handler(req, res) {
       graceEnd.setDate(graceEnd.getDate() + GRACE_DAYS);
 
       // Buscar suscripción existente por email
-      const { data: existing } = await supabase
+      const { data: existingRows } = await supabase
         .from('subscriptions')
         .select('id')
         .eq('user_email', userEmail)
-        .single();
+        .limit(1);
+      const existing = existingRows?.[0] ?? null;
 
       if (existing) {
         await supabase
@@ -85,11 +86,12 @@ export default async function handler(req, res) {
       }
     } else if (status === 'DECLINED' || status === 'VOIDED' || status === 'ERROR') {
       // Marcar como inactiva si ya existía y venció
-      const { data: existing } = await supabase
+      const { data: existingDeclined } = await supabase
         .from('subscriptions')
         .select('id, current_period_end')
         .eq('user_email', userEmail)
-        .single();
+        .limit(1);
+      const existing = existingDeclined?.[0] ?? null;
 
       if (existing) {
         const expired = new Date(existing.current_period_end) < new Date();

@@ -9,11 +9,14 @@ export default async function handler(req, res) {
   if (!email) return res.status(400).json({ error: 'email requerido' });
 
   const supabase = getSupabase();
-  const { data: sub } = await supabase
+  const { data: rows } = await supabase
     .from('subscriptions')
     .select('*')
     .eq('user_email', email)
-    .single();
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  const sub = rows?.[0] ?? null;
 
   if (!sub) {
     return res.json({ status: 'inactive', isActive: false, gracePeriod: false });

@@ -735,8 +735,23 @@ function App() {
   // Suscripción: null = verificando, objeto = verificado
   if (subscription === null) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#030509', color: '#94a3b8', fontSize: 15 }}>
-        Verificando suscripción…
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at 18% 8%, rgba(59,130,246,0.22), transparent 28%), radial-gradient(circle at 84% 12%, rgba(168,85,247,0.18), transparent 24%), #030509', gap: 24 }}>
+        <style>{`
+          @keyframes mf-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.7), 0 0 26px rgba(99,102,241,0.52), inset 0 0 12px rgba(255,255,255,0.24); transform: scale(1); }
+            50% { box-shadow: 0 0 0 12px rgba(99,102,241,0), 0 0 40px rgba(99,102,241,0.7), inset 0 0 12px rgba(255,255,255,0.24); transform: scale(1.08); }
+          }
+          @keyframes mf-fade {
+            0%, 100% { opacity: 0.5; } 50% { opacity: 1; }
+          }
+        `}</style>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 48, height: 48, display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,#2563eb,#7c3aed 58%,#ef4444)', borderRadius: 14, animation: 'mf-pulse 1.8s ease-in-out infinite' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <span style={{ fontSize: 22, fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.02em' }}>MetaFlow.AI</span>
+        </div>
+        <span style={{ fontSize: 13, color: '#475569', animation: 'mf-fade 1.8s ease-in-out infinite' }}>Cargando tu cuenta…</span>
       </div>
     );
   }

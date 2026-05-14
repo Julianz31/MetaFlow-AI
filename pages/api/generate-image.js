@@ -126,48 +126,72 @@ const ANGLE_LABELS = {
 // ─── COPY GENERATION ─────────────────────────────────────────────────────────
 
 const COPY_ANGLE_INSTRUCTIONS = {
-  pain:           'Connect with the frustration and position the product as the relief they need.',
-  desire:         'Paint the aspirational life the audience wants and show how the product gets them there.',
-  transformation: 'Contrast the before (struggle) vs after (success) with the product as the catalyst.',
-  objection:      'Acknowledge skepticism, use social proof and reassurance to remove all doubt.',
-  urgency:        'Create FOMO and scarcity — they must act right now or miss out.',
-  authority:      'Establish expert credibility, science-backed results, and premium positioning.',
-  comparison:     'Show clear superiority over alternatives — us vs them.',
-  guarantee:      'Remove all purchase risk — emphasize guarantee and zero downside.',
-  social_proof:   'Leverage numbers, reviews, and testimonials for herd effect.',
-  curiosity:      'Create an irresistible hook with a surprising question or secret.',
-  price:          'Highlight the deal, discount, or value stack — make the price feel like a steal.',
+  pain:           'Golpea el dolor exacto que siente el cliente. Nómbralo sin rodeos. Hazlos sentir vistos y comprendidos — luego posiciona el producto como el alivio que llevaban buscando. Usa frases como "¿Ya estás harto de...?", "Deja de sufrir con...", "El problema no eres tú...".',
+  desire:         'Pinta la vida ideal que el cliente quiere vivir. Hazlo tan vívido que puedan sentirlo. El producto es el puente. Usa lenguaje aspiracional intenso: "Imagina despertar con...", "Por fin puedes...", "Tu versión ideal de...".',
+  transformation: 'Contrasta con brutalidad el ANTES (sufrimiento real) vs el DESPUÉS (resultado concreto). El producto es el catalizador. Usa números si es posible: "En 30 días", "Más de 10.000 personas ya lo lograron". Hazlo cinematográfico.',
+  objection:      'Anticipa la objeción exacta que frena la compra ("¿Esto realmente funciona?", "¿Vale la pena el precio?"). Desmóntala con prueba social, garantía, o lógica irrefutable. Convierte el escepticismo en confianza.',
+  urgency:        'Crea FOMO real — tiempo limitado, stock limitado, precio que sube. El cliente DEBE actuar AHORA o perderlo. Usa lenguaje de escasez genuina: "Solo quedan X unidades", "Oferta termina hoy", "No esperes más y arrepentirte".',
+  authority:      'Establece credibilidad aplastante — cifras reales, avales científicos, años de experiencia, premios, certificaciones. El cliente debe sentir que está comprando al mejor en el mercado. Habla con seguridad, no con humildad.',
+  comparison:     'Haz el contraste ELLOS vs NOSOTROS tan obvio que la elección sea automática. Usa diferenciadores específicos, no genéricos. "Mientras otros... nosotros...". El cliente debe sentirse tonto si elige la competencia.',
+  guarantee:      'Elimina el 100% del riesgo percibido. La garantía debe sonar tan buena que comprar sea la decisión obvia. Usa números concretos: "30 días o te devolvemos cada centavo". Haz que no comprar sea el verdadero riesgo.',
+  social_proof:   'Usa el poder del rebaño — miles de personas ya tomaron la decisión. Testimonios específicos con resultados concretos ("Perdí 8kg en 6 semanas"). Números grandes. Hazlos sentir que son los últimos en enterarse.',
+  curiosity:      'Crea un gancho irresistible con una pregunta o secreto que no puedan ignorar. "El ingrediente que tu veterinario no te menciona...", "La razón por la que el 90% falla con...". La curiosidad debe doler si no la satisfacen.',
+  price:          'Haz que el precio parezca ridículamente bajo comparado con el valor. Usa el valor stack: muestra todo lo que obtienen. Escasez + urgencia + valor = decisión inmediata. "Por menos de lo que gastas en un café...".',
+};
+
+const COPY_POWER_WORDS = {
+  pain:           'Harto, sufres, cansado, frustrante, duele, deja de, por fin, solución',
+  desire:         'Imagina, por fin, transforma, mereces, sueña, logra, vibra, brilla',
+  transformation: 'Antes vs ahora, cambió todo, resultado real, en solo X días, comprobado',
+  objection:      'La verdad es, funciona porque, miles lo confirman, sin riesgo, garantizado',
+  urgency:        'Últimas horas, solo hoy, se acaba, no esperes, ahora o nunca, quedan pocas',
+  authority:      'Clínicamente probado, expertos recomiendan, años de experiencia, certificado',
+  comparison:     'A diferencia de, mientras otros, nosotros sí, la diferencia real, sin comparación',
+  guarantee:      'Sin riesgo, te devolvemos, 100% garantizado, cero pérdida, seguro',
+  social_proof:   '+10.000 clientes, 5 estrellas, testimonios reales, ya lo lograron',
+  curiosity:      '¿Sabías que...?, el secreto que, lo que nadie te dice, descubre por qué',
+  price:          'Mejor precio, oferta única, valor increíble, invierte menos de, hoy gratis',
 };
 
 const ANGLE_EXTRA_FIELDS = {
-  pain:           `"b1": "Pain/problem bullet 1, max 32 chars, specific to product",\n  "b2": "Pain/problem bullet 2, max 32 chars",\n  "b3": "Pain/problem bullet 3, max 32 chars",\n  "f1": "Key product benefit label, 2-3 words max, short",\n  "f2": "Key product benefit label, 2-3 words max, short",\n  "f3": "Key product benefit label, 2-3 words max, short",\n  "f4": "Key product benefit label, 2-3 words max, short"`,
-  desire:         `"b1": "Key benefit 1, max 32 chars, specific to product",\n  "b2": "Key benefit 2, max 32 chars",\n  "b3": "Key benefit 3, max 32 chars"`,
-  transformation: `"b1": "Before state in 1 line, max 32 chars",\n  "a1": "After state in 1 line, max 32 chars"`,
-  objection:      `"p1": "Problem/doubt 1, max 28 chars",\n  "p2": "Problem/doubt 2, max 28 chars",\n  "p3": "Problem/doubt 3, max 28 chars",\n  "s1": "Solution 1, max 28 chars",\n  "s2": "Solution 2, max 28 chars",\n  "s3": "Solution 3, max 28 chars"`,
-  urgency:        `"f1": "Feature label, 2 words max",\n  "f2": "Feature label, 2 words max",\n  "f3": "Feature label, 2 words max",\n  "f4": "Feature label, 2 words max"`,
-  authority:      `"f1": "Credential or quality feature, max 36 chars",\n  "f2": "Credential or quality feature, max 36 chars",\n  "f3": "Credential or quality feature, max 36 chars",\n  "f4": "Credential or quality feature, max 36 chars"`,
-  comparison:     `"b1": "Before/without product state 1, max 26 chars",\n  "b2": "Before/without product state 2, max 26 chars",\n  "a1": "After/with product result 1, max 26 chars",\n  "a2": "After/with product result 2, max 26 chars"`,
-  guarantee:      `"b1": "Guarantee point 1, max 32 chars",\n  "b2": "Guarantee point 2, max 32 chars",\n  "b3": "Guarantee point 3, max 32 chars"`,
-  social_proof:   `"r1": "Short customer testimonial 1, max 52 chars",\n  "r2": "Short customer testimonial 2, max 52 chars"`,
-  curiosity:      `"h1": "Mystery/curiosity hint 1, max 38 chars",\n  "h2": "Mystery/curiosity hint 2, max 38 chars",\n  "h3": "Mystery/curiosity hint 3, max 38 chars"`,
-  price:          `"b1": "Scarcity or urgency line, max 44 chars"`,
+  pain:           `"b1": "Dolor específico 1 — máx 32 chars, muy concreto al producto",\n  "b2": "Dolor específico 2 — máx 32 chars",\n  "b3": "Consecuencia del dolor — máx 32 chars",\n  "f1": "Beneficio clave 1 — 2-3 palabras",\n  "f2": "Beneficio clave 2 — 2-3 palabras",\n  "f3": "Beneficio clave 3 — 2-3 palabras",\n  "f4": "Beneficio clave 4 — 2-3 palabras"`,
+  desire:         `"b1": "Resultado aspiracional 1 — máx 32 chars, específico y emocionante",\n  "b2": "Resultado aspiracional 2 — máx 32 chars",\n  "b3": "Resultado aspiracional 3 — máx 32 chars"`,
+  transformation: `"b1": "Estado ANTES — sufrimiento real en 1 línea, máx 32 chars",\n  "a1": "Estado DESPUÉS — resultado concreto en 1 línea, máx 32 chars"`,
+  objection:      `"p1": "Duda/objeción 1 — máx 28 chars, real y específica",\n  "p2": "Duda/objeción 2 — máx 28 chars",\n  "p3": "Duda/objeción 3 — máx 28 chars",\n  "s1": "Respuesta contundente 1 — máx 28 chars",\n  "s2": "Respuesta contundente 2 — máx 28 chars",\n  "s3": "Respuesta contundente 3 — máx 28 chars"`,
+  urgency:        `"f1": "Urgencia/escasez 1 — 2 palabras max",\n  "f2": "Urgencia/escasez 2 — 2 palabras max",\n  "f3": "Beneficio inmediato — 2 palabras max",\n  "f4": "CTA implícito — 2 palabras max"`,
+  authority:      `"f1": "Credencial o aval concreto — máx 36 chars",\n  "f2": "Número o estadística impactante — máx 36 chars",\n  "f3": "Certificación o premio — máx 36 chars",\n  "f4": "Diferenciador técnico — máx 36 chars"`,
+  comparison:     `"b1": "Consecuencia de NO tener el producto — máx 26 chars",\n  "b2": "Otro problema sin el producto — máx 26 chars",\n  "a1": "Resultado con el producto — máx 26 chars, concreto",\n  "a2": "Beneficio adicional con el producto — máx 26 chars"`,
+  guarantee:      `"b1": "Garantía específica con número — máx 32 chars",\n  "b2": "Qué pasa si no funciona — máx 32 chars",\n  "b3": "Ventaja adicional sin riesgo — máx 32 chars"`,
+  social_proof:   `"r1": "Testimonio REAL con resultado concreto — máx 52 chars, ej: 'Mejoró en 2 semanas'",\n  "r2": "Testimonio REAL diferente — máx 52 chars, resultado específico"`,
+  curiosity:      `"h1": "Pista misteriosa 1 que genera intriga — máx 38 chars",\n  "h2": "Dato sorprendente o pregunta — máx 38 chars",\n  "h3": "Revelación parcial del secreto — máx 38 chars"`,
+  price:          `"b1": "Escasez o urgencia con número — máx 44 chars, ej: 'Solo 47 unidades disponibles'"`,
 };
 
 async function generateCopy(productContext, angleKey, angleLabel, apiKey) {
   const instruction = COPY_ANGLE_INSTRUCTIONS[angleKey] || COPY_ANGLE_INSTRUCTIONS.desire;
+  const powerWords = COPY_POWER_WORDS[angleKey] || '';
   const extraFields = ANGLE_EXTRA_FIELDS[angleKey] ? `,\n  ${ANGLE_EXTRA_FIELDS[angleKey]}` : '';
-  const prompt = `Generate Facebook/Instagram ad copy in Spanish for a "${angleLabel}" angle ad.
+  const prompt = `Eres el mejor copywriter de respuesta directa de Latinoamérica. Genera copy de alto impacto para un anuncio pagado de Facebook/Instagram en español.
 
-Product: ${productContext}
+Producto: ${productContext}
 
-Angle goal: ${instruction}
+Ángulo publicitario: ${angleLabel}
+Objetivo: ${instruction}
+Palabras de poder para este ángulo: ${powerWords}
 
-Return ONLY a valid JSON object — no markdown, no explanation, no code block:
+REGLAS DE COPY:
+• El headline debe PARAR el scroll en 0.3 segundos — debe provocar emoción inmediata (dolor reconocido, curiosidad urgente, deseo intenso)
+• Usa segunda persona (tú/tu), voz activa, verbos de acción
+• Sé ESPECÍFICO: números reales, problemas concretos, resultados tangibles — nada genérico
+• El primaryText: gancho emocional + prueba/razón para creer + cierre con urgencia o beneficio
+• Prohibido: frases genéricas como "el mejor producto", "alta calidad", "excelente para ti"
+
+Retorna ÚNICAMENTE un objeto JSON válido — sin markdown, sin explicaciones:
 {
-  "headline": "Max 40 chars. Punchy headline that fits the ${angleLabel} angle.",
-  "primaryText": "2-3 sentences. Emotional and persuasive body copy. Specific to this product.",
-  "description": "Max 30 chars. Short benefit or offer description.",
-  "cta": "One of: Comprar ahora | Ver más | Obtener oferta | Saber más | Aprovechar oferta | Lo quiero"${extraFields}
+  "headline": "Máx 45 chars. IMPACTO inmediato. Provoca emoción en 2 segundos.",
+  "primaryText": "3 oraciones cortas. Gancho emocional + prueba concreta + cierre urgente. Directo al corazón.",
+  "description": "Máx 32 chars. Beneficio concreto o cifra impactante.",
+  "cta": "Uno de: Comprar ahora | Ver más | Obtener oferta | Saber más | Aprovechar oferta | Lo quiero | Quiero esto"${extraFields}
 }`;
 
   const res = await fetch(GEMINI_VISION_URL(apiKey), {
@@ -175,7 +199,7 @@ Return ONLY a valid JSON object — no markdown, no explanation, no code block:
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.8 },
+      generationConfig: { temperature: 0.92 },
     }),
   });
   const data = await res.json();
@@ -277,6 +301,17 @@ function _buildPromptBody(angle, productContext, copy, primaryColor, format, has
     ? `\nPRODUCT INTEGRATION: The product image provided as the first input must be placed in the designated product zone. Integrate it naturally: match the scene lighting, correct perspective. The product label/packaging must remain clearly readable. Do NOT distort or stylize the product — keep it photorealistic.`
     : `\nPRODUCT ZONE: Leave the designated product zone as a clean, neutral surface (table, pedestal, or empty space) — a product photo will be composited there later.`;
 
+  // Universal rule for every angle — paid ad visual impact
+  const IMPACT_RULE = `
+AD PERFORMANCE RULES — This is a paid Facebook/Instagram ad competing in a noisy feed:
+• SCROLL-STOPPER: The image must visually arrest a scrolling thumb in under 0.5 seconds. Use one dominant, impossible-to-ignore element (massive bold headline, extreme emotional expression, high-contrast graphic, or dramatic scene).
+• CONTRAST: Text-to-background contrast must be extreme — white text on dark, or dark text on white/light. Never gray on gray or low-contrast combinations. Headlines need at least 8:1 contrast ratio.
+• TYPOGRAPHY SIZE: Make headlines MASSIVE — err toward too large, never too small. The headline should feel like it's shouting off the screen.
+• EMOTIONAL ATMOSPHERE: The mood must be felt INSTANTLY before reading any text. The scene, lighting, and color palette must reinforce the emotional hook (pain → dark + tense, desire → warm + radiant, urgency → high-energy + bold, authority → clean + premium).
+• VISUAL HIERARCHY: Eye flows top → center → bottom in exactly 3 steps. No visual noise or competing elements. Every element either supports the headline or supports the product.
+• COLOR PSYCHOLOGY: Use ${hex} as the signature brand color for key accents, badges, and CTA elements. Make it pop against the background.
+• NO BLAND DESIGN: Avoid flat, corporate, stock-photo aesthetics. The image must feel like it was designed by a top creative agency for a multi-million dollar ad campaign.`;
+
   // Shared scene adaptation rule — used by all angles
   const SCENE_ADAPT = `SCENE RULE: Derive ALL visual elements (setting, person demographics, props, environment, wardrobe) EXCLUSIVELY from the PRODUCT context above. Auto-detect the product category and use the appropriate setting: beauty/skincare → bright vanity, bathroom, mirror, glowing skin; pet products → home with owner and pet; fitness/supplements → gym or outdoor, active person; food/nutrition → kitchen or dining table; fashion/apparel → lifestyle setting; health/pharma → clinical or home wellness space. The scene must make it immediately obvious what type of product this ad is for. Match the gender, age, and demographic of the target audience from the product description.`;
 
@@ -305,6 +340,7 @@ DECORATIVE: 3–4 small floating thematic icons relevant to the product category
 STYLE: Premium emotional Facebook ad. Cinematic 8K. Dramatic moody tone. NO prices, NO URLs.
 ${fmt}
 ${productRule}
+${IMPACT_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── DESIRE ───────────────────────────────────────────────────────────────────
@@ -332,6 +368,7 @@ DECORATIVE: Warm golden bokeh circles floating upper area. Thin ${hex} accent li
 STYLE: Aspirational, warm, magazine-quality Facebook ad. Cinematic golden-hour lighting. NO prices, NO URLs.
 ${fmt}
 ${productRule}
+${IMPACT_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── TRANSFORMATION ───────────────────────────────────────────────────────────
@@ -362,6 +399,7 @@ DECORATIVE: Arrow pointing right in ${hex} at the center divider. Sparkle/star e
 STYLE: Dramatic transformation contrast. Premium commercial quality. NO prices, NO URLs.
 ${fmt}
 ${productRule}
+${IMPACT_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── OBJECTION ────────────────────────────────────────────────────────────────
@@ -393,6 +431,7 @@ DECORATIVE: Clean divider line center. Trust badge icon (shield) bottom-right. C
 STYLE: Professional, trustworthy, reassuring. Clean advertising design. NO prices, NO URLs.
 ${fmt}
 ${productRule}
+${IMPACT_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── URGENCY ──────────────────────────────────────────────────────────────────
@@ -419,6 +458,7 @@ DECORATIVE: Timer/hourglass icon beside the urgency badge. Red/orange accent glo
 STYLE: High-energy, urgent, conversion-driven. Bold, loud, dynamic. Product zone: lower-right (x 55–95%, y 55–90%). NO prices, NO URLs.
 ${fmt}
 ${productRule}
+${IMPACT_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── AUTHORITY ────────────────────────────────────────────────────────────────
@@ -448,6 +488,7 @@ DECORATIVE: Premium ${hex} accent lines. Certification seal graphic bottom-right
 STYLE: Expert, premium, minimal, trust-building. Clinical precision meets premium branding. NO prices, NO URLs.
 ${fmt}
 ${productRule}
+${IMPACT_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── COMPARISON ───────────────────────────────────────────────────────────────
@@ -480,6 +521,7 @@ CENTER COLUMN (x 44–56%): Vertical white divider with "VS" badge. Product zone
 STYLE: Clean, professional, high-contrast split. Clear winner layout. NO prices, NO URLs.
 ${fmt}
 ${productRule}
+${IMPACT_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── GUARANTEE ────────────────────────────────────────────────────────────────
@@ -508,6 +550,7 @@ DECORATIVE: Soft golden glow around guarantee badge. Checkmark icons. Trust-buil
 STYLE: Safe, reassuring, zero-risk feel. Warm, premium, trust-driven. NO prices, NO URLs.
 ${fmt}
 ${productRule}
+${IMPACT_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── SOCIAL PROOF ─────────────────────────────────────────────────────────────
@@ -540,6 +583,7 @@ DECORATIVE: Star icons scattered subtly. Social proof number badge top. Warm vig
 STYLE: Warm, community, validated. Trust through real testimonials. NO prices, NO URLs.
 ${fmt}
 ${productRule}
+${IMPACT_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── CURIOSITY ────────────────────────────────────────────────────────────────
@@ -569,6 +613,7 @@ DECORATIVE: Dramatic vignette. Spotlight beam effect. Floating particles. Cinema
 STYLE: Intriguing, mysterious, irresistible. Dark cinematic drama. NO prices, NO URLs.
 ${fmt}
 ${productRule}
+${IMPACT_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── PRICE ────────────────────────────────────────────────────────────────────
@@ -601,6 +646,7 @@ DECORATIVE: Confetti or geometric celebration shapes. Diagonal ${hex} accent str
 STYLE: Celebratory, value-forward, high-energy. Clear price emphasis. Premium feel despite the deal angle. NO prices with numbers, NO URLs.
 ${fmt}
 ${productRule}
+${IMPACT_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   return null;

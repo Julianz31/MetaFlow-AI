@@ -2598,7 +2598,7 @@ function ProductsView({ products, loading, showForm, editingProduct, isAdmin, on
   );
 }
 
-function ResultCard({ img, onLaunch, onSave, onAdjust }) {
+function ResultCard({ img, productName, onLaunch, onSave, onAdjust }) {
   const [copied, setCopied] = useState(null);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -2655,7 +2655,7 @@ function ResultCard({ img, onLaunch, onSave, onAdjust }) {
       <img src={img.imageUrl} alt={img.label} className="result-card-image" />
       <div className="result-card-footer">
         <span className="result-card-label">{angle?.emoji} {img.label}</span>
-        <a href={img.imageUrl} download={`creativo-${img.angle}.jpg`} className="result-card-download">
+        <a href={img.imageUrl} download={`${(productName || 'creativo').toLowerCase().replace(/\s+/g, '-')}-${img.angle}.jpg`} className="result-card-download">
           <Download size={13} /> Descargar
         </a>
       </div>
@@ -3032,7 +3032,7 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
               </div>
               <div className="result-grid">
                 {generatedImages.map(img => (
-                  <ResultCard key={img.angle} img={img} onLaunch={onLaunchInBuilder} onSave={onSaveCreative} onAdjust={onAdjustImage} />
+                  <ResultCard key={img.angle} img={img} productName={adForm.productName} onLaunch={onLaunchInBuilder} onSave={onSaveCreative} onAdjust={onAdjustImage} />
                 ))}
               </div>
             </>

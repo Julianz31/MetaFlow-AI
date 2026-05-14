@@ -232,7 +232,18 @@ function _splitHeadline(headline) {
   return [w.slice(0, m).join(' '), w.slice(m).join(' ') || w.slice(0, m).join(' ')];
 }
 
-function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format) {
+const NO_LABEL_RULE = `CRITICAL RENDERING RULES:
+• NEVER write instruction labels in the image such as "Text 1:", "Text 2:", "Line 1:", "Typography:", or any other descriptor. Render ONLY the actual text content.
+• NEVER include placeholder text like "[headline]" or "[subtext]" — only the real text provided.
+• Every text element must be rendered sharp, anti-aliased, and fully legible.`;
+
+function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format, hasProduct = false) {
+  const prompt = _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct);
+  if (!prompt) return null;
+  return prompt;
+}
+
+function _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct) {
   const [h1, h2] = _splitHeadline(copy?.headline || '');
   const sub    = copy?.description || (copy?.primaryText || '').split('.')[0] || '';
   const hex    = primaryColor || '#6366f1';
@@ -245,6 +256,11 @@ function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format
   const p1 = copy?.p1 || ''; const p2 = copy?.p2 || ''; const p3 = copy?.p3 || '';
   const s1 = copy?.s1 || ''; const s2 = copy?.s2 || ''; const s3 = copy?.s3 || '';
   const r1 = copy?.r1 || ''; const r2 = copy?.r2 || '';
+
+  // When the product image is passed as multimodal input, Gemini places it in the scene.
+  const productRule = hasProduct
+    ? `\nPRODUCT INTEGRATION: The product image provided as the first input must be placed in the designated product zone described in the layout below. Integrate it naturally: match the scene lighting, add a subtle drop shadow, correct perspective. The product label/packaging must remain clearly readable. Do NOT distort or stylize the product — keep it photorealistic.`
+    : `\nPRODUCT ZONE: Leave the designated product zone as a clean, neutral surface (table, pedestal, or empty space) — a product photo will be composited there later.`;
 
   // ── PAIN ─────────────────────────────────────────────────────────────────────
   if (angle === 'pain') return `
@@ -268,7 +284,9 @@ TYPOGRAPHY (render all text sharply):
 DECORATIVE: 3–4 small floating pet icons (paw print, bone, fish) in white ~50% opacity in upper-right corner. Dark vignette top & bottom edges.
 
 STYLE: Premium emotional Facebook ad. Cinematic 8K. Dramatic moody tone. High visual hierarchy: headline → bullet pain points → product zone. NO product objects, NO prices, NO URLs.
-${fmt}`.trim();
+${fmt}
+${productRule}
+${NO_LABEL_RULE}`.trim();
 
   // ── DESIRE ───────────────────────────────────────────────────────────────────
   if (angle === 'desire') return `
@@ -292,7 +310,9 @@ TYPOGRAPHY:
 DECORATIVE: Warm golden bokeh circles floating upper area. Thin ${hex} accent line below headline band. Soft warm vignette edges.
 
 STYLE: Aspirational, warm, magazine-quality Facebook ad. Cinematic golden-hour lighting. Life-affirming energy. NO product objects, NO prices, NO URLs.
-${fmt}`.trim();
+${fmt}
+${productRule}
+${NO_LABEL_RULE}`.trim();
 
   // ── TRANSFORMATION ───────────────────────────────────────────────────────────
   if (angle === 'transformation') return `
@@ -318,7 +338,9 @@ TYPOGRAPHY:
 DECORATIVE: Arrow pointing right in ${hex} at the center divider. Sparkle/star elements on the right side. Dark vignette.
 
 STYLE: Dramatic transformation contrast. Premium commercial quality. Clear visual narrative. NO product objects, NO prices, NO URLs.
-${fmt}`.trim();
+${fmt}
+${productRule}
+${NO_LABEL_RULE}`.trim();
 
   // ── OBJECTION ────────────────────────────────────────────────────────────────
   if (angle === 'objection') return `
@@ -346,7 +368,9 @@ TYPOGRAPHY:
 DECORATIVE: Clean divider line center. Trust badge icon (shield) bottom-right. Subtle drop shadows on text panels.
 
 STYLE: Professional, trustworthy, reassuring. Clean advertising design. NO product objects, NO prices, NO URLs.
-${fmt}`.trim();
+${fmt}
+${productRule}
+${NO_LABEL_RULE}`.trim();
 
   // ── URGENCY ──────────────────────────────────────────────────────────────────
   if (angle === 'urgency') return `
@@ -369,7 +393,9 @@ TYPOGRAPHY:
 DECORATIVE: Timer icon or hourglass beside the urgency badge. Red/orange accent glow on bottom strip. Diagonal energy lines in background overlay.
 
 STYLE: High-energy, urgent, conversion-driven. Bold, loud, dynamic. Product zone: lower-right (keep x 55–95%, y 55–90% clear of text). NO product objects, NO prices, NO URLs.
-${fmt}`.trim();
+${fmt}
+${productRule}
+${NO_LABEL_RULE}`.trim();
 
   // ── AUTHORITY ────────────────────────────────────────────────────────────────
   if (angle === 'authority') return `
@@ -395,7 +421,9 @@ TYPOGRAPHY:
 DECORATIVE: Premium gold or ${hex} accent lines. Clean grid layout. Certification seal graphic bottom-right. Subtle drop shadows.
 
 STYLE: Expert, premium, minimal, trust-building. Clinical precision meets premium branding. NO product objects, NO prices, NO URLs.
-${fmt}`.trim();
+${fmt}
+${productRule}
+${NO_LABEL_RULE}`.trim();
 
   // ── COMPARISON ───────────────────────────────────────────────────────────────
   if (angle === 'comparison') return `
@@ -425,7 +453,9 @@ RIGHT (x 50–100%, ${hex} background):
 CENTER COLUMN (x 44–56%): Vertical white divider with "VS" badge at the photo/panel junction. Product zone: bottom-center (x 40–60%, y 55–100%) — KEEP THIS AREA CLEAR for product compositing.
 
 STYLE: Clean, professional, high-contrast split. No ambiguity. Clear winner layout. Premium advertising quality. NO product objects, NO prices, NO URLs.
-${fmt}`.trim();
+${fmt}
+${productRule}
+${NO_LABEL_RULE}`.trim();
 
   // ── GUARANTEE ────────────────────────────────────────────────────────────────
   if (angle === 'guarantee') return `
@@ -450,7 +480,9 @@ TYPOGRAPHY:
 DECORATIVE: Soft golden glow around guarantee badge. Checkmark animation-feel icons. Trust-building color palette (greens, golds, ${hex} accents).
 
 STYLE: Safe, reassuring, zero-risk feel. Warm, premium, trust-driven. NO product objects, NO prices, NO URLs.
-${fmt}`.trim();
+${fmt}
+${productRule}
+${NO_LABEL_RULE}`.trim();
 
   // ── SOCIAL PROOF ─────────────────────────────────────────────────────────────
   if (angle === 'social_proof') return `
@@ -479,7 +511,9 @@ TYPOGRAPHY:
 DECORATIVE: Star icons scattered subtly. Social proof number badge top. Warm vignette.
 
 STYLE: Warm, community, validated. Trust through numbers and real testimonials feel. NO product objects, NO prices, NO URLs.
-${fmt}`.trim();
+${fmt}
+${productRule}
+${NO_LABEL_RULE}`.trim();
 
   // ── CURIOSITY ────────────────────────────────────────────────────────────────
   if (angle === 'curiosity') return `
@@ -505,7 +539,9 @@ Product zone: RIGHT LOWER (x 52–92%, y 55–92%) — keep CLEAR.
 DECORATIVE: Dramatic vignette. Spotlight beam effect. Small dots/particles floating. Cinematic letterbox bars top and bottom (thin dark bands).
 
 STYLE: Intriguing, mysterious, irresistible. Dark cinematic drama. Must-click feel. NO product objects, NO prices, NO URLs.
-${fmt}`.trim();
+${fmt}
+${productRule}
+${NO_LABEL_RULE}`.trim();
 
   // ── PRICE ────────────────────────────────────────────────────────────────────
   if (angle === 'price') return `
@@ -533,23 +569,36 @@ TYPOGRAPHY:
 
 DECORATIVE: Confetti or geometric celebration shapes. Diagonal ${hex} accent stripe. Festive energy burst behind price box.
 
-STYLE: Celebratory, value-forward, high-energy. Clear price emphasis. Premium feel despite the deal angle. NO product objects, NO prices with numbers, NO URLs.
-${fmt}`.trim();
+STYLE: Celebratory, value-forward, high-energy. Clear price emphasis. Premium feel despite the deal angle. NO prices with numbers, NO URLs.
+${fmt}
+${productRule}
+${NO_LABEL_RULE}`.trim();
 
   return null;
 }
+
+// Wrap every angle return so NO_LABEL_RULE and productRule are always appended.
+// (The angle branches above already include them inline for safety; this is the fallback.)
+
 
 // ICON_STRIP_ANGLES is now unused — all angles use full Gemini design
 const ICON_STRIP_ANGLES = new Set([]);
 
 // ─── BACKGROUND / FULL-DESIGN GENERATION ─────────────────────────────────────
 
-async function generateBackground(scenePrompt, apiKey) {
+// productBase64: when provided, Gemini integrates the product into the scene directly.
+async function generateBackground(scenePrompt, apiKey, productBase64 = null) {
+  const parts = [];
+  if (productBase64) {
+    parts.push({ inlineData: { mimeType: 'image/jpeg', data: productBase64 } });
+  }
+  parts.push({ text: scenePrompt });
+
   const res = await fetch(GEMINI_IMAGE_URL(apiKey), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: scenePrompt }] }],
+      contents: [{ parts }],
       generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
     }),
   });
@@ -708,13 +757,17 @@ export default async function handler(req, res) {
         // Sequential: copy first → build complete design prompt → generate full ad
         const copy = await generateCopy(productContext, a, label, apiKey);
         const enrichedCopy = { ...(copy || {}), productName: productName || '' };
-        const designPrompt = buildFullDesignPrompt(a, productContext, enrichedCopy, primaryColor, format);
-        const fullImage = await generateBackground(designPrompt, apiKey);
+        const hasProduct = !!productImageBase64;
+        const designPrompt = buildFullDesignPrompt(a, productContext, enrichedCopy, primaryColor, format, hasProduct);
+
+        // Pass product image to Gemini so it integrates it naturally into the scene.
+        // When Gemini handles product placement, skip the Sharp compositing step.
+        const fullImage = await generateBackground(designPrompt, apiKey, productImageBase64 || null);
 
         const composited = await compositeAll({
           backgroundBase64: fullImage.data,
           templatePng: null,
-          productBase64: productImageBase64 || null,
+          productBase64: null,       // Gemini placed the product — no manual compositing
           iconPanelBase64: null,
           format,
           angle: a,

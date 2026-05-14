@@ -235,7 +235,8 @@ function _splitHeadline(headline) {
 const NO_LABEL_RULE = `CRITICAL RENDERING RULES:
 • NEVER write instruction labels in the image such as "Text 1:", "Text 2:", "Line 1:", "Typography:", or any other descriptor. Render ONLY the actual text content.
 • NEVER include placeholder text like "[headline]" or "[subtext]" — only the real text provided.
-• Every text element must be rendered sharp, anti-aliased, and fully legible.`;
+• Every text element must be rendered sharp, anti-aliased, and fully legible.
+• NO drop shadows on any text. All text is rendered clean and flat — no shadow, no glow, no blur behind letters.`;
 
 function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format, hasProduct = false) {
   const prompt = _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct);
@@ -273,8 +274,8 @@ Warm cinematic interior. RIGHT 60%: a genuinely worried pet owner (woman or man)
 
 TYPOGRAPHY (render all text sharply):
 1. TOP — Full-width near-black overlay band (h≈38% of canvas). Inside this band:
-   • Line 1: "${h1}" — ultra-bold Impact/Anton font, pure WHITE, font size fills ~82% canvas width, strong 4px drop shadow
-   • Line 2: "${h2}" — same ultra-bold font, color ${hex}, same massive size, same shadow
+   • Line 1: "${h1}" — ultra-bold Impact/Anton font, pure WHITE, font size fills ~82% canvas width, no shadow
+   • Line 2: "${h2}" — same ultra-bold font, color ${hex}, same massive size, no shadow
 2. CENTER-LEFT — Semi-transparent dark pill/card, white text inside: "${sub}"
 3. LOWER-LEFT panel (above table, x 2–42%, y 58–82%) — Three white bullet lines on a dark translucent strip:
    • "${b1 || 'Dolor articular crónico'}"
@@ -299,8 +300,8 @@ Bright golden-hour lifestyle interior. RIGHT 58%: a radiant, happy pet owner pla
 
 TYPOGRAPHY:
 1. TOP — Gradient dark-to-transparent overlay (h≈36%). Inside:
-   • Line 1: "${h1}" — ultra-bold white Anton/Impact, fills ~82% canvas width, glowing subtle shadow
-   • Line 2: "${h2}" — same font, color ${hex}, glowing shadow
+   • Line 1: "${h1}" — ultra-bold white Anton/Impact, fills ~82% canvas width, no shadow
+   • Line 2: "${h2}" — same font, color ${hex}, no shadow
 2. CENTER — Small floating white rounded badge: "✓ ${sub}"
 3. LOWER-LEFT (above surface, x 2–42%, y 62–80%) — Three benefit lines in clean white semi-transparent card:
    • "✓ ${b1 || 'Pelaje brillante y sano'}"
@@ -365,7 +366,7 @@ TYPOGRAPHY:
    • "✓ ${s3 || 'Garantía 30 días'}"
 3. Bottom center: "${sub}" — small italic white text on dark strip
 
-DECORATIVE: Clean divider line center. Trust badge icon (shield) bottom-right. Subtle drop shadows on text panels.
+DECORATIVE: Clean divider line center. Trust badge icon (shield) bottom-right. Clean, sharp text panels.
 
 STYLE: Professional, trustworthy, reassuring. Clean advertising design. NO product objects, NO prices, NO URLs.
 ${fmt}
@@ -384,7 +385,7 @@ High-energy, dynamic scene. Active pet owner running or playing with an energeti
 TYPOGRAPHY:
 1. TOP — Bold urgency badge: "⚡ OFERTA LIMITADA" — rounded pill, ${hex} background, white bold text
 2. CENTER — Main headline:
-   • "${h1}" — ultra-bold white, massive Impact/Anton font, fills ~85% width, strong drop shadow
+   • "${h1}" — ultra-bold white, massive Impact/Anton font, fills ~85% width, no shadow
    • "${h2}" — ultra-bold ${hex}, same massive size
 3. BELOW HEADLINE — White sub-text: "${sub}"
 4. LOWER BAND (dark strip, full width): 4 feature labels in white, separated by vertical dividers:
@@ -418,7 +419,7 @@ TYPOGRAPHY:
    Each card: white background, ${hex} left border accent, dark bold text
 3. Bottom left: "${sub}" — small white text on ${hex} band
 
-DECORATIVE: Premium gold or ${hex} accent lines. Clean grid layout. Certification seal graphic bottom-right. Subtle drop shadows.
+DECORATIVE: Premium gold or ${hex} accent lines. Clean grid layout. Certification seal graphic bottom-right. Clean, sharp elements.
 
 STYLE: Expert, premium, minimal, trust-building. Clinical precision meets premium branding. NO product objects, NO prices, NO URLs.
 ${fmt}
@@ -555,7 +556,7 @@ Energetic, celebratory lifestyle. Happy excited person with pet celebrating. Vib
 TYPOGRAPHY:
 1. TOP LEFT — Small ${hex} pill badge: "🏷 OFERTA ESPECIAL"
 2. UPPER CENTER — Headline:
-   • "${h1}" — ultra-bold white, large, drop shadow
+   • "${h1}" — ultra-bold white, large, no shadow
    • "${h2}" — ultra-bold ${hex}, same size
 3. CENTER — Large value display box (white background, rounded, shadow):
    • Sub-text small: "${sub}"

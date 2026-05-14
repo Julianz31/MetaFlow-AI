@@ -283,6 +283,55 @@ async function generateIconPanel(features, apiKey) {
   }
 }
 
+// ─── REFERENCE IMAGE REPLICATION ─────────────────────────────────────────────
+
+async function generateFromReference(referenceBase64, productContext, copy, primaryColor, format, apiKey) {
+  const rawHeadline = (copy?.headline || '').toUpperCase();
+  const words = rawHeadline.split(' ');
+  const mid = Math.ceil(words.length / 2);
+  const line1 = words.slice(0, mid).join(' ');
+  const line2 = words.slice(mid).join(' ') || line1;
+  const subText = copy?.description || (copy?.primaryText || '').split('.')[0] || '';
+  const hex = primaryColor || '#6366f1';
+
+  const prompt = `Using this image as an EXACT design template, create a professional Facebook ad for this product: ${productContext}
+
+REPLICATE EXACTLY from the reference:
+- The overall layout and composition (where elements are positioned)
+- Typography style: font weights, sizes, and text block positions
+- Color palette, mood, visual atmosphere, and lighting style
+- All graphic overlays, decorative elements, badges, strips, and design accents
+- Background scene style, photographic quality, and cinematic treatment
+
+REPLACE in the output:
+- Headline line 1: "${line1}" — same style and position as the reference headline
+- Headline line 2: "${line2}" — use brand color ${hex} instead of the original accent color
+- Sub-text or body copy: "${subText}" — same font style and position
+- Clear any product/object in the reference — leave a CLEAN SURFACE (table, pedestal, or neutral area) where the new product will be composited separately. Do NOT generate any product, bottle, box, or supplement.
+
+OUTPUT: A complete, production-ready 1080x1080 Facebook ad image that looks like a professional reskin of the reference design.
+${formatHint(format)}`;
+
+  const res = await fetch(GEMINI_IMAGE_URL(apiKey), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{
+        parts: [
+          { inlineData: { mimeType: 'image/jpeg', data: referenceBase64 } },
+          { text: prompt },
+        ],
+      }],
+      generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'Error replicando imagen de referencia');
+  const imgPart = data.candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
+  if (!imgPart) throw new Error('Gemini no devolvió imagen al replicar el diseño.');
+  return { data: imgPart.inlineData.data, mimeType: imgPart.inlineData.mimeType };
+}
+
 // ─── BACKGROUND GENERATION ───────────────────────────────────────────────────
 
 async function generateBackground(scenePrompt, apiKey) {
@@ -413,6 +462,7 @@ export default async function handler(req, res) {
     format = 'square',
     primaryColor = '#6366f1',
     productImageBase64,
+    referenceImageBase64,
   } = req.body;
 
   if (!productName && !productImageBase64) {
@@ -432,6 +482,25 @@ export default async function handler(req, res) {
     const results = await Promise.allSettled(
       selectedAngles.map(async (a) => {
         const label = ANGLE_LABELS[a] || a;
+
+        // ── REFERENCE REPLICATION PATH (user-supplied reference image) ────────
+        if (referenceImageBase64) {
+          const copy = await generateCopy(productContext, a, label, apiKey);
+          const enrichedCopy = { ...(copy || {}), productName: productName || '' };
+          const refImage = await generateFromReference(referenceImageBase64, productContext, enrichedCopy, primaryColor, format, apiKey);
+
+          const composited = await compositeAll({
+            backgroundBase64: refImage.data,
+            templatePng: null,
+            productBase64: productImageBase64 || null,
+            iconPanelBase64: null,
+            format,
+            angle: a,
+            fullDesign: false,
+          });
+
+          return { imageUrl: `data:image/jpeg;base64,${composited}`, angle: a, label, copy };
+        }
 
         // ── FULL DESIGN PATH (Gemini generates complete ad image) ─────────────
         if (FULL_DESIGN_ANGLES.has(a)) {

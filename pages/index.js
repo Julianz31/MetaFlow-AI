@@ -86,10 +86,10 @@ function App() {
   const [imageGenLoading, setImageGenLoading] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
   const [adForm, setAdForm] = useState(() => {
-    const defaults = { productName: '', description: '', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'square', selectedProductId: '', productImageBase64: '', productImageName: '', angles: ['pain', 'desire', 'transformation', 'objection', 'urgency', 'authority', 'comparison', 'guarantee', 'social_proof', 'curiosity', 'price'] };
+    const defaults = { productName: '', description: '', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'square', selectedProductId: '', productImageBase64: '', productImageName: '', referenceImageBase64: '', referenceImageName: '', angles: ['pain', 'desire', 'transformation', 'objection', 'urgency', 'authority', 'comparison', 'guarantee', 'social_proof', 'curiosity', 'price'] };
     try {
       const saved = localStorage.getItem('metaflow_adform');
-      if (saved) return { ...defaults, ...JSON.parse(saved), productImageBase64: '', productImageName: '' };
+      if (saved) return { ...defaults, ...JSON.parse(saved), productImageBase64: '', productImageName: '', referenceImageBase64: '', referenceImageName: '' };
     } catch {}
     return defaults;
   });
@@ -2673,7 +2673,9 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
   const [keyInput, setKeyInput] = useState(googleAiKey || '');
   const [showKey, setShowKey] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [refDragOver, setRefDragOver] = useState(false);
   const fileInputRef = useRef(null);
+  const refFileInputRef = useRef(null);
 
   const formats = [
     { value: 'square', label: '1:1', sub: 'Feed' },
@@ -2734,6 +2736,16 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
     handleImageFile(e.dataTransfer.files[0]);
   };
 
+  const handleReferenceFile = (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64 = ev.target.result.split(',')[1];
+      onFormChange({ ...adForm, referenceImageBase64: base64, referenceImageName: file.name });
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleProductSelect = (e) => {
     const p = products.find(x => x.id === e.target.value);
     if (p) {
@@ -2757,6 +2769,7 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
       angles: selectedAngles,
       primaryColor: adForm.primaryColor,
       productImageBase64: adForm.productImageBase64 || undefined,
+      referenceImageBase64: adForm.referenceImageBase64 || undefined,
     });
   };
 
@@ -2833,6 +2846,50 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
                   </button>
                 </div>
               )}
+            </div>
+
+            {/* ── IMAGEN DE REFERENCIA ── */}
+            <div className="acp-block">
+              <label className="acp-label">
+                Imagen de referencia
+                <span className="acp-optional">opcional — Gemini replicará este diseño</span>
+              </label>
+              <div
+                className={`upload-zone ${refDragOver ? 'drag-over' : ''} ${adForm.referenceImageBase64 ? 'has-image' : ''}`}
+                style={{ borderColor: adForm.referenceImageBase64 ? '#a78bfa' : undefined }}
+                onClick={() => refFileInputRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setRefDragOver(true); }}
+                onDragLeave={() => setRefDragOver(false)}
+                onDrop={(e) => { e.preventDefault(); setRefDragOver(false); handleReferenceFile(e.dataTransfer.files[0]); }}
+              >
+                <input
+                  ref={refFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={e => handleReferenceFile(e.target.files[0])}
+                />
+                {adForm.referenceImageBase64 ? (
+                  <div className="upload-preview">
+                    <img src={`data:image/jpeg;base64,${adForm.referenceImageBase64}`} alt="Referencia" />
+                    <button type="button" className="upload-remove" onClick={(e) => { e.stopPropagation(); onFormChange({ ...adForm, referenceImageBase64: '', referenceImageName: '' }); }}>
+                      <XCircle size={16} />
+                    </button>
+                    <span className="upload-filename">{adForm.referenceImageName}</span>
+                  </div>
+                ) : (
+                  <div className="upload-placeholder">
+                    <div className="upload-icon-wrap"><Image size={22} /></div>
+                    <p>Arrastra el diseño que quieres replicar</p>
+                    <span>o haz clic para seleccionar</span>
+                  </div>
+                )}
+              </div>
+              <p className="acp-hint">
+                {adForm.referenceImageBase64
+                  ? 'Gemini replicará exactamente este diseño con tu producto y copy generado por IA.'
+                  : 'Sube un anuncio de referencia (de CienAds, ClickAds, etc.) y Gemini replicará ese diseño exacto para tu producto.'}
+              </p>
             </div>
 
             <div className="acp-block">

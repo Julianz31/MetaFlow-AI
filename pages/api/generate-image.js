@@ -217,122 +217,332 @@ Be specific and factual based on what you see.`,
   return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
-// ─── FULL DESIGN ANGLES (Gemini generates COMPLETE ad — no canvas template) ───
+// ─── FULL DESIGN (Gemini generates COMPLETE ad for every angle) ───────────────
 
-// For these angles, Gemini renders the entire design (background + text + graphics).
+// All angles: Gemini renders the entire design (background + text + graphics).
 // Only the product photo is composited on top afterward.
-const FULL_DESIGN_ANGLES = new Set(['pain']);
+const FULL_DESIGN_ANGLES = new Set([
+  'pain','desire','transformation','objection','urgency',
+  'authority','comparison','guarantee','social_proof','curiosity','price',
+]);
+
+function _splitHeadline(headline) {
+  const w = (headline || '').toUpperCase().split(' ');
+  const m = Math.ceil(w.length / 2);
+  return [w.slice(0, m).join(' '), w.slice(m).join(' ') || w.slice(0, m).join(' ')];
+}
 
 function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format) {
-  if (angle === 'pain') {
-    const rawHeadline = (copy?.headline || 'SUPERA TUS LÍMITES').toUpperCase();
-    const words = rawHeadline.split(' ');
-    const mid = Math.ceil(words.length / 2);
-    const line1 = words.slice(0, mid).join(' ');
-    const line2 = words.slice(mid).join(' ') || line1;
-    const subText = copy?.description || (copy?.primaryText || '').split('.')[0] || 'El secreto para una vida más activa y sana';
-    const hex = primaryColor || '#d946ef';
+  const [h1, h2] = _splitHeadline(copy?.headline || '');
+  const sub    = copy?.description || (copy?.primaryText || '').split('.')[0] || '';
+  const hex    = primaryColor || '#6366f1';
+  const fmt    = formatHint(format);
+  const ctx    = productContext;
+  const b1 = copy?.b1 || ''; const b2 = copy?.b2 || ''; const b3 = copy?.b3 || '';
+  const a1 = copy?.a1 || ''; const a2 = copy?.a2 || '';
+  const f1 = copy?.f1 || ''; const f2 = copy?.f2 || '';
+  const f3 = copy?.f3 || ''; const f4 = copy?.f4 || '';
+  const p1 = copy?.p1 || ''; const p2 = copy?.p2 || ''; const p3 = copy?.p3 || '';
+  const s1 = copy?.s1 || ''; const s2 = copy?.s2 || ''; const s3 = copy?.s3 || '';
+  const r1 = copy?.r1 || ''; const r2 = copy?.r2 || '';
 
-    return `Design a COMPLETE, professional Facebook ad image at 1080x1080 pixels. Include ALL design elements: photorealistic background, typography, decorative graphics. This is the final production-ready ad image.
+  // ── PAIN ─────────────────────────────────────────────────────────────────────
+  if (angle === 'pain') return `
+Design a COMPLETE 1080x1080 professional Facebook ad. Every design element must be included — background scene, typography, overlays, decorative graphics. World-class advertising quality.
 
-PRODUCT CONTEXT: ${productContext}
+PRODUCT: ${ctx}
+
+BACKGROUND SCENE (photorealistic, 8K):
+Warm cinematic interior. RIGHT 60%: a genuinely worried pet owner (woman or man) sitting on the floor beside a lethargic large dog — warm but slightly moody amber lighting, cinematic depth-of-field bokeh. LEFT LOWER quadrant (x 0–38%, y 58–100%): a clean wooden table surface with soft ambient light — keep this area NEUTRAL AND CLEAR, product will be composited here later.
+
+TYPOGRAPHY (render all text sharply):
+1. TOP — Full-width near-black overlay band (h≈38% of canvas). Inside this band:
+   • Line 1: "${h1}" — ultra-bold Impact/Anton font, pure WHITE, font size fills ~82% canvas width, strong 4px drop shadow
+   • Line 2: "${h2}" — same ultra-bold font, color ${hex}, same massive size, same shadow
+2. CENTER-LEFT — Semi-transparent dark pill/card, white text inside: "${sub}"
+3. LOWER-LEFT panel (above table, x 2–42%, y 58–82%) — Three white bullet lines on a dark translucent strip:
+   • "${b1 || 'Dolor articular crónico'}"
+   • "${b2 || 'Falta de energía diaria'}"
+   • "${b3 || 'Preocupación constante'}"
+
+DECORATIVE: 3–4 small floating pet icons (paw print, bone, fish) in white ~50% opacity in upper-right corner. Dark vignette top & bottom edges.
+
+STYLE: Premium emotional Facebook ad. Cinematic 8K. Dramatic moody tone. High visual hierarchy: headline → bullet pain points → product zone. NO product objects, NO prices, NO URLs.
+${fmt}`.trim();
+
+  // ── DESIRE ───────────────────────────────────────────────────────────────────
+  if (angle === 'desire') return `
+Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+
+PRODUCT: ${ctx}
+
+BACKGROUND SCENE (photorealistic, 8K):
+Bright golden-hour lifestyle interior. RIGHT 58%: a radiant, happy pet owner playing joyfully with a healthy, energetic large dog — warm golden sunlight streaming in, bokeh, vibrant colors. LEFT area: a bright clean surface (marble or white table, x 0–38%, y 40–85%) where product will be placed — keep this zone NEUTRAL AND CLEAN.
+
+TYPOGRAPHY:
+1. TOP — Gradient dark-to-transparent overlay (h≈36%). Inside:
+   • Line 1: "${h1}" — ultra-bold white Anton/Impact, fills ~82% canvas width, glowing subtle shadow
+   • Line 2: "${h2}" — same font, color ${hex}, glowing shadow
+2. CENTER — Small floating white rounded badge: "✓ ${sub}"
+3. LOWER-LEFT (above surface, x 2–42%, y 62–80%) — Three benefit lines in clean white semi-transparent card:
+   • "✓ ${b1 || 'Pelaje brillante y sano'}"
+   • "✓ ${b2 || 'Energía desbordante'}"
+   • "✓ ${b3 || 'Bienestar garantizado'}"
+
+DECORATIVE: Warm golden bokeh circles floating upper area. Thin ${hex} accent line below headline band. Soft warm vignette edges.
+
+STYLE: Aspirational, warm, magazine-quality Facebook ad. Cinematic golden-hour lighting. Life-affirming energy. NO product objects, NO prices, NO URLs.
+${fmt}`.trim();
+
+  // ── TRANSFORMATION ───────────────────────────────────────────────────────────
+  if (angle === 'transformation') return `
+Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+
+PRODUCT: ${ctx}
+
+LAYOUT — SPLIT BEFORE/AFTER:
+LEFT HALF (x 0–50%): Desaturated, slightly dark, moody atmosphere. Person with tired/sad-looking pet. Subtle dark blue-grey tone.
+RIGHT HALF (x 50–100%): Vibrant, warm, bright, full color. Same person happy and energetic with pet thriving. Warm golden light.
+CENTER DIVIDER: Thin vertical accent line in ${hex} with a glowing effect.
+
+TYPOGRAPHY:
+1. TOP SPANNING BANNER (full width, h≈22%, dark semi-transparent):
+   • Left of center: "${h1}" — ultra-bold white, large
+   • Right of center: "${h2}" — ultra-bold ${hex}, same size
+2. LEFT PANEL LABEL (x 5%, y 32%): "ANTES" — bold white, small caps
+3. RIGHT PANEL LABEL (x 55%, y 32%): "DESPUÉS" — bold ${hex}, small caps
+4. LEFT lower card: "${b1 || 'Sin energía ni vitalidad'}"
+5. RIGHT lower card: "${a1 || 'Activo y lleno de vida'}"
+6. Bottom center — small sub-text pill: "${sub}"
+
+DECORATIVE: Arrow pointing right in ${hex} at the center divider. Sparkle/star elements on the right side. Dark vignette.
+
+STYLE: Dramatic transformation contrast. Premium commercial quality. Clear visual narrative. NO product objects, NO prices, NO URLs.
+${fmt}`.trim();
+
+  // ── OBJECTION ────────────────────────────────────────────────────────────────
+  if (angle === 'objection') return `
+Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+
+PRODUCT: ${ctx}
 
 BACKGROUND SCENE:
-Warm cinematic interior — a modern, bright veterinary clinic or upscale pet care space. RIGHT 55% of the frame: a confident, smiling veterinarian in a white coat with a large healthy Labrador or Golden Retriever, warm amber-golden bokeh lighting, sharp 8K detail. LEFT LOWER quadrant (roughly x:0-40%, y:55-100%): a clean wooden table or sleek pedestal surface — keep this area CLEAN and relatively desaturated, a product will be placed here later.
+Clean, modern, bright living space. CENTER-RIGHT: a thoughtful, intelligent-looking person holding their pet, expression moving from skeptical to reassured. Crisp natural lighting, white and warm tones. Minimal, premium aesthetic.
 
-TYPOGRAPHY (place exactly):
-1. TOP AREA — Headline spanning the full width, two stacked lines, centered:
-   • Line 1: "${line1}" — ultra-bold Anton/Impact font, pure WHITE (#ffffff), font size fills ~80% canvas width, strong dark drop shadow for readability
-   • Line 2: "${line2}" — same massive font, color: ${hex} (bright magenta/pink), same size, dark drop shadow
-2. LOWER CENTER (above the table) — Semi-transparent dark rounded rectangle (pill card) with white body text: "${subText}" — clean modern sans-serif, ~22px equivalent
+TYPOGRAPHY:
+1. TOP BAND (full width, white background, h≈20%, clean):
+   • "${h1} ${h2}" — bold dark (#111) serif or sans-serif, centered, large but not massive
+2. LOWER HALF split panel:
+   LEFT panel (x 2–48%, dark background): "¿DUDAS?" header in ${hex}, then:
+   • "✗ ${p1 || 'Resultados tardíos'}"
+   • "✗ ${p2 || 'Ingredientes dudosos'}"
+   • "✗ ${p3 || 'Sin garantía real'}"
+   RIGHT panel (x 52–98%, ${hex} background): "LA VERDAD" header in white, then:
+   • "✓ ${s1 || 'Resultados en 7 días'}"
+   • "✓ ${s2 || 'Fórmula 100% natural'}"
+   • "✓ ${s3 || 'Garantía 30 días'}"
+3. Bottom center: "${sub}" — small italic white text on dark strip
 
-DECORATIVE ELEMENTS:
-• Upper-right corner: 3-4 small floating pet icons (paw print, bone, fish silhouette) in white at ~55% opacity, scattered naturally
-• Subtle dark gradient vignette at the very top edge and very bottom edge
+DECORATIVE: Clean divider line center. Trust badge icon (shield) bottom-right. Subtle drop shadows on text panels.
 
-STYLE: Premium commercial Facebook ad. Cinematic warm lighting. Conversion-optimized visual hierarchy (eye travels: headline → product zone lower-left → vet+dog right). DO NOT include prices, URLs, CTA buttons, or any product/supplement objects.
+STYLE: Professional, trustworthy, reassuring. Clean advertising design. NO product objects, NO prices, NO URLs.
+${fmt}`.trim();
 
-${formatHint(format)}`.trim();
-  }
+  // ── URGENCY ──────────────────────────────────────────────────────────────────
+  if (angle === 'urgency') return `
+Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+
+PRODUCT: ${ctx}
+
+BACKGROUND SCENE:
+High-energy, dynamic scene. Active pet owner running or playing with an energetic pet — vivid colors, dramatic lighting, motion feel. Dark dramatic gradient overlay covering 65% of the image for text readability.
+
+TYPOGRAPHY:
+1. TOP — Bold urgency badge: "⚡ OFERTA LIMITADA" — rounded pill, ${hex} background, white bold text
+2. CENTER — Main headline:
+   • "${h1}" — ultra-bold white, massive Impact/Anton font, fills ~85% width, strong drop shadow
+   • "${h2}" — ultra-bold ${hex}, same massive size
+3. BELOW HEADLINE — White sub-text: "${sub}"
+4. LOWER BAND (dark strip, full width): 4 feature labels in white, separated by vertical dividers:
+   "${f1 || 'Acción inmediata'}"  |  "${f2 || 'Resultados rápidos'}"  |  "${f3 || 'Stock limitado'}"  |  "${f4 || 'Envío hoy'}"
+
+DECORATIVE: Timer icon or hourglass beside the urgency badge. Red/orange accent glow on bottom strip. Diagonal energy lines in background overlay.
+
+STYLE: High-energy, urgent, conversion-driven. Bold, loud, dynamic. Product zone: lower-right (keep x 55–95%, y 55–90% clear of text). NO product objects, NO prices, NO URLs.
+${fmt}`.trim();
+
+  // ── AUTHORITY ────────────────────────────────────────────────────────────────
+  if (angle === 'authority') return `
+Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+
+PRODUCT: ${ctx}
+
+BACKGROUND SCENE:
+Premium, minimal, bright professional setting. LEFT-CENTER: a confident expert professional (veterinarian, nutritionist, or specialist relevant to the product category) in a clean white coat, warm natural lighting, slight bokeh background. Premium, credible, clean aesthetic.
+
+TYPOGRAPHY:
+1. TOP BAND (white or very light, h≈24%):
+   • "${h1}" — bold dark heavy sans-serif, large, centered
+   • "${h2}" — bold ${hex}, same size, on second line
+2. RIGHT SIDE (x 52–98%, stacked credential cards):
+   • Card 1: shield/award icon + "${f1 || 'Fórmula veterinaria'}"
+   • Card 2: medal icon + "${f2 || 'Testado clínicamente'}"
+   • Card 3: star icon + "${f3 || 'Ingredientes premium'}"
+   • Card 4: checkmark icon + "${f4 || '+ 10.000 mascotas'}"
+   Each card: white background, ${hex} left border accent, dark bold text
+3. Bottom left: "${sub}" — small white text on ${hex} band
+
+DECORATIVE: Premium gold or ${hex} accent lines. Clean grid layout. Certification seal graphic bottom-right. Subtle drop shadows.
+
+STYLE: Expert, premium, minimal, trust-building. Clinical precision meets premium branding. NO product objects, NO prices, NO URLs.
+${fmt}`.trim();
+
+  // ── COMPARISON ───────────────────────────────────────────────────────────────
+  if (angle === 'comparison') return `
+Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+
+PRODUCT: ${ctx}
+
+LAYOUT — COMPARISON SPLIT:
+TOP BANNER (full width, h≈18%, ${hex} background): "${h1} ${h2}" — ultra-bold white, centered, large
+
+UPPER PHOTO STRIP (h≈40%, split):
+LEFT PHOTO (x 0–50%): Moody, slightly desaturated scene — sad/worried person with unhealthy-looking pet, dark cool tones.
+RIGHT PHOTO (x 50–100%): Bright, vibrant — happy person running/playing with energetic healthy pet, warm golden tones.
+
+LOWER COMPARISON PANEL (h≈42%, split):
+LEFT (x 0–50%, dark background #1a1a2e):
+   • "OTROS" header — bold white, large
+   • "✗ ${b1 || 'Resultados inconsistentes'}"
+   • "✗ ${b2 || 'Ingredientes desconocidos'}"
+   • "✗ ${b1 || 'Sin garantía real'}"
+RIGHT (x 50–100%, ${hex} background):
+   • "NOSOTROS" header — bold white, large
+   • "✓ ${a1 || 'Resultados desde el día 7'}"
+   • "✓ ${a2 || 'Fórmula 100% natural'}"
+   • "✓ ${a1 || 'Garantía 30 días'}"
+
+CENTER COLUMN (x 44–56%): Vertical white divider with "VS" badge at the photo/panel junction. Product zone: bottom-center (x 40–60%, y 55–100%) — KEEP THIS AREA CLEAR for product compositing.
+
+STYLE: Clean, professional, high-contrast split. No ambiguity. Clear winner layout. Premium advertising quality. NO product objects, NO prices, NO URLs.
+${fmt}`.trim();
+
+  // ── GUARANTEE ────────────────────────────────────────────────────────────────
+  if (angle === 'guarantee') return `
+Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+
+PRODUCT: ${ctx}
+
+BACKGROUND SCENE:
+Calm, warm, peaceful interior. Completely relaxed and satisfied person holding their healthy, content pet — gentle warm light, soft bokeh, serene atmosphere. RIGHT 55% of frame. LEFT lower area (x 0–40%, y 50–95%): clean neutral surface for product placement — keep CLEAR.
+
+TYPOGRAPHY:
+1. TOP-CENTER — Large guarantee seal/badge (hexagonal or shield shape, ${hex} color): inside the badge "GARANTÍA 30 DÍAS" in white bold text
+2. BELOW BADGE — Headline:
+   • "${h1}" — ultra-bold white, large Anton/Impact font
+   • "${h2}" — ultra-bold ${hex}, same size
+3. CENTER — White sub-text pill: "${sub}"
+4. LOWER-LEFT (above surface, dark card): three guarantee points:
+   • "✓ ${b1 || 'Devolución sin preguntas'}"
+   • "✓ ${b2 || 'Resultados visibles o reembolso'}"
+   • "✓ ${b3 || 'Soporte 24/7 incluido'}"
+
+DECORATIVE: Soft golden glow around guarantee badge. Checkmark animation-feel icons. Trust-building color palette (greens, golds, ${hex} accents).
+
+STYLE: Safe, reassuring, zero-risk feel. Warm, premium, trust-driven. NO product objects, NO prices, NO URLs.
+${fmt}`.trim();
+
+  // ── SOCIAL PROOF ─────────────────────────────────────────────────────────────
+  if (angle === 'social_proof') return `
+Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+
+PRODUCT: ${ctx}
+
+BACKGROUND SCENE:
+Warm, community-feel lifestyle interior. TOP HALF: happy, glowing pet owner with healthy thriving pet — natural warm lighting, genuine smile, relatable. LOWER HALF: slightly blurred or darkened to accommodate text panels.
+
+TYPOGRAPHY:
+1. TOP BANNER (${hex} background, h≈16%): "★★★★★  +10.000 mascotas satisfechas" — bold white, centered
+2. BELOW PHOTO (left aligned): "${h1}" — ultra-bold white, large
+   "${h2}" — ${hex}, same style
+3. TWO TESTIMONIAL CARDS side by side (lower half):
+   LEFT card (white background, rounded corners, shadow):
+   • Circular avatar placeholder (initials or silhouette)
+   • "${r1 || 'Mi perro está como nuevo, increíble cambio en 2 semanas.'}"
+   • "★★★★★" in ${hex}
+   RIGHT card (white background, rounded corners, shadow):
+   • Circular avatar placeholder
+   • "${r2 || 'No lo cambio por nada, resultados reales y rápidos.'}"
+   • "★★★★★" in ${hex}
+4. Bottom strip (${hex}): "${sub}" white bold centered
+
+DECORATIVE: Star icons scattered subtly. Social proof number badge top. Warm vignette.
+
+STYLE: Warm, community, validated. Trust through numbers and real testimonials feel. NO product objects, NO prices, NO URLs.
+${fmt}`.trim();
+
+  // ── CURIOSITY ────────────────────────────────────────────────────────────────
+  if (angle === 'curiosity') return `
+Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+
+PRODUCT: ${ctx}
+
+BACKGROUND SCENE:
+Dark, atmospheric, cinematic. A mysterious but intriguing scene — a person leaning in to look at something surprising, dramatic single-light spotlight effect, deep shadows, rich dark tones. The scene should feel like a revelation is about to happen.
+
+TYPOGRAPHY:
+1. CENTER — Giant question mark "?" as a design element (very large, ${hex}, semi-transparent, behind the main text)
+2. TOP-LEFT area — Main headline, dramatic placement:
+   • "${h1}" — ultra-bold white, large Anton/Impact
+   • "${h2}" — ultra-bold ${hex}, same size, line below
+3. CENTER — Three mystery/hint pills (dark background, ${hex} border, white text):
+   • "◆ ${copy?.h1 || 'El ingrediente que los veterinarios callan'}"
+   • "◆ ${copy?.h2 || 'Resultados en solo 7 días'}"
+   • "◆ ${copy?.h3 || '9 de cada 10 dueños lo recomiendan'}"
+4. BOTTOM — "${sub}" — white italic on dark strip
+Product zone: RIGHT LOWER (x 52–92%, y 55–92%) — keep CLEAR.
+
+DECORATIVE: Dramatic vignette. Spotlight beam effect. Small dots/particles floating. Cinematic letterbox bars top and bottom (thin dark bands).
+
+STYLE: Intriguing, mysterious, irresistible. Dark cinematic drama. Must-click feel. NO product objects, NO prices, NO URLs.
+${fmt}`.trim();
+
+  // ── PRICE ────────────────────────────────────────────────────────────────────
+  if (angle === 'price') return `
+Design a COMPLETE 1080x1080 professional Facebook ad. World-class advertising quality.
+
+PRODUCT: ${ctx}
+
+BACKGROUND SCENE:
+Energetic, celebratory lifestyle. Happy excited person with pet celebrating. Vibrant bright colors, festive confetti-like atmosphere, dynamic lighting. Upper 50%.
+
+TYPOGRAPHY:
+1. TOP LEFT — Small ${hex} pill badge: "🏷 OFERTA ESPECIAL"
+2. UPPER CENTER — Headline:
+   • "${h1}" — ultra-bold white, large, drop shadow
+   • "${h2}" — ultra-bold ${hex}, same size
+3. CENTER — Large value display box (white background, rounded, shadow):
+   • Sub-text small: "${sub}"
+   • Scarcity line bold: "${b1 || '¡Solo por tiempo limitado!'}"
+   All text dark, clean, premium.
+4. LOWER-LEFT to CENTER (product zone, x 5–55%, y 58–95%): KEEP COMPLETELY CLEAR — product composited here.
+5. LOWER-RIGHT (x 58–98%, y 65–95%): Value stack in ${hex} background card:
+   • "✓ Envío gratis"
+   • "✓ Garantía incluida"
+   • "✓ Pago seguro"
+
+DECORATIVE: Confetti or geometric celebration shapes. Diagonal ${hex} accent stripe. Festive energy burst behind price box.
+
+STYLE: Celebratory, value-forward, high-energy. Clear price emphasis. Premium feel despite the deal angle. NO product objects, NO prices with numbers, NO URLs.
+${fmt}`.trim();
+
   return null;
 }
 
-// ─── ICON PANEL GENERATION (AI hyperrealistic icons for feature strip) ────────
+// ICON_STRIP_ANGLES is now unused — all angles use full Gemini design
+const ICON_STRIP_ANGLES = new Set([]);
 
-// Angles that use the bottom feature strip with AI icons (pain excluded — uses full design)
-const ICON_STRIP_ANGLES = new Set(['urgency', 'authority']);
-
-async function generateIconPanel(features, apiKey) {
-  const list = features.map((f, i) => `${i + 1}. ${f}`).join(' | ');
-  const prompt = `Create a horizontal row of exactly 4 individual icon illustrations on a pure white (#ffffff) background. Each icon is a clean, modern, hyperrealistic flat illustration with a magenta-pink color (#d946ef). The 4 icons must represent these product benefits in order from left to right: ${list}. Style: modern icon set, slight 3D depth, clean drop shadow, vibrant magenta/pink tones, no gradients in icons. White background only. Each icon occupies exactly 1/4 of the image width. No text, no labels, no borders between icons. Professional quality, sharp and detailed.`;
-
-  try {
-    const res = await fetch(GEMINI_IMAGE_URL(apiKey), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
-      }),
-    });
-    const data = await res.json();
-    const imgPart = data.candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
-    return imgPart ? imgPart.inlineData.data : null;
-  } catch {
-    return null;
-  }
-}
-
-// ─── REFERENCE IMAGE REPLICATION ─────────────────────────────────────────────
-
-async function generateFromReference(referenceBase64, productContext, copy, primaryColor, format, apiKey) {
-  const rawHeadline = (copy?.headline || '').toUpperCase();
-  const words = rawHeadline.split(' ');
-  const mid = Math.ceil(words.length / 2);
-  const line1 = words.slice(0, mid).join(' ');
-  const line2 = words.slice(mid).join(' ') || line1;
-  const subText = copy?.description || (copy?.primaryText || '').split('.')[0] || '';
-  const hex = primaryColor || '#6366f1';
-
-  const prompt = `Using this image as an EXACT design template, create a professional Facebook ad for this product: ${productContext}
-
-REPLICATE EXACTLY from the reference:
-- The overall layout and composition (where elements are positioned)
-- Typography style: font weights, sizes, and text block positions
-- Color palette, mood, visual atmosphere, and lighting style
-- All graphic overlays, decorative elements, badges, strips, and design accents
-- Background scene style, photographic quality, and cinematic treatment
-
-REPLACE in the output:
-- Headline line 1: "${line1}" — same style and position as the reference headline
-- Headline line 2: "${line2}" — use brand color ${hex} instead of the original accent color
-- Sub-text or body copy: "${subText}" — same font style and position
-- Clear any product/object in the reference — leave a CLEAN SURFACE (table, pedestal, or neutral area) where the new product will be composited separately. Do NOT generate any product, bottle, box, or supplement.
-
-OUTPUT: A complete, production-ready 1080x1080 Facebook ad image that looks like a professional reskin of the reference design.
-${formatHint(format)}`;
-
-  const res = await fetch(GEMINI_IMAGE_URL(apiKey), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{
-        parts: [
-          { inlineData: { mimeType: 'image/jpeg', data: referenceBase64 } },
-          { text: prompt },
-        ],
-      }],
-      generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || 'Error replicando imagen de referencia');
-  const imgPart = data.candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
-  if (!imgPart) throw new Error('Gemini no devolvió imagen al replicar el diseño.');
-  return { data: imgPart.inlineData.data, mimeType: imgPart.inlineData.mimeType };
-}
-
-// ─── BACKGROUND GENERATION ───────────────────────────────────────────────────
+// ─── BACKGROUND / FULL-DESIGN GENERATION ─────────────────────────────────────
 
 async function generateBackground(scenePrompt, apiKey) {
   const res = await fetch(GEMINI_IMAGE_URL(apiKey), {
@@ -408,11 +618,24 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, icon
 
     const { width: pw } = await sharp(resizedProduct).metadata();
 
+    // Full-design product zones match what each prompt tells Gemini to leave clear
+    const FULL_DESIGN_ZONES = {
+      pain:         (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.22) - Math.round(p/2)), top: Math.round(ch*0.54) }),
+      desire:       (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.19) - Math.round(p/2)), top: Math.round(ch*0.38) }),
+      transformation:(cw,ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.55) }),
+      objection:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.52), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.55) }),
+      urgency:      (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.44) }),
+      authority:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.52), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.43) }),
+      comparison:   (cw, ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.56) }),
+      guarantee:    (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.19) - Math.round(p/2)), top: Math.round(ch*0.50) }),
+      social_proof: (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.45) }),
+      curiosity:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.52), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.50) }),
+      price:        (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.22) - Math.round(p/2)), top: Math.round(ch*0.55) }),
+    };
+
     let placement;
-    if (fullDesign && angle === 'pain') {
-      // Full design Pain: product lower-left, matching the table zone in Gemini's scene
-      const cx = Math.round(w * 0.22);
-      placement = { left: Math.max(20, cx - Math.round(pw / 2)), top: Math.round(h * 0.54) };
+    if (fullDesign && FULL_DESIGN_ZONES[angle]) {
+      placement = FULL_DESIGN_ZONES[angle](w, h, pw);
     } else {
       placement = getProductPlacement(angle || 'desire', w, h, pw);
     }
@@ -462,7 +685,6 @@ export default async function handler(req, res) {
     format = 'square',
     primaryColor = '#6366f1',
     productImageBase64,
-    referenceImageBase64,
   } = req.body;
 
   if (!productName && !productImageBase64) {
@@ -483,82 +705,20 @@ export default async function handler(req, res) {
       selectedAngles.map(async (a) => {
         const label = ANGLE_LABELS[a] || a;
 
-        // ── REFERENCE REPLICATION PATH (user-supplied reference image) ────────
-        if (referenceImageBase64) {
-          const copy = await generateCopy(productContext, a, label, apiKey);
-          const enrichedCopy = { ...(copy || {}), productName: productName || '' };
-          const refImage = await generateFromReference(referenceImageBase64, productContext, enrichedCopy, primaryColor, format, apiKey);
-
-          const composited = await compositeAll({
-            backgroundBase64: refImage.data,
-            templatePng: null,
-            productBase64: productImageBase64 || null,
-            iconPanelBase64: null,
-            format,
-            angle: a,
-            fullDesign: false,
-          });
-
-          return { imageUrl: `data:image/jpeg;base64,${composited}`, angle: a, label, copy };
-        }
-
-        // ── FULL DESIGN PATH (Gemini generates complete ad image) ─────────────
-        if (FULL_DESIGN_ANGLES.has(a)) {
-          // Must be sequential: copy first → build design prompt → generate image
-          const copy = await generateCopy(productContext, a, label, apiKey);
-          const enrichedCopy = { ...(copy || {}), productName: productName || '' };
-          const designPrompt = buildFullDesignPrompt(a, productContext, enrichedCopy, primaryColor, format);
-          const fullImage = await generateBackground(designPrompt, apiKey);
-
-          const composited = await compositeAll({
-            backgroundBase64: fullImage.data,
-            templatePng: null,       // no canvas template — Gemini drew everything
-            productBase64: productImageBase64 || null,
-            iconPanelBase64: null,
-            format,
-            angle: a,
-            fullDesign: true,
-          });
-
-          return { imageUrl: `data:image/jpeg;base64,${composited}`, angle: a, label, copy };
-        }
-
-        // ── STANDARD PATH (Gemini background + canvas template) ──────────────
-        const scenePromptFn = ANGLE_SCENES[a] || ANGLE_SCENES.desire;
-        const scenePrompt = scenePromptFn(productContext, format);
-
-        // Background + copy generate in parallel
-        const [background, copy] = await Promise.all([
-          generateBackground(scenePrompt, apiKey),
-          generateCopy(productContext, a, label, apiKey),
-        ]);
-
+        // Sequential: copy first → build complete design prompt → generate full ad
+        const copy = await generateCopy(productContext, a, label, apiKey);
         const enrichedCopy = { ...(copy || {}), productName: productName || '' };
-
-        // Generate AI icon panel in parallel with template building (feature-strip angles)
-        const iconFeatures = ICON_STRIP_ANGLES.has(a) ? [
-          enrichedCopy.f1 || enrichedCopy.b1 || 'Beneficio principal',
-          enrichedCopy.f2 || enrichedCopy.b2 || 'Calidad premium',
-          enrichedCopy.f3 || enrichedCopy.b3 || 'Uso seguro diario',
-          enrichedCopy.f4 || enrichedCopy.cta || 'Resultados garantizados',
-        ] : null;
-
-        const hasProduct = !!productImageBase64;
-        const variation = Math.floor(Math.random() * 2);
-
-        const [templatePng, iconPanelBase64] = await Promise.all([
-          Promise.resolve(buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct, variation)),
-          iconFeatures ? generateIconPanel(iconFeatures, apiKey) : Promise.resolve(null),
-        ]);
+        const designPrompt = buildFullDesignPrompt(a, productContext, enrichedCopy, primaryColor, format);
+        const fullImage = await generateBackground(designPrompt, apiKey);
 
         const composited = await compositeAll({
-          backgroundBase64: background.data,
-          templatePng,
+          backgroundBase64: fullImage.data,
+          templatePng: null,
           productBase64: productImageBase64 || null,
-          iconPanelBase64,
+          iconPanelBase64: null,
           format,
           angle: a,
-          fullDesign: false,
+          fullDesign: true,
         });
 
         return { imageUrl: `data:image/jpeg;base64,${composited}`, angle: a, label, copy };

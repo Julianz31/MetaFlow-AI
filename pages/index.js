@@ -377,6 +377,11 @@ function App() {
       };
       setMetaConnection(savedConnection);
       saveMetaConnection(savedConnection);
+      // Persist to Supabase so the connection is available on any device
+      try {
+        const supabase = getSupabaseBrowser();
+        await supabase.auth.updateUser({ data: { metaConnection: savedConnection } });
+      } catch (_) { /* non-critical */ }
       setConnection(response.data);
       await Promise.all([
         fetchRealDataWithConnection(savedConnection),
@@ -1001,6 +1006,11 @@ function AuthView({ onAuth, initialMode = 'login' }) {
         const u = data.user;
         const nextUser = { id: u.id, name: u.user_metadata?.name || u.email.split('@')[0], email: u.email };
         localStorage.setItem('metaflow_user', JSON.stringify(nextUser));
+        // Restore Meta connection from Supabase if not in localStorage (e.g. different device)
+        const savedConn = u.user_metadata?.metaConnection;
+        if (savedConn?.accessToken && !localStorage.getItem('metaflow_meta_connection')) {
+          localStorage.setItem('metaflow_meta_connection', JSON.stringify(savedConn));
+        }
         onAuth(nextUser);
       }
     } finally {

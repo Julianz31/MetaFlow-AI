@@ -82,38 +82,23 @@ const testimonials = [
 
 const plans = [
   {
-    name: 'Mensual',
-    price: '$34',
-    period: 'USD / mes',
+    name: 'Plan Pro',
+    price: '$99.900',
+    period: 'COP / mes',
     badge: null,
-    desc: 'Acceso completo. Cancela cuando quieras.',
+    desc: 'Acceso completo a todas las funciones. Cancela cuando quieras.',
     features: [
       'Dashboard de rendimiento en tiempo real',
       'Análisis experto con IA ilimitado',
-      'Generador de imágenes de la mejor calidad',
+      'Generador de imágenes con IA de alto nivel',
+      'Los 11 ángulos publicitarios',
       'Vitrina de productos ilimitada',
       'Reglas automáticas inteligentes',
       'Constructor de campañas con IA',
+      'Integración directa con Meta Ads',
       'Soporte prioritario'
     ],
-    cta: 'Comenzar mensual',
-    highlighted: false
-  },
-  {
-    name: 'Anual',
-    price: '$300',
-    period: 'USD / año',
-    badge: '¡Ahorra $108!',
-    desc: 'El mejor valor. Equivale a solo $25/mes.',
-    features: [
-      'Todo lo del plan mensual',
-      '2 meses gratis incluidos',
-      'Acceso anticipado a nuevas funciones',
-      'Soporte VIP prioritario',
-      'Sesión de onboarding incluida',
-      'Garantía de 30 días'
-    ],
-    cta: 'Comenzar anual',
+    cta: 'Comenzar ahora',
     highlighted: true
   }
 ];
@@ -365,7 +350,7 @@ export default function Landing() {
           <div className="l-hero-inner">
             <div className="l-badge">
               <span className="l-badge-dot" />
-              Desde $25 USD/mes · Cancela cuando quieras
+              $99.900 COP/mes · Cancela cuando quieras
             </div>
             <h1 className="l-hero-title">
               El copiloto de IA
@@ -548,10 +533,9 @@ export default function Landing() {
               <h2 className="l-section-title">Simple, transparente, sin sorpresas</h2>
               <p className="l-section-sub">Elige el plan que mejor se adapte a ti. Cancela cuando quieras.</p>
             </div>
-            <div className="l-pricing-grid">
+            <div className="l-pricing-grid l-pricing-grid--single">
               {plans.map(plan => (
-                <div key={plan.name} className={`l-pricing-card ${plan.highlighted ? 'highlighted' : ''}`}>
-                  {plan.badge && <div className="l-pricing-badge">{plan.badge}</div>}
+                <div key={plan.name} className="l-pricing-card highlighted">
                   <div className="l-pricing-name">{plan.name}</div>
                   <div className="l-pricing-price-row">
                     <span className="l-pricing-price">{plan.price}</span>
@@ -565,9 +549,12 @@ export default function Landing() {
                       </li>
                     ))}
                   </ul>
-                  <Link href="/?signup=1" className={`l-pricing-cta ${plan.highlighted ? 'primary' : 'secondary'}`}>
+                  <Link href="/pricing" className="l-pricing-cta primary">
                     {plan.cta}
                   </Link>
+                  <p style={{ textAlign: 'center', color: '#64748b', fontSize: 12, marginTop: 12, marginBottom: 0 }}>
+                    🔒 Pago seguro con Wompi · Cancela cuando quieras
+                  </p>
                 </div>
               ))}
             </div>
@@ -603,7 +590,7 @@ export default function Landing() {
             <Link href="/?signup=1" className="l-cta-main l-cta-main--large">
               <span>⚡</span> Comenzar ahora
             </Link>
-            <p className="l-hero-hint">Desde $25 USD/mes · Sin contrato de permanencia</p>
+            <p className="l-hero-hint">$99.900 COP/mes · Sin contrato de permanencia</p>
           </div>
         </section>
 

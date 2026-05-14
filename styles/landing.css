@@ -645,6 +645,11 @@
   margin: 0 auto;
 }
 
+.l-pricing-grid--single {
+  grid-template-columns: 1fr;
+  max-width: 480px;
+}
+
 .l-pricing-card {
   position: relative;
   background: rgba(255,255,255,0.03);

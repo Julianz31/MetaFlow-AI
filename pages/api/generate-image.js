@@ -236,7 +236,8 @@ const NO_LABEL_RULE = `CRITICAL RENDERING RULES:
 • NEVER write instruction labels in the image such as "Text 1:", "Text 2:", "Line 1:", "Typography:", or any other descriptor. Render ONLY the actual text content.
 • NEVER include placeholder text like "[headline]" or "[subtext]" — only the real text provided.
 • Every text element must be rendered sharp, anti-aliased, and fully legible.
-• NO drop shadows on any text. All text is rendered clean and flat — no shadow, no glow, no blur behind letters.`;
+• NO drop shadows on any text. All text is rendered clean and flat — no shadow, no glow, no blur behind letters.
+• SPELL ALL SPANISH WORDS CORRECTLY — proofread every word. Never write: "NOSOUTROS" (correct: NOSOTROS), "SECERTO" (correct: SECRETO), "AVANAZDA" (correct: AVANZADA), "APROVEEVA" (correct: APROVECHA), "BIENESEAR" (correct: BIENESTAR), "REALMENT" (correct: REALMENTE), "COMPANEO" (correct: COMPAÑERO), "SANO" is correct, "AGOTE" is correct. Double-check all accents and spelling before rendering any word.`;
 
 function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format, hasProduct = false) {
   const prompt = _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct);
@@ -748,6 +749,7 @@ export default async function handler(req, res) {
     format = 'square',
     primaryColor = '#6366f1',
     productImageBase64,
+    adjustmentInstruction,
   } = req.body;
 
   if (!productName && !productImageBase64) {
@@ -773,10 +775,13 @@ export default async function handler(req, res) {
         const enrichedCopy = { ...(copy || {}), productName: productName || '' };
         const hasProduct = !!productImageBase64;
         const designPrompt = buildFullDesignPrompt(a, productContext, enrichedCopy, primaryColor, format, hasProduct);
+        const finalPrompt = adjustmentInstruction
+          ? `${designPrompt}\n\nUSER ADJUSTMENT REQUEST: ${adjustmentInstruction}. Apply this specific change while keeping all other design elements the same.`
+          : designPrompt;
 
         // Pass product image to Gemini so it integrates it naturally into the scene.
         // When Gemini handles product placement, skip the Sharp compositing step.
-        const fullImage = await generateBackground(designPrompt, apiKey, productImageBase64 || null);
+        const fullImage = await generateBackground(finalPrompt, apiKey, productImageBase64 || null);
 
         const composited = await compositeAll({
           backgroundBase64: fullImage.data,

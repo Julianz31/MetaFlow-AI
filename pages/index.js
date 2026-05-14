@@ -635,6 +635,23 @@ function App() {
     }
   };
 
+  const adjustImage = async (img, note) => {
+    const headers = googleAiKey ? { 'x-google-ai-key': googleAiKey } : {};
+    const response = await axios.post(`${API_BASE_URL}/api/generate-image`, {
+      productName: adForm.productName,
+      description: adForm.description,
+      format: adForm.format,
+      angles: [img.angle],
+      primaryColor: adForm.primaryColor,
+      productImageBase64: adForm.productImageBase64 || undefined,
+      adjustmentInstruction: note,
+    }, { headers, timeout: 300000 });
+    const updated = response.data.images?.[0];
+    if (updated) {
+      setGeneratedImages(prev => prev.map(i => i.angle === img.angle ? updated : i));
+    }
+  };
+
   const saveGoogleAiKey = (key) => {
     try { localStorage.setItem('google_ai_key', key); } catch {}
     setGoogleAiKey(key);
@@ -906,6 +923,7 @@ function App() {
             onClearImages={() => setGeneratedImages([])}
             onLaunchInBuilder={launchInBuilder}
             onSaveCreative={saveCreative}
+            onAdjustImage={adjustImage}
           />
         )}
         {activeTab === 'library' && (
@@ -2580,10 +2598,27 @@ function ProductsView({ products, loading, showForm, editingProduct, isAdmin, on
   );
 }
 
-function ResultCard({ img, onLaunch, onSave }) {
+function ResultCard({ img, onLaunch, onSave, onAdjust }) {
   const [copied, setCopied] = useState(null);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showAdjust, setShowAdjust] = useState(false);
+  const [adjustNote, setAdjustNote] = useState('');
+  const [adjusting, setAdjusting] = useState(false);
+
+  const handleAdjustSubmit = async () => {
+    if (!adjustNote.trim() || adjusting) return;
+    setAdjusting(true);
+    try {
+      await onAdjust?.(img, adjustNote);
+      setShowAdjust(false);
+      setAdjustNote('');
+    } catch (err) {
+      alert('Error ajustando: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setAdjusting(false);
+    }
+  };
 
   const copyToClipboard = (text, field) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -2631,7 +2666,30 @@ function ResultCard({ img, onLaunch, onSave }) {
         <button className={`rc-action-btn save ${saved ? 'saved' : ''}`} onClick={handleSave} disabled={saved || saving}>
           <BookMarked size={13} /> {saving ? 'Guardando…' : saved ? 'Guardado ✓' : 'Guardar'}
         </button>
+        <button className={`rc-action-btn adjust ${showAdjust ? 'active' : ''}`} onClick={() => setShowAdjust(v => !v)} disabled={adjusting}>
+          <Edit2 size={13} /> Ajustar
+        </button>
       </div>
+      {showAdjust && (
+        <div className="adjust-row">
+          <input
+            className="adjust-input"
+            placeholder="Ej: título más grande, fondo más oscuro, quitar el texto inferior…"
+            value={adjustNote}
+            onChange={e => setAdjustNote(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleAdjustSubmit()}
+            autoFocus
+          />
+          <button className="adjust-submit" onClick={handleAdjustSubmit} disabled={adjusting || !adjustNote.trim()}>
+            {adjusting ? <Loader2 size={14} className="spin" /> : <Wand2 size={14} />}
+          </button>
+        </div>
+      )}
+      {adjusting && (
+        <div className="adjust-loading">
+          <Loader2 size={15} className="spin" /> Ajustando imagen…
+        </div>
+      )}
       {copyFields.length > 0 && (
         <div className="copy-section">
           {copyFields.map(f => (
@@ -2669,7 +2727,7 @@ const ANGLE_OPTIONS = [
   { value: 'price',          label: 'Precio/Oferta',    emoji: '💰', desc: 'Descuento especial limitado' },
 ];
 
-function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm, onFormChange, onGenerate, onSaveGoogleAiKey, onClearImages, onLaunchInBuilder, onSaveCreative }) {
+function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm, onFormChange, onGenerate, onSaveGoogleAiKey, onClearImages, onLaunchInBuilder, onSaveCreative, onAdjustImage }) {
   const [keyInput, setKeyInput] = useState(googleAiKey || '');
   const [showKey, setShowKey] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -2974,7 +3032,7 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
               </div>
               <div className="result-grid">
                 {generatedImages.map(img => (
-                  <ResultCard key={img.angle} img={img} onLaunch={onLaunchInBuilder} onSave={onSaveCreative} />
+                  <ResultCard key={img.angle} img={img} onLaunch={onLaunchInBuilder} onSave={onSaveCreative} onAdjust={onAdjustImage} />
                 ))}
               </div>
             </>

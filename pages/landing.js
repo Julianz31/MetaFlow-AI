@@ -82,25 +82,68 @@ const testimonials = [
 
 const plans = [
   {
-    name: 'Plan Pro',
+    name: 'Pro',
     price: '$99.900',
     period: 'COP / mes',
     badge: null,
-    desc: 'Acceso completo a todas las funciones. Cancela cuando quieras.',
+    highlighted: false,
+    accounts: 1,
+    aiCredits: '700',
+    images: '60',
     features: [
-      'Dashboard de rendimiento en tiempo real',
-      'Análisis experto con IA ilimitado',
-      'Generador de imágenes con IA de alto nivel',
+      '1 cuenta publicitaria conectada',
+      '700 créditos IA al mes',
+      '60 imágenes generadas al mes',
       'Los 11 ángulos publicitarios',
-      'Vitrina de productos ilimitada',
-      'Reglas automáticas inteligentes',
-      'Constructor de campañas con IA',
-      'Integración directa con Meta Ads',
-      'Soporte prioritario'
+      'Dashboard de campañas en tiempo real',
+      'Análisis y recomendaciones con IA',
+      'Optimización automática de reglas',
     ],
     cta: 'Comenzar ahora',
-    highlighted: true
-  }
+  },
+  {
+    name: 'Business',
+    price: '$209.900',
+    period: 'COP / mes',
+    badge: 'Más popular',
+    highlighted: true,
+    accounts: 3,
+    aiCredits: '1.800',
+    images: '150',
+    features: [
+      '3 cuentas publicitarias conectadas',
+      '1.800 créditos IA al mes',
+      '150 imágenes generadas al mes',
+      'Los 11 ángulos publicitarios',
+      'Dashboard de campañas en tiempo real',
+      'Análisis y recomendaciones con IA',
+      'Optimización automática de reglas',
+      'Soporte prioritario',
+    ],
+    cta: 'Comenzar ahora',
+  },
+  {
+    name: 'Agency',
+    price: '$359.900',
+    period: 'COP / mes',
+    badge: null,
+    highlighted: false,
+    accounts: 10,
+    aiCredits: '4.000',
+    images: '350',
+    features: [
+      '10 cuentas publicitarias conectadas',
+      '4.000 créditos IA al mes',
+      '350 imágenes generadas al mes',
+      'Los 11 ángulos publicitarios',
+      'Dashboard de campañas en tiempo real',
+      'Análisis y recomendaciones con IA',
+      'Optimización automática de reglas',
+      'Soporte prioritario',
+      'Acceso anticipado a nuevas funciones',
+    ],
+    cta: 'Comenzar ahora',
+  },
 ];
 
 function CampañasScreen() {
@@ -350,7 +393,7 @@ export default function Landing() {
           <div className="l-hero-inner">
             <div className="l-badge">
               <span className="l-badge-dot" />
-              $99.900 COP/mes · Cancela cuando quieras
+              Desde $99.900 COP/mes · Cancela cuando quieras
             </div>
             <h1 className="l-hero-title">
               El copiloto de IA
@@ -533,15 +576,31 @@ export default function Landing() {
               <h2 className="l-section-title">Simple, transparente, sin sorpresas</h2>
               <p className="l-section-sub">Elige el plan que mejor se adapte a ti. Cancela cuando quieras.</p>
             </div>
-            <div className="l-pricing-grid l-pricing-grid--single">
+            <div className="l-pricing-grid">
               {plans.map(plan => (
-                <div key={plan.name} className="l-pricing-card highlighted">
+                <div key={plan.name} className={`l-pricing-card ${plan.highlighted ? 'highlighted' : ''}`}>
+                  {plan.badge && <div className="l-pricing-badge">{plan.badge}</div>}
                   <div className="l-pricing-name">{plan.name}</div>
                   <div className="l-pricing-price-row">
                     <span className="l-pricing-price">{plan.price}</span>
                     <span className="l-pricing-period">{plan.period}</span>
                   </div>
-                  <p className="l-pricing-desc">{plan.desc}</p>
+                  <div className="l-pricing-quotas">
+                    <div className="l-quota-item">
+                      <span className="l-quota-num">{plan.accounts}</span>
+                      <span className="l-quota-label">cuenta{plan.accounts > 1 ? 's' : ''} Meta</span>
+                    </div>
+                    <div className="l-quota-divider" />
+                    <div className="l-quota-item">
+                      <span className="l-quota-num">{plan.aiCredits}</span>
+                      <span className="l-quota-label">créditos IA</span>
+                    </div>
+                    <div className="l-quota-divider" />
+                    <div className="l-quota-item">
+                      <span className="l-quota-num">{plan.images}</span>
+                      <span className="l-quota-label">imágenes</span>
+                    </div>
+                  </div>
                   <ul className="l-pricing-features">
                     {plan.features.map(f => (
                       <li key={f}>
@@ -549,7 +608,7 @@ export default function Landing() {
                       </li>
                     ))}
                   </ul>
-                  <Link href="/pricing" className="l-pricing-cta primary">
+                  <Link href="/pricing" className={`l-pricing-cta ${plan.highlighted ? 'primary' : 'secondary'}`}>
                     {plan.cta}
                   </Link>
                   <p style={{ textAlign: 'center', color: '#64748b', fontSize: 12, marginTop: 12, marginBottom: 0 }}>
@@ -590,7 +649,7 @@ export default function Landing() {
             <Link href="/?signup=1" className="l-cta-main l-cta-main--large">
               <span>⚡</span> Comenzar ahora
             </Link>
-            <p className="l-hero-hint">$99.900 COP/mes · Sin contrato de permanencia</p>
+            <p className="l-hero-hint">Desde $99.900 COP/mes · Sin contrato de permanencia</p>
           </div>
         </section>
 

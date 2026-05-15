@@ -639,15 +639,10 @@
 
 .l-pricing-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
-  max-width: 800px;
+  max-width: 1080px;
   margin: 0 auto;
-}
-
-.l-pricing-grid--single {
-  grid-template-columns: 1fr;
-  max-width: 480px;
 }
 
 .l-pricing-card {
@@ -697,7 +692,7 @@
 }
 
 .l-pricing-price {
-  font-size: 52px;
+  font-size: 40px;
   font-weight: 800;
   color: #f1f5f9;
   letter-spacing: -0.03em;
@@ -705,16 +700,43 @@
 }
 
 .l-pricing-period {
-  font-size: 15px;
+  font-size: 13px;
   color: #64748b;
 }
 
-.l-pricing-desc {
-  font-size: 14px;
+.l-pricing-quotas {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.04);
+  border-radius: 12px;
+  padding: 12px 8px;
+  gap: 4px;
+}
+
+.l-quota-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.l-quota-num {
+  font-size: 18px;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.l-quota-label {
+  font-size: 10px;
   color: #64748b;
-  line-height: 1.5;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+}
+
+.l-quota-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255,255,255,0.08);
 }
 
 .l-pricing-features {

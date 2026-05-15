@@ -1536,7 +1536,8 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
   const selectedObjective = objectives.find(objective => objective.value === form.objective);
   const selectedPage = assets.pages?.find(page => page.id === form.pageId);
   const needsUrl = selectedObjective?.requires?.includes('META_DESTINATION_URL');
-  const needsPixel = selectedObjective?.requires?.includes('META_PIXEL_ID');
+  const pixelRequired = selectedObjective?.requires?.includes('META_PIXEL_ID');
+  const needsPixel = true;
   const needsWhatsapp = form.objective === 'OUTCOME_SALES';
   const whatsappOptions = [
     ...(assets.whatsappNumbers || []),
@@ -1764,7 +1765,7 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
             </div>
             {needsPixel && (
               <label>
-                Pixel de Meta
+                Pixel de Meta{!pixelRequired && <span style={{ fontWeight: 400, color: '#64748b', marginLeft: 6 }}>(opcional)</span>}
                 {assets.pixels?.length > 0 ? (
                   <select name="pixelId" value={form.pixelId} onChange={handleChange}>
                     <option value="">Selecciona un Pixel</option>

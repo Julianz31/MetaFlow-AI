@@ -211,7 +211,10 @@ function App() {
   const fetchConnectionStatus = async () => {
     try {
       setConnectionLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/meta/connection`, metaRequestConfig(metaConnection));
+      const authHeader = await getAuthHeader();
+      const response = await axios.get(`${API_BASE_URL}/api/meta/connection`, {
+        headers: { ...metaRequestConfig(metaConnection).headers, ...authHeader }
+      });
       setConnection(response.data);
       if (response.data.adAccountId) {
         const nextConnection = {
@@ -376,7 +379,10 @@ function App() {
     setConnectionLoading(true);
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/meta/connection`, metaRequestConfig(nextConnection));
+      const authHeader = await getAuthHeader();
+      const response = await axios.get(`${API_BASE_URL}/api/meta/connection`, {
+        headers: { ...metaRequestConfig(nextConnection).headers, ...authHeader }
+      });
       const connectedAccountId = nextConnection.adAccountId || response.data.adAccountId;
       const savedConnection = {
         ...nextConnection,

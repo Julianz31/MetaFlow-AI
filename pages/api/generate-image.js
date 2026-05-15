@@ -154,11 +154,11 @@ const COPY_POWER_WORDS = {
 };
 
 const ANGLE_EXTRA_FIELDS = {
-  pain:           `"b1": "Dolor específico 1 — máx 32 chars, muy concreto al producto",\n  "b2": "Dolor específico 2 — máx 32 chars",\n  "b3": "Consecuencia del dolor — máx 32 chars",\n  "f1": "Beneficio clave 1 — 2-3 palabras",\n  "f2": "Beneficio clave 2 — 2-3 palabras",\n  "f3": "Beneficio clave 3 — 2-3 palabras",\n  "f4": "Beneficio clave 4 — 2-3 palabras"`,
+  pain:           `"b1": "Dolor específico 1 — máx 32 chars, muy concreto al producto",\n  "b2": "Dolor específico 2 — máx 32 chars",\n  "b3": "Consecuencia del dolor — máx 32 chars",\n  "f1": "Beneficio concreto 1 — 3-5 palabras descriptivas del resultado, NO el nombre del producto",\n  "f2": "Beneficio concreto 2 — 3-5 palabras descriptivas del resultado, diferente a f1",\n  "f3": "Beneficio concreto 3 — 3-5 palabras descriptivas del resultado, diferente a f1 y f2",\n  "f4": "Beneficio concreto 4 — 3-5 palabras descriptivas del resultado, diferente a los anteriores"`,
   desire:         `"b1": "Resultado aspiracional 1 — máx 32 chars, específico y emocionante",\n  "b2": "Resultado aspiracional 2 — máx 32 chars",\n  "b3": "Resultado aspiracional 3 — máx 32 chars"`,
   transformation: `"b1": "Estado ANTES — sufrimiento real en 1 línea, máx 32 chars",\n  "a1": "Estado DESPUÉS — resultado concreto en 1 línea, máx 32 chars"`,
   objection:      `"p1": "Duda/objeción 1 — máx 28 chars, real y específica",\n  "p2": "Duda/objeción 2 — máx 28 chars",\n  "p3": "Duda/objeción 3 — máx 28 chars",\n  "s1": "Respuesta contundente 1 — máx 28 chars",\n  "s2": "Respuesta contundente 2 — máx 28 chars",\n  "s3": "Respuesta contundente 3 — máx 28 chars"`,
-  urgency:        `"f1": "Urgencia/escasez 1 — 2 palabras max",\n  "f2": "Urgencia/escasez 2 — 2 palabras max",\n  "f3": "Beneficio inmediato — 2 palabras max",\n  "f4": "CTA implícito — 2 palabras max"`,
+  urgency:        `"f1": "Urgencia/escasez 1 — 3-4 palabras concretas",\n  "f2": "Urgencia/escasez 2 — 3-4 palabras concretas, diferente a f1",\n  "f3": "Beneficio inmediato del producto — 3-5 palabras",\n  "f4": "CTA urgente — 2-3 palabras"`,
   authority:      `"f1": "Credencial o aval concreto — máx 36 chars",\n  "f2": "Número o estadística impactante — máx 36 chars",\n  "f3": "Certificación o premio — máx 36 chars",\n  "f4": "Diferenciador técnico — máx 36 chars"`,
   comparison:     `"b1": "Consecuencia de NO tener el producto — máx 26 chars",\n  "b2": "Otro problema sin el producto — máx 26 chars",\n  "a1": "Resultado con el producto — máx 26 chars, concreto",\n  "a2": "Beneficio adicional con el producto — máx 26 chars"`,
   guarantee:      `"b1": "Garantía específica con número — máx 32 chars",\n  "b2": "Qué pasa si no funciona — máx 32 chars",\n  "b3": "Ventaja adicional sin riesgo — máx 32 chars"`,
@@ -933,7 +933,11 @@ export default async function handler(req, res) {
   try {
     let productContext = '';
     if (productImageBase64) {
-      productContext = await analyzeProduct(productImageBase64, apiKey);
+      const visualAnalysis = await analyzeProduct(productImageBase64, apiKey);
+      // Combine visual analysis with seller-provided description for richer context
+      productContext = description
+        ? `${visualAnalysis}\n\nSeller description: ${description}`
+        : visualAnalysis;
     } else {
       productContext = `Product: ${productName}. ${description || ''}`;
     }

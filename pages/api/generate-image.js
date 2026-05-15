@@ -954,18 +954,9 @@ export default async function handler(req, res) {
           scenePrompt += `\n\nSCENE ADJUSTMENT: ${adjustmentInstruction}`;
         }
 
-        // 3. Generate background scene + icon panel in parallel (icon panel only for strip angles)
-        const needsIconPanel = ICON_STRIP_ANGLES_ACTIVE.has(a);
-        const [bgResult, iconResult] = await Promise.allSettled([
-          generateBackground(scenePrompt, apiKey),
-          needsIconPanel
-            ? generateIconPanel(productContext, enrichedCopy, primaryColor, apiKey)
-            : Promise.resolve(null),
-        ]);
-
-        if (bgResult.status === 'rejected') throw bgResult.reason;
-        const bgImage = bgResult.value;
-        const iconPanelData = iconResult.status === 'fulfilled' ? iconResult.value : null;
+        // 3. Generate background scene
+        const bgImage = await generateBackground(scenePrompt, apiKey);
+        const iconPanelData = null; // feature strip uses canvas design, no AI icons
 
         // 4. Canvas renders ALL text programmatically — guaranteed correct Spanish
         const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct);

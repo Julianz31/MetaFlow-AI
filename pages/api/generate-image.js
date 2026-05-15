@@ -896,27 +896,31 @@ export default async function handler(req, res) {
       selectedAngles.map(async (a) => {
         const label = ANGLE_LABELS[a] || a;
 
-        // Sequential: copy first → build complete design prompt → generate full ad
+        // 1. Generate copy text (correct Spanish, no rendering)
         const copy = await generateCopy(productContext, a, label, apiKey);
         const enrichedCopy = { ...(copy || {}), productName: productName || '' };
         const hasProduct = !!productImageBase64;
-        const designPrompt = buildFullDesignPrompt(a, productContext, enrichedCopy, primaryColor, format, hasProduct);
-        const finalPrompt = adjustmentInstruction
-          ? `${designPrompt}\n\nUSER ADJUSTMENT REQUEST: ${adjustmentInstruction}. Apply this specific change while keeping all other design elements the same.`
-          : designPrompt;
 
-        // Pass product image to Gemini so it integrates it naturally into the scene.
-        // When Gemini handles product placement, skip the Sharp compositing step.
-        const fullImage = await generateBackground(finalPrompt, apiKey, productImageBase64 || null);
+        // 2. Gemini generates BACKGROUND SCENE ONLY — no text, no product
+        const scenePromptFn = ANGLE_SCENES[a] || ANGLE_SCENES.desire;
+        let scenePrompt = scenePromptFn(productContext, format);
+        if (adjustmentInstruction) {
+          scenePrompt += `\n\nSCENE ADJUSTMENT: ${adjustmentInstruction}`;
+        }
+        const bgImage = await generateBackground(scenePrompt, apiKey);
 
+        // 3. Canvas renders ALL text programmatically — guaranteed correct Spanish
+        const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct);
+
+        // 4. Composite: background + text template + product photo
         const composited = await compositeAll({
-          backgroundBase64: fullImage.data,
-          templatePng: null,
-          productBase64: null,       // Gemini placed the product — no manual compositing
+          backgroundBase64: bgImage.data,
+          templatePng,
+          productBase64: productImageBase64 || null,
           iconPanelBase64: null,
           format,
           angle: a,
-          fullDesign: true,
+          fullDesign: false,
         });
 
         return { imageUrl: `data:image/jpeg;base64,${composited}`, angle: a, label, copy };

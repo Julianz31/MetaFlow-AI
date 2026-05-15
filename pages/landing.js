@@ -1,6 +1,8 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import axios from 'axios';
 
 const features = [
   {
@@ -82,6 +84,7 @@ const testimonials = [
 
 const plans = [
   {
+    key: 'pro',
     name: 'Pro',
     price: '$99.900',
     period: 'COP / mes',
@@ -102,6 +105,7 @@ const plans = [
     cta: 'Comenzar ahora',
   },
   {
+    key: 'business',
     name: 'Business',
     price: '$209.900',
     period: 'COP / mes',
@@ -123,6 +127,7 @@ const plans = [
     cta: 'Comenzar ahora',
   },
   {
+    key: 'agency',
     name: 'Agency',
     price: '$359.900',
     period: 'COP / mes',
@@ -357,7 +362,54 @@ const SIDEBAR_ITEMS = [
 ];
 
 export default function Landing() {
+  const router = useRouter();
   const [activeScreen, setActiveScreen] = useState('Campañas');
+  const [user, setUser] = useState(null);
+  const [loadingPlan, setLoadingPlan] = useState(null);
+  const [payError, setPayError] = useState('');
+
+  useEffect(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('metaflow_user'));
+      if (u) setUser(u);
+    } catch {}
+  }, []);
+
+  const handleSubscribe = async (planKey) => {
+    if (!user) { router.push(`/?signup=1&plan=${planKey}`); return; }
+    setLoadingPlan(planKey);
+    setPayError('');
+    try {
+      const { data } = await axios.post('/api/payments/create-transaction', {
+        userId: user.id,
+        userEmail: user.email,
+        plan: planKey,
+      });
+      const script = document.createElement('script');
+      script.src = 'https://checkout.wompi.co/widget.js';
+      script.setAttribute('data-render', 'button');
+      script.setAttribute('data-public-key', data.publicKey);
+      script.setAttribute('data-currency', data.currency);
+      script.setAttribute('data-amount-in-cents', String(data.amountInCents));
+      script.setAttribute('data-reference', data.reference);
+      script.setAttribute('data-signature:integrity', data.signature);
+      script.setAttribute('data-customer-data:email', data.userEmail);
+      script.setAttribute('data-redirect-url', data.redirectUrl);
+      const container = document.getElementById(`landing-wompi-${planKey}`);
+      if (container) {
+        container.innerHTML = '';
+        container.appendChild(script);
+        script.onload = () => {
+          const btn = container.querySelector('button, [data-wompi]');
+          if (btn) btn.click();
+        };
+      }
+    } catch {
+      setPayError('Error iniciando el pago. Intenta de nuevo.');
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
 
   return (
     <>
@@ -608,15 +660,22 @@ export default function Landing() {
                       </li>
                     ))}
                   </ul>
-                  <Link href="/pricing" className={`l-pricing-cta ${plan.highlighted ? 'primary' : 'secondary'}`}>
-                    {plan.cta}
-                  </Link>
+                  <div id={`landing-wompi-${plan.key}`}>
+                    <button
+                      className={`l-pricing-cta ${plan.highlighted ? 'primary' : 'secondary'}`}
+                      onClick={() => handleSubscribe(plan.key)}
+                      disabled={loadingPlan === plan.key}
+                    >
+                      {loadingPlan === plan.key ? 'Preparando pago…' : plan.cta}
+                    </button>
+                  </div>
                   <p style={{ textAlign: 'center', color: '#64748b', fontSize: 12, marginTop: 12, marginBottom: 0 }}>
                     🔒 Pago 100% seguro · Cancela cuando quieras
                   </p>
                 </div>
               ))}
             </div>
+            {payError && <p style={{ color: '#f87171', fontSize: 13, textAlign: 'center', marginTop: 16 }}>{payError}</p>}
           </div>
         </section>
 

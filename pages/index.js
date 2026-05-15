@@ -53,7 +53,6 @@ function App() {
   const [objectives, setObjectives] = useState([]);
   const [businessAssets, setBusinessAssets] = useState({ pages: [], defaults: {} });
   const [metaConnection, setMetaConnection] = useState(loadMetaConnection());
-  const [anthropicKey, setAnthropicKey] = useState(loadAnthropicKey());
   const [approvalActions, setApprovalActions] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [approvalLoading, setApprovalLoading] = useState(false);
@@ -82,7 +81,6 @@ function App() {
   const [productsLoading, setProductsLoading] = useState(false);
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [googleAiKey, setGoogleAiKey] = useState(() => { try { return localStorage.getItem('google_ai_key') || ''; } catch { return ''; } });
   const [subscription, setSubscription] = useState(null); // null = loading, object = loaded
   const [imageGenLoading, setImageGenLoading] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
@@ -548,12 +546,15 @@ function App() {
     try {
       setAnalysisLoading(true);
       setAnalysisError(null);
-      const response = await axios.get(`${API_BASE_URL}/api/ai/analyze`, metaRequestConfig(metaConnection, anthropicKey));
+      const authHeader = await getAuthHeader();
+      const response = await axios.get(`${API_BASE_URL}/api/ai/analyze`, {
+        headers: { ...metaRequestConfig(metaConnection).headers, ...authHeader }
+      });
       setAnalysisText(response.data.analysis);
       setChatMessages([]);
     } catch (error) {
       if (error.response?.status === 402) {
-        setAnalysisError('NO_API_KEY');
+        setAnalysisError('NO_CREDITS');
       } else {
         setAnalysisError('ERROR');
       }
@@ -570,7 +571,12 @@ function App() {
     setChatInput('');
     setChatLoading(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/ai/chat`, { messages: nextMessages }, metaRequestConfig(metaConnection, anthropicKey));
+      const authHeader = await getAuthHeader();
+      const response = await axios.post(
+        `${API_BASE_URL}/api/ai/chat`,
+        { messages: nextMessages },
+        { headers: { ...metaRequestConfig(metaConnection).headers, ...authHeader } }
+      );
       setChatMessages([...nextMessages, { role: 'assistant', content: response.data.reply }]);
     } catch {
       setChatMessages([...nextMessages, { role: 'assistant', content: 'Hubo un error al procesar tu pregunta. Intenta de nuevo.' }]);
@@ -639,8 +645,8 @@ function App() {
     try {
       setImageGenLoading(true);
       setGeneratedImages([]);
-      const headers = googleAiKey ? { 'x-google-ai-key': googleAiKey } : {};
-      const response = await axios.post(`${API_BASE_URL}/api/generate-image`, formData, { headers, timeout: 300000 });
+      const authHeader = await getAuthHeader();
+      const response = await axios.post(`${API_BASE_URL}/api/generate-image`, formData, { headers: authHeader, timeout: 300000 });
       setGeneratedImages(response.data.images || []);
     } catch (error) {
       alert(error.response?.data?.error || 'Error generando imágenes');
@@ -650,7 +656,7 @@ function App() {
   };
 
   const adjustImage = async (img, note) => {
-    const headers = googleAiKey ? { 'x-google-ai-key': googleAiKey } : {};
+    const authHeader = await getAuthHeader();
     const response = await axios.post(`${API_BASE_URL}/api/generate-image`, {
       productName: adForm.productName,
       description: adForm.description,
@@ -660,7 +666,7 @@ function App() {
       productImageBase64: adForm.productImageBase64 || undefined,
       adjustmentInstruction: note,
       variationsCount: 1,
-    }, { headers, timeout: 300000 });
+    }, { headers: authHeader, timeout: 300000 });
     const updated = response.data.images?.[0];
     if (updated) {
       const updatedWithVariation = { ...updated, variation: img.variation ?? 0 };
@@ -668,11 +674,6 @@ function App() {
         i.angle === img.angle && (i.variation ?? 0) === (img.variation ?? 0) ? updatedWithVariation : i
       ));
     }
-  };
-
-  const saveGoogleAiKey = (key) => {
-    try { localStorage.setItem('google_ai_key', key); } catch {}
-    setGoogleAiKey(key);
   };
 
   const launchInBuilder = (img) => {
@@ -874,8 +875,7 @@ function App() {
             loading={connectionLoading}
             onConnect={connectMeta}
             onRefresh={fetchConnectionStatus}
-            anthropicKey={anthropicKey}
-            onSaveAnthropicKey={(key) => { saveAnthropicKey(key); setAnthropicKey(key); }}
+            user={user}
           />
         )}
         {activeTab === 'rules' && (
@@ -968,11 +968,9 @@ function App() {
             products={products}
             loading={imageGenLoading}
             generatedImages={generatedImages}
-            googleAiKey={googleAiKey}
             adForm={adForm}
             onFormChange={(f) => setAdForm(f)}
             onGenerate={generateAdImage}
-            onSaveGoogleAiKey={saveGoogleAiKey}
             onClearImages={() => setGeneratedImages([])}
             onLaunchInBuilder={launchInBuilder}
             onSaveCreative={saveCreative}
@@ -1978,16 +1976,53 @@ function CampaignDetailDrawer({ campaign, detail, loading, onClose, onOpenAdSet,
   );
 }
 
-function SettingsView({ connection, metaConnection, loading, onConnect, onRefresh, anthropicKey, onSaveAnthropicKey }) {
+const PLAN_ACCOUNT_LIMITS = { pro: 1, business: 3, agency: 10 };
+const SWITCH_COOLDOWN_DAYS = 30;
+
+function SettingsView({ connection, metaConnection, loading, onConnect, onRefresh, user }) {
   const [draft, setDraft] = useState(metaConnection || { accessToken: '', adAccountId: '' });
-  const [anthropicDraft, setAnthropicDraft] = useState(anthropicKey || '');
   const [showToken, setShowToken] = useState(false);
+  const [accounts, setAccounts] = useState([]);
+  const [accountsLoading, setAccountsLoading] = useState(false);
+  const [toggleLoading, setToggleLoading] = useState(null);
+  const [accountError, setAccountError] = useState('');
+
+  const loadAccounts = async () => {
+    setAccountsLoading(true);
+    try {
+      const authHeader = await getAuthHeader();
+      const { data } = await axios.get('/api/meta/my-accounts', { headers: authHeader });
+      setAccounts(data.accounts || []);
+    } catch {
+      // silent — user may not have accounts yet
+    } finally {
+      setAccountsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.email) loadAccounts();
+  }, [user?.email, connection?.ok]);
+
+  const handleToggle = async (adAccountId, currentlyActive) => {
+    setToggleLoading(adAccountId);
+    setAccountError('');
+    try {
+      const authHeader = await getAuthHeader();
+      await axios.post('/api/meta/activate-account',
+        { adAccountId, activate: !currentlyActive },
+        { headers: authHeader }
+      );
+      await loadAccounts();
+    } catch (err) {
+      setAccountError(err.response?.data?.error || 'Error al cambiar cuenta');
+    } finally {
+      setToggleLoading(null);
+    }
+  };
 
   const handleChange = (event) => {
-    setDraft(current => ({
-      ...current,
-      [event.target.name]: event.target.value
-    }));
+    setDraft(current => ({ ...current, [event.target.name]: event.target.value }));
   };
 
   const handleSubmit = async (event) => {
@@ -1995,107 +2030,146 @@ function SettingsView({ connection, metaConnection, loading, onConnect, onRefres
     await onConnect(draft);
   };
 
-  const handleAccountSelect = (event) => {
-    const nextDraft = {
-      ...draft,
-      adAccountId: event.target.value
-    };
-    setDraft(nextDraft);
-    onConnect(nextDraft);
+  const userPlan = accounts[0]?.plan || 'pro';
+  const accountLimit = PLAN_ACCOUNT_LIMITS[userPlan] ?? 1;
+  const activeCount = accounts.filter(a => a.is_active).length;
+
+  const cooldownDaysLeft = (account) => {
+    if (!account.last_switched_at || userPlan !== 'pro') return 0;
+    const daysSince = (Date.now() - new Date(account.last_switched_at).getTime()) / (1000 * 60 * 60 * 24);
+    return daysSince < SWITCH_COOLDOWN_DAYS ? Math.ceil(SWITCH_COOLDOWN_DAYS - daysSince) : 0;
   };
 
   return (
-    <form className="card narrow-panel token-panel" onSubmit={handleSubmit}>
-      <h2>Conecta tu System User</h2>
-      <p className="muted-copy">Pega el token generado en Business Manager. La app cargará las cuentas, Fan Pages, Instagram y WhatsApp permitidos.</p>
-      <div className={`status-box ${connection?.ok === false ? 'status-error' : ''}`}>
-        {loading && <><FuturisticLoader small /> Validando conexión con Meta Ads...</>}
-        {!loading && connection?.ok && `Conectado por System User a ${connection.account?.name || connection.adAccountId}.`}
-        {!loading && connection?.ok === false && (connection?.detail ? `Error: ${connection.detail}` : 'No se pudo validar la conexión con Meta Ads.')}
-        {!loading && !connection && 'Aún no hay una conexión validada.'}
-      </div>
-      <label>
-        System User Access Token
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <input
-            name="accessToken"
-            type={showToken ? 'text' : 'password'}
-            value={draft.accessToken || ''}
-            onChange={handleChange}
-            placeholder="EAAB..."
-            style={{ flex: 1, paddingRight: '2.5rem' }}
-          />
-          <button
-            type="button"
-            onClick={() => setShowToken(v => !v)}
-            style={{ position: 'absolute', right: '0.6rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted, #aaa)', fontSize: '1rem', padding: '0.2rem' }}
-            title={showToken ? 'Ocultar token' : 'Mostrar token'}
-          >
-            {showToken ? '🙈' : '👁️'}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '560px' }}>
+      <form className="card narrow-panel token-panel" onSubmit={handleSubmit}>
+        <h2>Conecta tu System User</h2>
+        <p className="muted-copy">Pega el token generado en Business Manager. La app cargará las cuentas, Fan Pages, Instagram y WhatsApp permitidos.</p>
+        <div className={`status-box ${connection?.ok === false ? 'status-error' : ''}`}>
+          {loading && <><FuturisticLoader small /> Validando conexión con Meta Ads...</>}
+          {!loading && connection?.ok && `Conectado por System User a ${connection.account?.name || connection.adAccountId}.`}
+          {!loading && connection?.ok === false && (connection?.detail ? `Error: ${connection.detail}` : 'No se pudo validar la conexión con Meta Ads.')}
+          {!loading && !connection && 'Aún no hay una conexión validada.'}
+        </div>
+        <label>
+          System User Access Token
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <input
+              name="accessToken"
+              type={showToken ? 'text' : 'password'}
+              value={draft.accessToken || ''}
+              onChange={handleChange}
+              placeholder="EAAB..."
+              style={{ flex: 1, paddingRight: '2.5rem' }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowToken(v => !v)}
+              style={{ position: 'absolute', right: '0.6rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted, #aaa)', fontSize: '1rem', padding: '0.2rem' }}
+              title={showToken ? 'Ocultar token' : 'Mostrar token'}
+            >
+              {showToken ? '🙈' : '👁️'}
+            </button>
+          </div>
+        </label>
+        <label>
+          Ad Account ID
+          <input name="adAccountId" value={draft.adAccountId || ''} onChange={handleChange} placeholder="act_123456789 o vacío para detectar" />
+        </label>
+        {connection?.ok && (
+          <div className="connection-details">
+            <span>Graph API: {connection.graphVersion}</span>
+            <span>Cuenta activa: {connection.adAccountId}</span>
+            <span>Campañas legibles: {connection.readableCampaigns}</span>
+          </div>
+        )}
+        <div className="settings-actions">
+          <button className="primary-button" type="submit" disabled={loading || !draft.accessToken}>
+            {loading ? <FuturisticLoader small /> : <ShieldCheck size={18} />}
+            Conectar
+          </button>
+          <button className="secondary-button compact-button" type="button" onClick={onRefresh} disabled={loading}>
+            Validar de nuevo
           </button>
         </div>
-      </label>
-      <label>
-        Ad Account ID
-        <input name="adAccountId" value={draft.adAccountId || ''} onChange={handleChange} placeholder="act_123456789 o vacío para detectar" />
-      </label>
-      {connection?.ok && (
-        <div className="connection-details">
-          <span>Graph API: {connection.graphVersion}</span>
-          <span>Cuenta activa: {connection.adAccountId}</span>
-          <span>Cuentas detectadas: {connection.adAccounts?.length || 0}</span>
-          <span>Campañas legibles: {connection.readableCampaigns}</span>
+      </form>
+
+      {accounts.length > 0 && (
+        <div className="card narrow-panel token-panel">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <h2 style={{ margin: 0 }}>Cuentas publicitarias</h2>
+            <span style={{ fontSize: '12px', padding: '3px 10px', borderRadius: '20px', background: 'var(--bg-secondary, rgba(255,255,255,0.06))', color: 'var(--text-muted, #aaa)', border: '1px solid var(--border, rgba(255,255,255,0.1))' }}>
+              Plan {userPlan.charAt(0).toUpperCase() + userPlan.slice(1)}: {activeCount}/{accountLimit} activa{accountLimit > 1 ? 's' : ''}
+            </span>
+          </div>
+          <p className="muted-copy" style={{ marginBottom: '12px' }}>
+            {accountLimit === 1
+              ? 'Tu plan permite 1 cuenta activa. Para cambiarla, desactiva la actual primero.'
+              : `Tu plan permite hasta ${accountLimit} cuentas activas simultáneamente.`}
+          </p>
+
+          {accountError && (
+            <div style={{ color: '#f87171', fontSize: '13px', padding: '10px 12px', background: 'rgba(248,113,113,0.08)', borderRadius: '8px', marginBottom: '12px' }}>
+              {accountError}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {accountsLoading ? (
+              <div style={{ color: 'var(--text-muted, #aaa)', fontSize: '13px' }}>Cargando cuentas...</div>
+            ) : accounts.map((account) => {
+              const daysLeft = cooldownDaysLeft(account);
+              const isToggling = toggleLoading === account.ad_account_id;
+              const canDeactivate = account.is_active && daysLeft === 0;
+              const canActivate = !account.is_active && activeCount < accountLimit;
+
+              return (
+                <div key={account.ad_account_id} style={{
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                  padding: '12px 14px', borderRadius: '10px',
+                  background: account.is_active ? 'rgba(99,102,241,0.08)' : 'var(--bg-secondary, rgba(255,255,255,0.03))',
+                  border: `1px solid ${account.is_active ? 'rgba(99,102,241,0.3)' : 'var(--border, rgba(255,255,255,0.08))'}`,
+                }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary, #f8fafc)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {account.ad_account_name}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
+                      {account.ad_account_id}
+                      {account.currency && ` · ${account.currency}`}
+                    </div>
+                    {daysLeft > 0 && (
+                      <div style={{ fontSize: '11px', color: '#f59e0b', marginTop: '4px' }}>
+                        Cambio disponible en {daysLeft} día{daysLeft !== 1 ? 's' : ''}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                    <span style={{ fontSize: '12px', color: account.is_active ? '#34d399' : 'var(--text-muted, #64748b)' }}>
+                      {account.is_active ? 'Activa' : 'Inactiva'}
+                    </span>
+                    <button
+                      onClick={() => handleToggle(account.ad_account_id, account.is_active)}
+                      disabled={isToggling || (!canDeactivate && !canActivate)}
+                      style={{
+                        padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
+                        border: 'none', cursor: (isToggling || (!canDeactivate && !canActivate)) ? 'not-allowed' : 'pointer',
+                        opacity: (isToggling || (!canDeactivate && !canActivate)) ? 0.45 : 1,
+                        background: account.is_active ? 'rgba(248,113,113,0.15)' : 'rgba(99,102,241,0.2)',
+                        color: account.is_active ? '#f87171' : '#a78bfa',
+                        transition: 'opacity 0.15s',
+                      }}
+                    >
+                      {isToggling ? '...' : (account.is_active ? 'Desactivar' : 'Activar')}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
-      {connection?.adAccounts?.length > 0 && (
-        <label>
-          Cuenta publicitaria
-          <select value={draft.adAccountId || connection.adAccountId || ''} onChange={handleAccountSelect}>
-            {connection.adAccounts.map((account) => (
-              <option key={account.id} value={account.id}>
-                {account.name} · {account.id}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
-      <div className="settings-actions">
-        <button className="primary-button" type="submit" disabled={loading || !draft.accessToken}>
-          {loading ? <FuturisticLoader small /> : <ShieldCheck size={18} />}
-          Conectar
-        </button>
-        <button className="secondary-button compact-button" type="button" onClick={onRefresh} disabled={loading}>
-          Validar de nuevo
-        </button>
-      </div>
-
-      <div className="settings-divider" />
-
-      <h2>Análisis con IA</h2>
-      <p className="muted-copy">Tu API Key de Anthropic se guarda solo en este navegador y se usa para el diagnóstico automático de campañas.</p>
-      <label>
-        Anthropic API Key
-        <input
-          type="password"
-          value={anthropicDraft}
-          onChange={e => setAnthropicDraft(e.target.value)}
-          placeholder="sk-ant-api03-..."
-        />
-      </label>
-      <div className="settings-actions">
-        <button
-          className="primary-button"
-          type="button"
-          onClick={() => onSaveAnthropicKey(anthropicDraft)}
-          disabled={!anthropicDraft.trim()}
-        >
-          <Bot size={18} /> Guardar API Key
-        </button>
-        {anthropicKey && (
-          <span style={{ fontSize: 12, color: '#6ee7b7' }}>✓ Key guardada</span>
-        )}
-      </div>
-    </form>
+    </div>
   );
 }
 
@@ -2251,17 +2325,10 @@ function AnalysisView({ analysisText, analysisLoading, analysisError, onRefresh,
               <span>Analizando tus campañas como experto...</span>
             </div>
           )}
-          {!analysisLoading && analysisError === 'NO_API_KEY' && (
+          {!analysisLoading && analysisError === 'NO_CREDITS' && (
             <div className="analysis-no-key">
-              <p><strong>Se necesita una API Key de Anthropic</strong> para activar el análisis con IA.</p>
-              <p>Pasos para obtenerla:</p>
-              <ol>
-                <li>Ve a <strong>console.anthropic.com</strong> y crea una cuenta</li>
-                <li>En el menú lateral selecciona <strong>API Keys</strong></li>
-                <li>Haz clic en <strong>Create Key</strong> y copia el valor</li>
-                <li>Abre el archivo <strong>backend/.env</strong> y agrega:<br /><code>ANTHROPIC_API_KEY=sk-ant-api03-...</code></li>
-                <li>Reinicia el backend y recarga esta página</li>
-              </ol>
+              <p><strong>Sin créditos disponibles.</strong> Renueva tu plan para continuar usando el análisis con IA.</p>
+              <button className="primary-button" onClick={() => window.location.href = '/pricing'} style={{ marginTop: 12 }}>Ver planes</button>
             </div>
           )}
           {!analysisLoading && analysisError === 'ERROR' && (
@@ -2492,23 +2559,23 @@ function loadSessionUser() {
   }
 }
 
-function loadAnthropicKey() {
-  if (!isBrowser) return '';
-  return localStorage.getItem('metaflow_anthropic_key') || '';
-}
-
-function saveAnthropicKey(key) {
-  if (isBrowser) localStorage.setItem('metaflow_anthropic_key', key);
-}
-
-function metaRequestConfig(connection, anthropicKey) {
+function metaRequestConfig(connection) {
   return {
     headers: {
       ...(connection?.accessToken ? { 'x-meta-access-token': connection.accessToken } : {}),
       ...(connection?.adAccountId ? { 'x-meta-ad-account-id': connection.adAccountId } : {}),
-      ...(anthropicKey ? { 'x-anthropic-api-key': anthropicKey } : {})
     }
   };
+}
+
+async function getAuthHeader() {
+  try {
+    const supabase = getSupabaseBrowser();
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {};
+  } catch {
+    return {};
+  }
 }
 
 function ProductsView({ products, loading, showForm, editingProduct, isAdmin, onNew, onEdit, onDelete, onSave, onCancelForm }) {
@@ -2785,9 +2852,7 @@ const ANGLE_OPTIONS = [
   { value: 'price',          label: 'Precio/Oferta',    emoji: '💰', desc: 'Descuento especial limitado' },
 ];
 
-function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm, onFormChange, onGenerate, onSaveGoogleAiKey, onClearImages, onLaunchInBuilder, onSaveCreative, onAdjustImage }) {
-  const [keyInput, setKeyInput] = useState(googleAiKey || '');
-  const [showKey, setShowKey] = useState(false);
+function AdCreatorView({ products, loading, generatedImages, adForm, onFormChange, onGenerate, onClearImages, onLaunchInBuilder, onSaveCreative, onAdjustImage }) {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -2861,11 +2926,6 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
 
   const handleGenerate = (e) => {
     e.preventDefault();
-    if (!googleAiKey && !keyInput) {
-      alert('Necesitas ingresar tu API Key de Google AI Studio para generar imágenes.');
-      return;
-    }
-    if (keyInput && keyInput !== googleAiKey) onSaveGoogleAiKey(keyInput);
     onGenerate({
       productName: adForm.productName,
       description: adForm.description,
@@ -3027,23 +3087,6 @@ function AdCreatorView({ products, loading, generatedImages, googleAiKey, adForm
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* API Key Google AI Studio */}
-            <div className="acp-block acp-key-block">
-              <div className="acp-key-row">
-                <label className="acp-label" style={{ margin: 0 }}>API Key · Google AI Studio</label>
-                <button type="button" className="toggle-link" onClick={() => setShowKey(v => !v)}>{showKey ? 'Ocultar' : 'Mostrar'}</button>
-              </div>
-              <input
-                className="acp-input"
-                type={showKey ? 'text' : 'password'}
-                value={keyInput}
-                onChange={e => setKeyInput(e.target.value)}
-                onBlur={() => { if (keyInput) onSaveGoogleAiKey(keyInput); }}
-                placeholder="AIza..."
-              />
-              <p className="acp-hint">Gratis en aistudio.google.com · se guarda solo en este navegador</p>
             </div>
 
             <button type="submit" className="generate-cta" disabled={loading}>

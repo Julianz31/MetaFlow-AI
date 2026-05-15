@@ -1,8 +1,16 @@
 import sharp from 'sharp';
 const { buildTemplate, DIMS } = require('../../lib/adTemplates');
+const { requireAuth } = require('../../lib/auth');
+const { checkCredits, deductCredits, CREDIT_COSTS } = require('../../lib/credits');
 
 export const config = {
   api: { bodyParser: { sizeLimit: '15mb' } },
+};
+
+const getGeminiKey = () => {
+  const key = process.env.GOOGLE_AI_KEY;
+  if (!key) throw new Error('GOOGLE_AI_KEY no configurada en el servidor');
+  return key;
 };
 
 const GEMINI_VISION_URL = (key) =>
@@ -209,7 +217,7 @@ const ANGLE_EXTRA_FIELDS = {
   price:          `"b1": "Escasez o urgencia con número — máx 44 chars, ej: 'Solo 47 unidades disponibles'"`,
 };
 
-async function generateCopy(productContext, angleKey, angleLabel, apiKey) {
+async function generateCopy(productContext, angleKey, angleLabel) {
   const instruction = COPY_ANGLE_INSTRUCTIONS[angleKey] || COPY_ANGLE_INSTRUCTIONS.desire;
   const powerWords = COPY_POWER_WORDS[angleKey] || '';
   const extraFields = ANGLE_EXTRA_FIELDS[angleKey] ? `,\n  ${ANGLE_EXTRA_FIELDS[angleKey]}` : '';
@@ -236,7 +244,7 @@ Retorna ÚNICAMENTE un objeto JSON válido — sin markdown, sin explicaciones:
   "cta": "Uno de: Comprar ahora | Ver más | Obtener oferta | Saber más | Aprovechar oferta | Lo quiero | Quiero esto"${extraFields}
 }`;
 
-  const res = await fetch(GEMINI_VISION_URL(apiKey), {
+  const res = await fetch(GEMINI_VISION_URL(getGeminiKey()), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -257,8 +265,8 @@ Retorna ÚNICAMENTE un objeto JSON válido — sin markdown, sin explicaciones:
 
 // ─── PRODUCT ANALYSIS ────────────────────────────────────────────────────────
 
-async function analyzeProduct(imageBase64, apiKey) {
-  const res = await fetch(GEMINI_VISION_URL(apiKey), {
+async function analyzeProduct(imageBase64) {
+  const res = await fetch(GEMINI_VISION_URL(getGeminiKey()), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -773,7 +781,7 @@ const ICON_STRIP_ANGLES = new Set([]);
 // Angles that use the feature strip at the bottom — icon panel is generated for these
 const ICON_STRIP_ANGLES_ACTIVE = new Set(['pain', 'urgency']);
 
-async function generateIconPanel(productContext, copy, primaryColor, apiKey) {
+async function generateIconPanel(productContext, copy, primaryColor) {
   const features = [
     copy.f1 || copy.b1 || 'Resultado visible',
     copy.f2 || copy.b2 || 'Fórmula premium',
@@ -800,7 +808,7 @@ STRICT REQUIREMENTS:
 • ABSOLUTELY NO text, NO labels, NO letters, NO borders, NO frames — only the 4 icon objects on dark background
 • Icons must clearly represent different concepts, not repeated`;
 
-  const res = await fetch(GEMINI_IMAGE_URL(apiKey), {
+  const res = await fetch(GEMINI_IMAGE_URL(getGeminiKey()), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -817,14 +825,14 @@ STRICT REQUIREMENTS:
 // ─── BACKGROUND / FULL-DESIGN GENERATION ─────────────────────────────────────
 
 // productBase64: when provided, Gemini integrates the product into the scene directly.
-async function generateBackground(scenePrompt, apiKey, productBase64 = null) {
+async function generateBackground(scenePrompt, productBase64 = null) {
   const parts = [];
   if (productBase64) {
     parts.push({ inlineData: { mimeType: 'image/jpeg', data: productBase64 } });
   }
   parts.push({ text: scenePrompt });
 
-  const res = await fetch(GEMINI_IMAGE_URL(apiKey), {
+  const res = await fetch(GEMINI_IMAGE_URL(getGeminiKey()), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -869,7 +877,7 @@ function getProductPlacement(angle, w, h, pw) {
 }
 
 // Generates a single photorealistic square icon image for a benefit/feature text.
-async function generateIconImage(benefitText, productContext, primaryColor, apiKey) {
+async function generateIconImage(benefitText, productContext, primaryColor) {
   const categoryHint = productContext.substring(0, 80);
   const prompt = `Single icon illustration for a premium product advertisement. Square 1:1 format.
 CONCEPT: Visually represent "${benefitText}" as a clean, centered icon or symbol.
@@ -879,7 +887,7 @@ FOREGROUND: White or bright illustration/symbol representing the concept. Clear,
 QUALITY: Sharp, high contrast, professional icon quality. No gradients on subject — flat and clean.
 NO text, letters, or words anywhere.
 Product category hint: ${categoryHint}`;
-  return generateBackground(prompt, apiKey);
+  return generateBackground(prompt);
 }
 // ─── COMPOSITE: background + template + product ───────────────────────────────
 
@@ -981,13 +989,13 @@ const SCENE_STYLE_VARIANTS = [
   '\nSCENE STYLE VARIANT: Cinematic environmental portrait. Strong depth of field, subject sharply separated from a richly detailed background. Premium editorial feel.',
 ];
 
-async function generateOneVariation({ a, variationIdx, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction, apiKey }) {
+async function generateOneVariation({ a, variationIdx, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction }) {
   const label = ANGLE_LABELS[a] || a;
   const hasProduct = !!productImageBase64;
   // Pick a random template+scene variant on every call for visual diversity
   const vIdx = Math.floor(Math.random() * 3);
 
-  const copy = await generateCopy(productContext, a, label, apiKey);
+  const copy = await generateCopy(productContext, a, label);
   const enrichedCopy = { ...(copy || {}), productName: productName || '' };
 
   const scenePromptFn = ANGLE_SCENES[a] || ANGLE_SCENES.desire;
@@ -1002,8 +1010,8 @@ async function generateOneVariation({ a, variationIdx, productContext, productNa
     enrichedCopy.f4 || 'Satisfaccion total',
   ];
   const [bgImage, ...iconResults] = await Promise.allSettled([
-    generateBackground(scenePrompt, apiKey),
-    ...features.map(f => generateIconImage(f, productContext, primaryColor, apiKey)),
+    generateBackground(scenePrompt),
+    ...features.map(f => generateIconImage(f, productContext, primaryColor)),
   ]);
 
   if (bgImage.status === 'rejected') throw bgImage.reason;
@@ -1030,10 +1038,8 @@ async function generateOneVariation({ a, variationIdx, productContext, productNa
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const apiKey = req.headers['x-google-ai-key'];
-  if (!apiKey) {
-    return res.status(401).json({ error: 'Se requiere tu Google AI Studio API Key.' });
-  }
+  const user = await requireAuth(req, res);
+  if (!user) return;
 
   const {
     productName,
@@ -1053,11 +1059,19 @@ export default async function handler(req, res) {
 
   const selectedAngles = Array.isArray(angles) && angles.length > 0 ? angles : [angle];
   const numVariations = Math.min(Math.max(1, variationsCount), 3);
+  const totalVariations = selectedAngles.length * numVariations;
+
+  // Credit check: 10 credits per variation to be generated
+  const totalCost = CREDIT_COSTS.generate_image * totalVariations;
+  const creditCheck = await checkCredits(user.email, 'generate_image');
+  if (!creditCheck.ok) {
+    return res.status(creditCheck.status).json({ error: creditCheck.error, balance: creditCheck.balance });
+  }
 
   try {
     let productContext = '';
     if (productImageBase64) {
-      const visualAnalysis = await analyzeProduct(productImageBase64, apiKey);
+      const visualAnalysis = await analyzeProduct(productImageBase64);
       productContext = description
         ? `${visualAnalysis}\n\nSeller description: ${description}`
         : visualAnalysis;
@@ -1067,7 +1081,7 @@ export default async function handler(req, res) {
 
     const jobs = selectedAngles.flatMap(a =>
       Array.from({ length: numVariations }, (_, v) =>
-        generateOneVariation({ a, variationIdx: v, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction, apiKey })
+        generateOneVariation({ a, variationIdx: v, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction })
       )
     );
 
@@ -1078,6 +1092,31 @@ export default async function handler(req, res) {
     if (images.length === 0) {
       return res.status(500).json({ error: errors[0] || 'Error generando imagenes' });
     }
+
+    // Deduct credits only for the variations that actually succeeded
+    const creditsCharged = CREDIT_COSTS.generate_image * images.length;
+    // ~5 Gemini image calls per variation (1 background + 4 icons) × $0.039 each
+    const estimatedCostUsd = parseFloat((images.length * 0.20).toFixed(4));
+    const { w: finalWidth, h: finalHeight } = DIMS[format] || DIMS.square;
+
+    await deductCredits(user.email, 'generate_image', {
+      model:              'gemini-2.5-flash-image',
+      output_format:      format,
+      final_width:        finalWidth,
+      final_height:       finalHeight,
+      jpeg_quality:       92,
+      number_of_images:   images.length,
+      estimated_cost_usd: estimatedCostUsd,
+      credits_charged:    creditsCharged,
+      user_id:            user.id,
+      quality_tier:       'standard_ads_ready',
+      metadata: {
+        angles:       selectedAngles,
+        num_angles:   selectedAngles.length,
+        variations_per_angle: numVariations,
+        errors_count: errors.length,
+      },
+    });
 
     return res.status(200).json({ images, ...(errors.length && { errors }) });
   } catch (err) {

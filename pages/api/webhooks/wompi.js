@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { getSupabase } from '../../../lib/supabase';
+import { addCredits, creditsForPlan } from '../../../lib/credits';
 
 const GRACE_DAYS = 5;
 
@@ -37,9 +38,10 @@ export default async function handler(req, res) {
   const userEmail = transaction.customer_email || '';
   const paymentSourceId = transaction.payment_source_id || null;
 
-  // Extraer userId del reference: metaflow-{userId8chars}-{timestamp}
+  // Reference format: metaflow-{userId8}-{plan}-{timestamp}
   const refParts = reference.split('-');
   const userIdFragment = refParts[1] || '';
+  const planName = refParts[2] || 'pro';
 
   if (eventType === 'transaction.updated' || eventType === 'transaction.created') {
     if (status === 'APPROVED') {
@@ -74,8 +76,8 @@ export default async function handler(req, res) {
         await supabase.from('subscriptions').insert({
           user_email: userEmail,
           status: 'active',
-          plan: 'pro',
-          amount_cents: 9990000,
+          plan: planName,
+          amount_cents: transaction.amount_in_cents || 9990000,
           current_period_start: now.toISOString(),
           current_period_end: periodEnd.toISOString(),
           grace_period_end: graceEnd.toISOString(),
@@ -84,6 +86,10 @@ export default async function handler(req, res) {
           wompi_customer_email: userEmail,
         });
       }
+
+      // Add monthly credits for the plan
+      const credits = creditsForPlan(planName);
+      await addCredits(userEmail, credits, planName);
     } else if (status === 'DECLINED' || status === 'VOIDED' || status === 'ERROR') {
       // Marcar como inactiva si ya existía y venció
       const { data: existingDeclined } = await supabase

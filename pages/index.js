@@ -51,7 +51,7 @@ function App() {
   const [campaignAnalysis, setCampaignAnalysis] = useState([]);
   const [campaignsLoading, setCampaignsLoading] = useState(false);
   const [objectives, setObjectives] = useState([]);
-  const [businessAssets, setBusinessAssets] = useState({ pages: [], defaults: {} });
+  const [businessAssets, setBusinessAssets] = useState({ pages: [], pixels: [], defaults: {} });
   const [metaConnection, setMetaConnection] = useState(loadMetaConnection());
   const [approvalActions, setApprovalActions] = useState([]);
   const [notifications, setNotifications] = useState([]);
@@ -250,10 +250,10 @@ function App() {
     try {
       const [objectivesResponse, assetsResponse] = await Promise.all([
         axios.get(`${API_BASE_URL}/api/campaign-objectives`),
-        buildConfig(metaConnection).then(cfg => axios.get(`${API_BASE_URL}/api/meta/assets`, cfg)).catch(() => ({ data: { pages: [], defaults: {} } }))
+        buildConfig(metaConnection).then(cfg => axios.get(`${API_BASE_URL}/api/meta/assets`, cfg)).catch(() => ({ data: { pages: [], pixels: [], defaults: {} } }))
       ]);
       setObjectives(objectivesResponse.data.objectives || []);
-      setBusinessAssets(assetsResponse.data || { pages: [], defaults: {} });
+      setBusinessAssets(assetsResponse.data || { pages: [], pixels: [], defaults: {} });
     } catch (error) {
       console.error('Error cargando objetivos:', error);
       setObjectives([]);
@@ -1525,6 +1525,7 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
     instagramAccountId: '',
     instagramName: '',
     whatsappNumber: '',
+    pixelId: '',
     businessContext: '',
     primaryText: '',
     headline: '',
@@ -1535,6 +1536,7 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
   const selectedObjective = objectives.find(objective => objective.value === form.objective);
   const selectedPage = assets.pages?.find(page => page.id === form.pageId);
   const needsUrl = selectedObjective?.requires?.includes('META_DESTINATION_URL');
+  const needsPixel = selectedObjective?.requires?.includes('META_PIXEL_ID');
   const needsWhatsapp = form.objective === 'OUTCOME_SALES';
   const whatsappOptions = [
     ...(assets.whatsappNumbers || []),
@@ -1545,13 +1547,15 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
 
   useEffect(() => {
     const defaults = assets.defaults || {};
+    const pixels = assets.pixels || [];
 
     setForm(current => ({
       ...current,
       pageId: current.pageId || defaults.pageId || '',
       instagramAccountId: current.instagramAccountId || defaults.instagramAccountId || '',
       destinationUrl: current.destinationUrl || defaults.destinationUrl || '',
-      whatsappNumber: current.whatsappNumber || defaults.whatsappNumber || ''
+      whatsappNumber: current.whatsappNumber || defaults.whatsappNumber || '',
+      pixelId: current.pixelId || (pixels.length === 1 ? pixels[0].id : ''),
     }));
   }, [assets]);
 
@@ -1758,6 +1762,23 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
                 />
               </label>
             </div>
+            {needsPixel && (
+              <label>
+                Pixel de Meta
+                {assets.pixels?.length > 0 ? (
+                  <select name="pixelId" value={form.pixelId} onChange={handleChange}>
+                    <option value="">Selecciona un Pixel</option>
+                    {assets.pixels.map((pixel) => (
+                      <option key={pixel.id} value={pixel.id}>
+                        {pixel.name} · {pixel.id}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input name="pixelId" value={form.pixelId} onChange={handleChange} placeholder="ID del Pixel de Meta" />
+                )}
+              </label>
+            )}
             {needsUrl && (
               <label>
                 URL destino

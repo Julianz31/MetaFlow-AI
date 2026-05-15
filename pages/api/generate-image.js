@@ -825,9 +825,22 @@ function getProductPlacement(angle, w, h, pw) {
   return { left: Math.max(0, Math.round((w - pw) / 2)), top: Math.round(h * 0.41) };
 }
 
+// Generates a single photorealistic square icon image for a benefit/feature text.
+async function generateIconImage(benefitText, productContext, primaryColor, apiKey) {
+  const ctx100 = productContext.substring(0, 120);
+  const prompt = `Photorealistic square icon illustration (1:1 ratio) for a premium product advertisement.
+Visual concept: "${benefitText}"
+Background: solid ${primaryColor} color circle.
+Foreground: a single clean white or bright symbol/illustration representing the concept, centered.
+Style: modern, professional, commercial photography or flat illustration — your choice, whichever looks best.
+No text, no letters, no numbers. Minimal composition. High contrast.
+Product context: ${ctx100}`;
+  return generateBackground(prompt, apiKey);
+}
+
 // ─── COMPOSITE: background + template + product ───────────────────────────────
 
-async function compositeAll({ backgroundBase64, templatePng, productBase64, iconPanelBase64, format, angle, fullDesign }) {
+async function compositeAll({ backgroundBase64, templatePng, productBase64, iconPanelBase64, iconImages, format, angle, fullDesign }) {
   const { w, h } = DIMS[format] || DIMS.square;
 
   // 1. Resize background/full-design image to exact ad dimensions
@@ -879,19 +892,33 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, icon
     layers.push({ input: resizedProduct, ...placement, blend: 'over' });
   }
 
-  // 4. AI icon panel — covers only the icon zone (top 53% of strip), never the text labels
-  if (iconPanelBase64) {
-    try {
-      const stripH = Math.round(h * 0.205);
-      const iconAreaH = Math.round(stripH * 0.53); // stops before text labels start at ~64%
-      const iconTop = h - stripH + 5;              // just below the accent line
-      const resizedIcons = await sharp(Buffer.from(iconPanelBase64, 'base64'))
-        .resize(w, iconAreaH, { fit: 'fill' })
-        .jpeg({ quality: 88 })
-        .toBuffer();
-      layers.push({ input: resizedIcons, left: 0, top: iconTop, blend: 'over' });
-    } catch {
-      // icon panel composite failed — canvas fallback circles remain visible
+  // 4. AI circular icons — each generated at 1:1 ratio, cropped to circle, composited at exact strip position
+  if (iconImages && iconImages.length) {
+    const stripH = Math.round(h * 0.205);
+    const stripY = h - stripH;
+    const circleR = Math.round(stripH * 0.26);
+    const circleY = stripY + Math.round(stripH * 0.40);
+    const boxW = Math.round(w / 4);
+    const iconSize = circleR * 2;
+    const svgCircle = `<svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}"><circle cx="${circleR}" cy="${circleR}" r="${circleR}"/></svg>`;
+
+    for (let i = 0; i < Math.min(iconImages.length, 4); i++) {
+      if (!iconImages[i]) continue;
+      try {
+        const bx = Math.round(i * boxW + boxW / 2);
+        // Resize to square, convert to PNG (needs alpha for mask), apply circular clip
+        const resized = await sharp(Buffer.from(iconImages[i], 'base64'))
+          .resize(iconSize, iconSize, { fit: 'cover', position: 'center' })
+          .png()
+          .toBuffer();
+        const circularIcon = await sharp(resized)
+          .composite([{ input: Buffer.from(svgCircle), blend: 'dest-in' }])
+          .png()
+          .toBuffer();
+        layers.push({ input: circularIcon, left: bx - circleR, top: circleY - circleR, blend: 'over' });
+      } catch {
+        // icon composite failed — canvas fallback circle remains visible for this slot
+      }
     }
   }
 
@@ -958,19 +985,31 @@ export default async function handler(req, res) {
           scenePrompt += `\n\nSCENE ADJUSTMENT: ${adjustmentInstruction}`;
         }
 
-        // 3. Generate background scene
-        const bgImage = await generateBackground(scenePrompt, apiKey);
-        const iconPanelData = null; // feature strip uses canvas design, no AI icons
+        // 3. Generate background scene + AI icon images in parallel
+        const features = [
+          enrichedCopy.f1 || 'Resultados probados',
+          enrichedCopy.f2 || 'Fórmula premium',
+          enrichedCopy.f3 || 'Uso diario seguro',
+          enrichedCopy.f4 || 'Satisfacción total',
+        ];
+        const [bgImage, ...iconResults] = await Promise.allSettled([
+          generateBackground(scenePrompt, apiKey),
+          ...features.map(f => generateIconImage(f, productContext, primaryColor, apiKey)),
+        ]);
+
+        if (bgImage.status === 'rejected') throw bgImage.reason;
+        const aiIconImages = iconResults.map(r => r.status === 'fulfilled' ? r.value.data : null);
 
         // 4. Canvas renders ALL text programmatically — guaranteed correct Spanish
         const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct);
 
-        // 5. Composite: background + text template + product photo + AI icon panel
+        // 5. Composite: background + text template + product photo + AI icon circles
         const composited = await compositeAll({
-          backgroundBase64: bgImage.data,
+          backgroundBase64: bgImage.value.data,
           templatePng,
           productBase64: productImageBase64 || null,
-          iconPanelBase64: iconPanelData?.data || null,
+          iconPanelBase64: null,
+          iconImages: aiIconImages,
           format,
           angle: a,
           fullDesign: false,

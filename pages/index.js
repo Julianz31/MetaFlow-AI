@@ -2712,7 +2712,7 @@ function ResultCard({ img, productName, onLaunch, onSave, onAdjust }) {
     <div className="result-card">
       <img src={img.imageUrl} alt={img.label} className="result-card-image" />
       <div className="result-card-footer">
-        <span className="result-card-label">{angle?.emoji} {img.label}{img.variation > 0 ? ` · V${img.variation + 1}` : ' · V1'}</span>
+        <span className="result-card-label">{angle?.emoji} {img.label}</span>
         <a href={img.imageUrl} download={`${(productName || 'creativo').toLowerCase().replace(/\s+/g, '-')}-${img.angle}-v${(img.variation ?? 0) + 1}.jpg`} className="result-card-download">
           <Download size={13} /> Descargar
         </a>

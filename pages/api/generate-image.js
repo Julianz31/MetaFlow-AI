@@ -975,15 +975,24 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, icon
 
 // ─── SINGLE VARIATION PIPELINE ───────────────────────────────────────────────
 
+const SCENE_STYLE_VARIANTS = [
+  '', // V0: wide lifestyle (default)
+  '\nSCENE STYLE VARIANT: Dramatic close-up. Person fills more of the frame — tight crop, intense expression, intimate. More emotion visible in the face.',
+  '\nSCENE STYLE VARIANT: Cinematic environmental portrait. Strong depth of field, subject sharply separated from a richly detailed background. Premium editorial feel.',
+];
+
 async function generateOneVariation({ a, variationIdx, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction, apiKey }) {
   const label = ANGLE_LABELS[a] || a;
   const hasProduct = !!productImageBase64;
+  // Pick a random template+scene variant on every call for visual diversity
+  const vIdx = Math.floor(Math.random() * 3);
 
   const copy = await generateCopy(productContext, a, label, apiKey);
   const enrichedCopy = { ...(copy || {}), productName: productName || '' };
 
   const scenePromptFn = ANGLE_SCENES[a] || ANGLE_SCENES.desire;
   let scenePrompt = scenePromptFn(productContext, format);
+  scenePrompt += SCENE_STYLE_VARIANTS[vIdx];
   if (adjustmentInstruction) scenePrompt += `\n\nSCENE ADJUSTMENT: ${adjustmentInstruction}`;
 
   const features = [
@@ -1000,7 +1009,7 @@ async function generateOneVariation({ a, variationIdx, productContext, productNa
   if (bgImage.status === 'rejected') throw bgImage.reason;
   const aiIconImages = iconResults.map(r => r.status === 'fulfilled' ? r.value.data : null);
 
-  const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct, variationIdx);
+  const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct, vIdx);
 
   const composited = await compositeAll({
     backgroundBase64: bgImage.value.data,
@@ -1035,7 +1044,7 @@ export default async function handler(req, res) {
     primaryColor = '#6366f1',
     productImageBase64,
     adjustmentInstruction,
-    variationsCount = 3,
+    variationsCount = 1,
   } = req.body;
 
   if (!productName && !productImageBase64) {

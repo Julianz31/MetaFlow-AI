@@ -178,7 +178,7 @@ function App() {
   const fetchRealData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/stats`, metaRequestConfig(metaConnection));
+      const response = await axios.get(`${API_BASE_URL}/api/stats`, await buildConfig(metaConnection));
       setStats({
         inversion: response.data.inversion,
         roas: response.data.roas,
@@ -236,7 +236,7 @@ function App() {
   const fetchCampaignAnalysis = async () => {
     try {
       setCampaignsLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/campaign-analysis`, metaRequestConfig(metaConnection));
+      const response = await axios.get(`${API_BASE_URL}/api/campaign-analysis`, await buildConfig(metaConnection));
       setCampaignAnalysis(response.data.campaigns || []);
     } catch (error) {
       console.error('Error analizando campañas:', error);
@@ -250,7 +250,7 @@ function App() {
     try {
       const [objectivesResponse, assetsResponse] = await Promise.all([
         axios.get(`${API_BASE_URL}/api/campaign-objectives`),
-        axios.get(`${API_BASE_URL}/api/meta/assets`, metaRequestConfig(metaConnection)).catch(() => ({ data: { pages: [], defaults: {} } }))
+        buildConfig(metaConnection).then(cfg => axios.get(`${API_BASE_URL}/api/meta/assets`, cfg)).catch(() => ({ data: { pages: [], defaults: {} } }))
       ]);
       setObjectives(objectivesResponse.data.objectives || []);
       setBusinessAssets(assetsResponse.data || { pages: [], defaults: {} });
@@ -279,7 +279,7 @@ function App() {
         ...payload,
         creatives: batches[0],
         userId: user.id
-      }, metaRequestConfig(metaConnection));
+      }, await buildConfig(metaConnection));
 
       if (!firstResponse.data.success) {
         setBuilderResult(firstResponse.data);
@@ -331,7 +331,7 @@ function App() {
         creatives: nextBatch,
         campaignId,
         adsetId
-      }, metaRequestConfig(metaConnection));
+      }, await buildConfig(metaConnection));
 
       const newCompleted = completedBatches + 1;
       const newCompletedAds = completedAds + nextBatch.length;
@@ -363,7 +363,7 @@ function App() {
   const generateCopy = async (payload) => {
     try {
       setCopyLoading(true);
-      const response = await axios.post(`${API_BASE_URL}/api/campaign-builder/generate-copy`, payload, metaRequestConfig(metaConnection));
+      const response = await axios.post(`${API_BASE_URL}/api/campaign-builder/generate-copy`, payload, await buildConfig(metaConnection));
       return response.data.copy;
     } catch (error) {
       console.error('Error generando copy:', error);
@@ -412,7 +412,7 @@ function App() {
   };
 
   const fetchRealDataWithConnection = async (connectionOverride) => {
-    const response = await axios.get(`${API_BASE_URL}/api/stats`, metaRequestConfig(connectionOverride));
+    const response = await axios.get(`${API_BASE_URL}/api/stats`, await buildConfig(connectionOverride));
     setStats({
       inversion: response.data.inversion,
       roas: response.data.roas,
@@ -424,7 +424,7 @@ function App() {
   };
 
   const fetchCampaignAnalysisWithConnection = async (connectionOverride) => {
-    const response = await axios.get(`${API_BASE_URL}/api/campaign-analysis`, metaRequestConfig(connectionOverride));
+    const response = await axios.get(`${API_BASE_URL}/api/campaign-analysis`, await buildConfig(connectionOverride));
     setCampaignAnalysis(response.data.campaigns || []);
   };
 
@@ -447,7 +447,7 @@ function App() {
   const runAutoOptimize = async () => {
     try {
       setAutoOptimizeLoading(true);
-      await axios.post(`${API_BASE_URL}/api/auto-optimize`, { userId: user?.id }, metaRequestConfig(metaConnection));
+      await axios.post(`${API_BASE_URL}/api/auto-optimize`, { userId: user?.id }, await buildConfig(metaConnection));
       await fetchApprovalActions();
     } catch (error) {
       console.error('Error en auto-optimización:', error);
@@ -468,7 +468,7 @@ function App() {
   const publishApprovalAction = async (actionId) => {
     try {
       setApprovalLoading(true);
-      await axios.post(`${API_BASE_URL}/api/approval-actions/${actionId}/publish`, {}, metaRequestConfig(metaConnection));
+      await axios.post(`${API_BASE_URL}/api/approval-actions/${actionId}/publish`, {}, await buildConfig(metaConnection));
       await fetchApprovalActions();
       await fetchRealData();
     } catch (error) {
@@ -539,7 +539,7 @@ function App() {
       setSelectedCampaign(campaign);
       setCampaignDetail(null);
       setCampaignDetailLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/campaigns/${campaign.campaign_id}/detail`, metaRequestConfig(metaConnection));
+      const response = await axios.get(`${API_BASE_URL}/api/campaigns/${campaign.campaign_id}/detail`, await buildConfig(metaConnection));
       setCampaignDetail(response.data);
     } catch (error) {
       console.error('Error cargando detalle de campaña:', error);
@@ -596,7 +596,7 @@ function App() {
       setSelectedAdSet(adset);
       setAdSetDetail(null);
       setAdSetDetailLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/adsets/${adset.adset_id}/detail`, metaRequestConfig(metaConnection));
+      const response = await axios.get(`${API_BASE_URL}/api/adsets/${adset.adset_id}/detail`, await buildConfig(metaConnection));
       setAdSetDetail(response.data);
     } catch (error) {
       console.error('Error cargando detalle del conjunto de anuncios:', error);
@@ -2572,6 +2572,11 @@ function metaRequestConfig(connection) {
       ...(connection?.adAccountId ? { 'x-meta-ad-account-id': connection.adAccountId } : {}),
     }
   };
+}
+
+async function buildConfig(connection) {
+  const auth = await getAuthHeader();
+  return { headers: { ...auth, ...metaRequestConfig(connection).headers } };
 }
 
 async function getAuthHeader() {

@@ -1854,7 +1854,7 @@ function AdRow({ ad }) {
       <div className="ad-row-main">
         <div className="ad-row-title">
           <strong>{ad.ad_name}</strong>
-          <span className="status-pill">{ad.effective_status || ad.status}</span>
+          <span className={`status-pill ${ad.effective_status || ad.status || ''}`}>{ad.effective_status || ad.status}</span>
         </div>
         <div className="ad-metrics">
           <SmallMetric label="Gasto" value={formatCurrency(ad.spend)} />
@@ -1880,7 +1880,7 @@ function CampaignDetailDrawer({ campaign, detail, loading, onClose, onOpenAdSet,
       <aside className="campaign-drawer">
         <div className="drawer-header">
           <div>
-            <span className="badge">{campaign.effective_status || campaign.status || 'Sin estado'}</span>
+            <span className={`badge ${campaign.effective_status || campaign.status || ''}`}>{campaign.effective_status || campaign.status || 'Sin estado'}</span>
             <h2>{campaign.campaign_name}</h2>
             <p className="muted-copy">{campaign.campaign_id}</p>
           </div>
@@ -1920,7 +1920,7 @@ function CampaignDetailDrawer({ campaign, detail, loading, onClose, onOpenAdSet,
                       {adset.lifetime_budget > 0 && (
                         <span className="budget-pill">Presup. total: {formatCurrency(adset.lifetime_budget)}</span>
                       )}
-                      <span className="status-pill">{adset.effective_status || adset.status}</span>
+                      <span className={`status-pill ${adset.effective_status || adset.status || ''}`}>{adset.effective_status || adset.status}</span>
                     </div>
                   </div>
                   <div className="ad-metrics">
@@ -1945,7 +1945,7 @@ function CampaignDetailDrawer({ campaign, detail, loading, onClose, onOpenAdSet,
         <aside className="campaign-drawer adset-drawer">
           <div className="drawer-header">
             <div>
-              <span className="badge">{selectedAdSet.effective_status || selectedAdSet.status || 'Sin estado'}</span>
+              <span className={`badge ${selectedAdSet.effective_status || selectedAdSet.status || ''}`}>{selectedAdSet.effective_status || selectedAdSet.status || 'Sin estado'}</span>
               <h2>{selectedAdSet.adset_name}</h2>
               <p className="muted-copy">{selectedAdSet.adset_id}</p>
             </div>

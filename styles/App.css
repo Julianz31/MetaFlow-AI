@@ -1133,6 +1133,30 @@ td {
   border-radius: 999px;
 }
 
+.badge.ACTIVE {
+  color: #99f6e4;
+  background: rgba(15, 118, 110, 0.24);
+}
+
+.badge.PAUSED {
+  color: #fde68a;
+  background: rgba(146, 64, 14, 0.26);
+}
+
+.badge.WITH_ISSUES,
+.badge.DISAPPROVED {
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.3);
+}
+
+.badge.ARCHIVED,
+.badge.DELETED,
+.badge.CAMPAIGN_PAUSED,
+.badge.ADSET_PAUSED {
+  color: #94a3b8;
+  background: rgba(51, 65, 85, 0.4);
+}
+
 .approval-actions {
   display: flex;
   gap: 8px;

@@ -973,6 +973,49 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, icon
   return result.toString('base64');
 }
 
+// ─── SINGLE VARIATION PIPELINE ───────────────────────────────────────────────
+
+async function generateOneVariation({ a, variationIdx, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction, apiKey }) {
+  const label = ANGLE_LABELS[a] || a;
+  const hasProduct = !!productImageBase64;
+
+  const copy = await generateCopy(productContext, a, label, apiKey);
+  const enrichedCopy = { ...(copy || {}), productName: productName || '' };
+
+  const scenePromptFn = ANGLE_SCENES[a] || ANGLE_SCENES.desire;
+  let scenePrompt = scenePromptFn(productContext, format);
+  if (adjustmentInstruction) scenePrompt += `\n\nSCENE ADJUSTMENT: ${adjustmentInstruction}`;
+
+  const features = [
+    enrichedCopy.f1 || 'Resultados probados',
+    enrichedCopy.f2 || 'Formula premium',
+    enrichedCopy.f3 || 'Uso diario seguro',
+    enrichedCopy.f4 || 'Satisfaccion total',
+  ];
+  const [bgImage, ...iconResults] = await Promise.allSettled([
+    generateBackground(scenePrompt, apiKey),
+    ...features.map(f => generateIconImage(f, productContext, primaryColor, apiKey)),
+  ]);
+
+  if (bgImage.status === 'rejected') throw bgImage.reason;
+  const aiIconImages = iconResults.map(r => r.status === 'fulfilled' ? r.value.data : null);
+
+  const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct, variationIdx);
+
+  const composited = await compositeAll({
+    backgroundBase64: bgImage.value.data,
+    templatePng,
+    productBase64: productImageBase64 || null,
+    iconPanelBase64: null,
+    iconImages: aiIconImages,
+    format,
+    angle: a,
+    fullDesign: false,
+  });
+
+  return { imageUrl: `data:image/jpeg;base64,${composited}`, angle: a, variation: variationIdx, label, copy };
+}
+
 // ─── HANDLER ─────────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
@@ -992,6 +1035,7 @@ export default async function handler(req, res) {
     primaryColor = '#6366f1',
     productImageBase64,
     adjustmentInstruction,
+    variationsCount = 3,
   } = req.body;
 
   if (!productName && !productImageBase64) {
@@ -999,12 +1043,12 @@ export default async function handler(req, res) {
   }
 
   const selectedAngles = Array.isArray(angles) && angles.length > 0 ? angles : [angle];
+  const numVariations = Math.min(Math.max(1, variationsCount), 3);
 
   try {
     let productContext = '';
     if (productImageBase64) {
       const visualAnalysis = await analyzeProduct(productImageBase64, apiKey);
-      // Combine visual analysis with seller-provided description for richer context
       productContext = description
         ? `${visualAnalysis}\n\nSeller description: ${description}`
         : visualAnalysis;
@@ -1012,65 +1056,22 @@ export default async function handler(req, res) {
       productContext = `Product: ${productName}. ${description || ''}`;
     }
 
-    const results = await Promise.allSettled(
-      selectedAngles.map(async (a) => {
-        const label = ANGLE_LABELS[a] || a;
-
-        // 1. Generate copy text (correct Spanish, no rendering)
-        const copy = await generateCopy(productContext, a, label, apiKey);
-        const enrichedCopy = { ...(copy || {}), productName: productName || '' };
-        const hasProduct = !!productImageBase64;
-
-        // 2. Build scene prompt
-        const scenePromptFn = ANGLE_SCENES[a] || ANGLE_SCENES.desire;
-        let scenePrompt = scenePromptFn(productContext, format);
-        if (adjustmentInstruction) {
-          scenePrompt += `\n\nSCENE ADJUSTMENT: ${adjustmentInstruction}`;
-        }
-
-        // 3. Generate background scene + AI icon images in parallel
-        const features = [
-          enrichedCopy.f1 || 'Resultados probados',
-          enrichedCopy.f2 || 'Fórmula premium',
-          enrichedCopy.f3 || 'Uso diario seguro',
-          enrichedCopy.f4 || 'Satisfacción total',
-        ];
-        const [bgImage, ...iconResults] = await Promise.allSettled([
-          generateBackground(scenePrompt, apiKey),
-          ...features.map(f => generateIconImage(f, productContext, primaryColor, apiKey)),
-        ]);
-
-        if (bgImage.status === 'rejected') throw bgImage.reason;
-        const aiIconImages = iconResults.map(r => r.status === 'fulfilled' ? r.value.data : null);
-
-        // 4. Canvas renders ALL text programmatically — guaranteed correct Spanish
-        const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct);
-
-        // 5. Composite: background + text template + product photo + AI icon circles
-        const composited = await compositeAll({
-          backgroundBase64: bgImage.value.data,
-          templatePng,
-          productBase64: productImageBase64 || null,
-          iconPanelBase64: null,
-          iconImages: aiIconImages,
-          format,
-          angle: a,
-          fullDesign: false,
-        });
-
-        return { imageUrl: `data:image/jpeg;base64,${composited}`, angle: a, label, copy };
-      })
+    const jobs = selectedAngles.flatMap(a =>
+      Array.from({ length: numVariations }, (_, v) =>
+        generateOneVariation({ a, variationIdx: v, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction, apiKey })
+      )
     );
 
-    const images = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
-    const errors = results.filter((r) => r.status === 'rejected').map((r) => r.reason?.message);
+    const results = await Promise.allSettled(jobs);
+    const images = results.filter(r => r.status === 'fulfilled').map(r => r.value);
+    const errors = results.filter(r => r.status === 'rejected').map(r => r.reason?.message);
 
     if (images.length === 0) {
-      return res.status(500).json({ error: errors[0] || 'Error generando imágenes' });
+      return res.status(500).json({ error: errors[0] || 'Error generando imagenes' });
     }
 
     return res.status(200).json({ images, ...(errors.length && { errors }) });
   } catch (err) {
-    return res.status(500).json({ error: err.message || 'Error generando imágenes' });
+    return res.status(500).json({ error: err.message || 'Error generando imagenes' });
   }
 }

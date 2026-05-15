@@ -8,8 +8,8 @@ export const config = {
 };
 
 const getGeminiKey = () => {
-  const key = process.env.GOOGLE_AI_KEY;
-  if (!key) throw new Error('GOOGLE_AI_KEY no configurada en el servidor');
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error('GEMINI_API_KEY no configurada en el servidor');
   return key;
 };
 

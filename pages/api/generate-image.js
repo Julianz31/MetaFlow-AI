@@ -261,7 +261,22 @@ const NO_LABEL_RULE = `CRITICAL RENDERING RULES:
 • NEVER include placeholder text like "[headline]" or "[subtext]" — only the real text provided.
 • Every text element must be rendered sharp, anti-aliased, and fully legible.
 • NO drop shadows on any text. All text is rendered clean and flat — no shadow, no glow, no blur behind letters.
-• SPELL ALL SPANISH WORDS CORRECTLY — proofread every word. Never write: "NOSOUTROS" (correct: NOSOTROS), "SECERTO" (correct: SECRETO), "AVANAZDA" (correct: AVANZADA), "APROVEEVA" (correct: APROVECHA), "BIENESEAR" (correct: BIENESTAR), "REALMENT" (correct: REALMENTE), "COMPANEO" (correct: COMPAÑERO), "SANO" is correct, "AGOTE" is correct. Double-check all accents and spelling before rendering any word.`;
+• SPELL ALL SPANISH WORDS CORRECTLY — this is non-negotiable. Proofread EVERY single word before rendering. Common errors to avoid:
+  - "movesre" → CORRECT: "moverse" | "garantizzada" → CORRECT: "garantizada" | "amingo" → CORRECT: "amigo"
+  - "PREOCUACIONES" → CORRECT: "PREOCUPACIONES" | "PREOCUPACION" → CORRECT: "PREOCUPACIÓN"
+  - "NOSOUTROS" → CORRECT: "NOSOTROS" | "SECERTO" → CORRECT: "SECRETO" | "COMPANEO" → CORRECT: "COMPAÑERO"
+  - "VITATIDAD" → CORRECT: "VITALIDAD" | "picazzon" → CORRECT: "picazón" | "apagada" is correct
+  - "AVANAZDA" → CORRECT: "AVANZADA" | "APROVEEVA" → CORRECT: "APROVECHA" | "BIENESEAR" → CORRECT: "BIENESTAR"
+  - "PERDER" alone is wrong in sentences like "tu perro PERDER" → use "PIERDE" | "SUFRE" is correct
+  - Always add accent marks: "más", "también", "después", "además", "último", "cómo", "qué", "día", "solución"
+  - Double-check every word ending in "-ción", "-ción", "-mente", "-ado", "-ido" for correct spelling
+• TEXT DENSITY: A professional Facebook ad must have MINIMUM 5 distinct text elements. Sparse text = low-converting ad. Fill the design with copy — headlines, subheadlines, bullets, badges, callouts, CTA.`;
+
+const COPY_DENSITY_RULE = `TEXT RICHNESS RULE — High-converting ads have RICH typography:
+• Every design must include at minimum: (1) massive headline, (2) supporting subheadline, (3) body copy sentence, (4) 3+ bullet points or feature pills, (5) badge/callout element, (6) CTA button or action strip.
+• Use varied font sizes: headline at ~15% canvas height, subheadline at ~5%, body at ~3%, bullets at ~2.5%, badges at ~2%.
+• Use typographic contrast: ultra-bold headlines + regular body + semi-bold bullets. Mix uppercase headlines with sentence-case body copy.
+• All text must be on high-contrast backgrounds: dark overlay behind white text, or white/light panel behind dark text. Never text directly over busy image areas without a backing layer.`;
 
 function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format, hasProduct = false) {
   const prompt = _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct);
@@ -274,6 +289,8 @@ function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format
 2. TOP SAFE ZONE: The first 9% of canvas height from the top edge is FORBIDDEN for any content. No text, no band, no badge, no overlay may have ANY pixel above y=9%. Any layout element described as "TOP" or "UPPER" must be shifted so its topmost edge sits at y=9%, not y=0.
 3. ALL text characters (including ascenders/descenders) must start at or below y=9% and end at or above y=94%. No letter may be clipped by the frame.
 4. Left and right margins: no element within 5% of left or right edge.
+5. MINIMUM TEXT DENSITY: Every ad must contain at least 6 distinct text elements (headline × 2 lines, subheadline, body sentence, 3+ bullets or feature points, badge, CTA). Fewer than 6 text layers = INCOMPLETE design.
+6. SPANISH ACCURACY: All Spanish text must be spelled correctly with proper accent marks. Proofread every word before rendering.
 
 `;
 
@@ -285,6 +302,10 @@ function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format
 function _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct) {
   const [h1, h2] = _splitHeadline(copy?.headline || '');
   const sub    = copy?.description || (copy?.primaryText || '').split('.')[0] || '';
+  const pt     = (copy?.primaryText || '').split('.').slice(0, 2).join('. ').trim() + (copy?.primaryText ? '.' : '');
+  const ptShort = (copy?.primaryText || '').split('.')[0].trim() || sub;
+  const cta    = copy?.cta || 'Ver más';
+  const pname  = copy?.productName || '';
   const hex    = primaryColor || '#6366f1';
   const fmt    = formatHint(format);
   const dims   = format === 'vertical' ? '1080x1920' : format === 'horizontal' ? '1920x1080' : '1080x1080';
@@ -323,24 +344,28 @@ PRODUCT: ${ctx}
 
 BACKGROUND SCENE (photorealistic, 8K):
 ${SCENE_ADAPT}
-MOOD: The target customer on the RIGHT 60% of the frame showing genuine frustration, worry, or pain about the exact problem this product solves — moody amber lighting, cinematic depth-of-field bokeh. LEFT LOWER quadrant (x 0–38%, y 58–100%): a clean surface (table, shelf, or counter appropriate to the product category) — keep this area NEUTRAL AND CLEAR.
+MOOD: The target customer on the RIGHT 55% of the frame showing genuine frustration, worry, or pain about the exact problem this product solves — moody dramatic lighting, cinematic depth-of-field bokeh. LEFT LOWER quadrant (x 0–38%, y 55–100%): a clean surface appropriate to the product category — keep this area NEUTRAL AND CLEAR.
 
-TYPOGRAPHY (render all text sharply):
-1. TOP BAND — Full-width near-black overlay (y=9%–47% of canvas, h≈38%). Inside this band:
-   • Line 1: "${h1}" — ultra-bold Impact/Anton font, pure WHITE, font size fills ~82% canvas width, no shadow
+TYPOGRAPHY — 6 REQUIRED TEXT LAYERS (render all text sharply):
+1. TOP BAND — Full-width dark overlay (y=9%–48% of canvas, h≈39%). Inside this band:
+   • Line 1: "${h1}" — ultra-bold Impact/Anton font, pure WHITE, font size fills ~80% canvas width, no shadow
    • Line 2: "${h2}" — same ultra-bold font, color ${hex}, same massive size, no shadow
-2. CENTER-LEFT — Semi-transparent dark pill/card, white text inside: "${sub}"
-3. LOWER-LEFT panel (x 2–42%, y 58–82%) — Three white bullet lines on a dark translucent strip:
-   • "${b1}"
-   • "${b2}"
-   • "${b3}"
+2. BELOW HEADLINE (y=50%–57%) — Wide semi-transparent dark pill, white sentence-case text: "${ptShort}"
+3. LOWER-LEFT BULLETS PANEL (x 2%–44%, y 58%–84%) — Dark translucent card, white bold header "EL PROBLEMA:", then three lines below:
+   • "✗ ${b1}"
+   • "✗ ${b2}"
+   • "✗ ${b3}"
+4. LOWER-LEFT BOTTOM (x 2%–44%, y 85%–94%) — ${hex} rounded pill: "${cta}" — bold white centered
+5. UPPER-RIGHT corner badge (x 68%–98%, y 10%–22%) — small rounded rectangle, ${hex} background, white bold text: "${pname || 'Solución Natural'}"
+6. RIGHT-CENTER area (x 52%–98%, y 50%–58%) — small italic white text on dark strip: "${sub}"
 
-DECORATIVE: 3–4 small floating thematic icons relevant to the product category in white ~50% opacity in upper-right corner. Dark vignette top & bottom edges.
+DECORATIVE: 3–4 small thematic icons in white ~40% opacity scattered upper-right. Dark vignette top & bottom. Thin ${hex} accent line below the headline band.
 
 STYLE: Premium emotional Facebook ad. Cinematic 8K. Dramatic moody tone. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
+${COPY_DENSITY_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── DESIRE ───────────────────────────────────────────────────────────────────
@@ -351,24 +376,28 @@ PRODUCT: ${ctx}
 
 BACKGROUND SCENE (photorealistic, 8K):
 ${SCENE_ADAPT}
-MOOD: The target customer on the RIGHT 58% of the frame, radiant and happy after experiencing the product's results — warm golden sunlight, bokeh, vibrant colors. LEFT area: a bright clean surface appropriate to the product category (x 0–38%, y 40–85%) — keep this zone NEUTRAL AND CLEAN.
+MOOD: The target customer on the RIGHT 58% of the frame, radiant and happy after experiencing the product's results — warm golden sunlight, bokeh, vibrant colors. LEFT area: a bright clean surface appropriate to the product category (x 0–38%, y 40–90%) — keep this zone NEUTRAL AND CLEAN.
 
-TYPOGRAPHY:
-1. TOP BAND — Gradient dark-to-transparent overlay (y=9%–45% of canvas, h≈36%). Inside this band:
-   • Line 1: "${h1}" — ultra-bold white Anton/Impact, fills ~82% canvas width, no shadow
-   • Line 2: "${h2}" — same font, color ${hex}, no shadow
-2. CENTER — Small floating white rounded badge: "✓ ${sub}"
-3. LOWER-LEFT (x 2–42%, y 62–80%) — Three benefit lines in clean white semi-transparent card:
+TYPOGRAPHY — 6 REQUIRED TEXT LAYERS (render all text sharply):
+1. TOP BAND — Semi-dark gradient overlay (y=9%–47% of canvas, h≈38%). Inside this band:
+   • Line 1: "${h1}" — ultra-bold white Anton/Impact, fills ~80% canvas width, no shadow
+   • Line 2: "${h2}" — same font, color ${hex}, same massive size, no shadow
+2. BELOW HEADLINE (y=49%–57%) — White rounded badge with ${hex} left accent bar: "✓ ${ptShort}"
+3. LOWER-LEFT BENEFITS CARD (x 2%–44%, y 59%–83%) — White semi-transparent card with rounded corners, dark text header "RESULTADOS REALES:", then:
    • "✓ ${b1}"
    • "✓ ${b2}"
    • "✓ ${b3}"
+4. LOWER-LEFT BOTTOM (x 2%–44%, y 84%–94%) — ${hex} rounded pill button: "${cta}" — bold white centered
+5. UPPER-RIGHT badge (x 66%–96%, y 10%–21%) — small ${hex} rounded rectangle: "${pname || 'Resultado Garantizado'}" — bold white text
+6. MID-RIGHT (x 52%–96%, y 50%–58%) — small white italic text on semi-dark strip: "${sub}"
 
-DECORATIVE: Warm golden bokeh circles floating upper area. Thin ${hex} accent line below headline band. Soft warm vignette edges.
+DECORATIVE: Warm golden bokeh particles. Thin ${hex} accent line below headline band. Soft warm vignette. Sparkle ✨ icons beside checkmarks.
 
 STYLE: Aspirational, warm, magazine-quality Facebook ad. Cinematic golden-hour lighting. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
+${COPY_DENSITY_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── TRANSFORMATION ───────────────────────────────────────────────────────────
@@ -380,26 +409,28 @@ PRODUCT: ${ctx}
 ${SCENE_ADAPT}
 
 LAYOUT — SPLIT BEFORE/AFTER:
-LEFT HALF (x 0–50%): Desaturated, slightly dark, moody atmosphere. Target customer in the BEFORE state — struggling with the problem this product solves. Derive the specific struggle and setting from the product context. Subtle dark blue-grey tone.
-RIGHT HALF (x 50–100%): Vibrant, warm, bright, full color. Same target customer in the AFTER state — thriving after using this product, in the same setting now transformed. Warm golden light.
-CENTER DIVIDER: Thin vertical accent line in ${hex}.
+LEFT HALF (x 0–50%): Desaturated, dark, moody atmosphere. Target customer in the BEFORE state — struggling with the exact problem this product solves. Dark blue-grey tone. Derive specific struggle and setting from the product context.
+RIGHT HALF (x 50–100%): Vibrant, warm, bright, full color. Same target customer in the AFTER state — thriving. Warm golden light. Same setting transformed.
+CENTER DIVIDER: Thin vertical accent line in ${hex} with bold "→" arrow at midpoint.
 
-TYPOGRAPHY:
-1. TOP SPANNING BANNER (full width, y=9%–31% of canvas, h≈22%, dark semi-transparent):
-   • Left of center: "${h1}" — ultra-bold white, large
-   • Right of center: "${h2}" — ultra-bold ${hex}, same size
-2. LEFT PANEL LABEL (x 5%, y 34%): "ANTES" — bold white, small caps
-3. RIGHT PANEL LABEL (x 55%, y 34%): "DESPUÉS" — bold ${hex}, small caps
-4. LEFT lower card: "${b1}"
-5. RIGHT lower card: "${a1}"
-6. Bottom center — small sub-text pill: "${sub}"
+TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
+1. TOP SPANNING BANNER (full width, y=9%–30% of canvas, h≈21%, dark #111 background):
+   • "${h1}" — ultra-bold white Impact/Anton, left side of banner
+   • "${h2}" — ultra-bold ${hex}, right side, same massive size
+2. LEFT PANEL LABEL (x 5%–45%, y 32%–38%): "ANTES" label — bold white, ALL CAPS, small caps pill with dark background
+3. RIGHT PANEL LABEL (x 55%–95%, y 32%–38%): "DESPUÉS" label — bold ${hex}, ALL CAPS, small caps pill with ${hex} background
+4. LEFT lower dark card (x 2%–46%, y 72%–86%): "${b1}" — white text, 3 lines max
+5. RIGHT lower ${hex} card (x 54%–98%, y 72%–86%): "${a1}" — white text, 3 lines max
+6. BOTTOM CENTER strip (full width, dark, y=87%–94%): "${ptShort}" — white italic centered
+7. CENTER BADGE (x 40%–60%, y 60%–70%): circular or rounded badge, ${hex} background, bold white text: "${pname || '30 DÍAS'}"
 
-DECORATIVE: Arrow pointing right in ${hex} at the center divider. Sparkle/star elements on the right side. Dark vignette.
+DECORATIVE: Large bold "→" arrow in ${hex} at center y=50%. Sparkle ✨ icons on the right AFTER side. Dark vignette edges.
 
 STYLE: Dramatic transformation contrast. Premium commercial quality. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
+${COPY_DENSITY_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── OBJECTION ────────────────────────────────────────────────────────────────
@@ -410,28 +441,33 @@ PRODUCT: ${ctx}
 
 BACKGROUND SCENE:
 ${SCENE_ADAPT}
-MOOD: CENTER-RIGHT: a thoughtful, intelligent-looking target customer for this product, expression moving from skeptical to reassured. Crisp natural lighting, white and warm tones. Minimal, premium aesthetic.
+MOOD: CENTER-RIGHT: a thoughtful, intelligent-looking target customer, expression moving from skeptical to reassured. Crisp natural lighting, white and warm tones. Minimal, premium aesthetic.
 
-TYPOGRAPHY:
-1. TOP BAND (full width, white background, y=9%–29% of canvas, h≈20%):
-   • "${h1} ${h2}" — bold dark (#111) sans-serif, centered, large
-2. LOWER HALF split panel:
-   LEFT panel (x 2–48%, dark background): "¿DUDAS?" header in ${hex}, then:
+TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
+1. TOP BAND (full width, white background with dark border, y=9%–30% of canvas, h≈21%):
+   • "${h1}" — bold dark (#111) ultra-heavy sans-serif, large, left-aligned
+   • "${h2}" — bold ${hex}, same size, second line
+2. BELOW HEADLINE (y=31%–38%): full-width dark strip with white italic: "${ptShort}"
+3. LOWER SPLIT PANEL (y=39%–84%):
+   LEFT panel (x 2%–47%, dark #1a1a2e background): bold ${hex} header "¿LO DUDAS?", then:
    • "✗ ${p1}"
    • "✗ ${p2}"
    • "✗ ${p3}"
-   RIGHT panel (x 52–98%, ${hex} background): "LA VERDAD" header in white, then:
+   RIGHT panel (x 53%–98%, ${hex} background): bold white header "LA REALIDAD:", then:
    • "✓ ${s1}"
    • "✓ ${s2}"
    • "✓ ${s3}"
-3. Bottom center: "${sub}" — small italic white text on dark strip
+4. CENTER DIVIDER vertical line with "VS" pill badge
+5. BOTTOM STRIP (y=85%–94%, ${hex} background): "${cta}" — bold white centered button
+6. UPPER-RIGHT corner (x 68%–97%, y 10%–20%): small white rounded badge: "${pname || 'Garantizado'}"
 
-DECORATIVE: Clean divider line center. Trust badge icon (shield) bottom-right. Clean, sharp text panels.
+DECORATIVE: Shield icon bottom-right. Clean ${hex} accent lines. Trust-building design.
 
 STYLE: Professional, trustworthy, reassuring. Clean advertising design. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
+${COPY_DENSITY_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── URGENCY ──────────────────────────────────────────────────────────────────
@@ -444,21 +480,25 @@ BACKGROUND SCENE:
 ${SCENE_ADAPT}
 MOOD: High-energy, dynamic scene. The target customer in an active, excited state — vivid colors, dramatic lighting, motion feel. Dark dramatic gradient overlay covering 65% of the image for text readability.
 
-TYPOGRAPHY:
-1. TOP AREA (y=9%–18%): Bold urgency badge: "OFERTA LIMITADA" — rounded pill, ${hex} background, white bold text
-2. CENTER — Main headline:
-   • "${h1}" — ultra-bold white, massive Impact/Anton font, fills ~85% width, no shadow
-   • "${h2}" — ultra-bold ${hex}, same massive size
-3. BELOW HEADLINE — White sub-text: "${sub}"
-4. LOWER BAND (dark strip, full width): 4 feature labels in white, separated by vertical dividers:
+TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
+1. TOP AREA (y=9%–19%): Bold urgency badge: "⏱ OFERTA LIMITADA" — wide rounded pill, ${hex} background, white ultra-bold text, hourglass icon left
+2. UPPER CENTER (y=20%–46%): Main headline:
+   • "${h1}" — ultra-bold white Impact/Anton font, fills ~85% width, no shadow
+   • "${h2}" — ultra-bold ${hex}, same massive size, line below
+3. MID CENTER (y=47%–54%): White semi-transparent rounded card: "${ptShort}"
+4. MID CENTER (y=55%–62%): Small italic ${hex} text: "${sub}"
+5. LOWER BAND (dark strip, y=63%–74%, full width): 4 feature pills separated by ${hex} vertical dividers:
    "${f1}"  |  "${f2}"  |  "${f3}"  |  "${f4}"
+6. PRODUCT ZONE (x 55%–95%, y 58%–92%): KEEP CLEAR
+7. BOTTOM STRIP (y=88%–96%, ${hex} background): "${cta}" — bold white centered uppercase
 
-DECORATIVE: Timer/hourglass icon beside the urgency badge. Red/orange accent glow on bottom strip. Diagonal energy lines in background overlay.
+DECORATIVE: Red/orange diagonal energy glow behind headline. Timer icon top-left. ${hex} accent flash lines.
 
-STYLE: High-energy, urgent, conversion-driven. Bold, loud, dynamic. Product zone: lower-right (x 55–95%, y 55–90%). NO prices, NO URLs.
+STYLE: High-energy, urgent, conversion-driven. Bold, loud, dynamic. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
+${COPY_DENSITY_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── AUTHORITY ────────────────────────────────────────────────────────────────
@@ -469,26 +509,29 @@ PRODUCT: ${ctx}
 
 BACKGROUND SCENE:
 ${SCENE_ADAPT}
-MOOD: Premium, minimal, bright professional setting. LEFT-CENTER: a confident expert professional relevant to the product category (beauty product → dermatologist or esthetician; pet product → veterinarian; fitness product → personal trainer or nutritionist; food product → chef or nutritionist; health product → doctor or pharmacist) in a clean white or professional coat. Warm natural lighting, slight bokeh. Credible, premium, trustworthy.
+MOOD: Premium, minimal, bright professional setting. LEFT-CENTER: a confident expert relevant to the product category (beauty → dermatologist; pet → veterinarian; fitness → trainer; food → nutritionist; health → doctor) in professional attire. Warm natural lighting, slight bokeh. Credible, premium, trustworthy.
 
-TYPOGRAPHY:
-1. TOP BAND (white or very light, y=9%–33% of canvas, h≈24%):
-   • "${h1}" — bold dark heavy sans-serif, large, centered
-   • "${h2}" — bold ${hex}, same size, on second line
-2. RIGHT SIDE (x 52–98%, stacked credential cards):
-   • Card 1: shield icon + "${f1}"
-   • Card 2: medal icon + "${f2}"
-   • Card 3: star icon + "${f3}"
-   • Card 4: checkmark icon + "${f4}"
-   Each card: white background, ${hex} left border accent, dark bold text
-3. Bottom left: "${sub}" — small white text on ${hex} band
+TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
+1. TOP BAND (white or very light background, y=9%–32% of canvas, h≈23%):
+   • "${h1}" — ultra-bold dark (#111) heavy sans-serif, large, left-aligned
+   • "${h2}" — bold ${hex}, same large size, second line
+2. BELOW HEADLINE (y=33%–40%): full-width dark strip, white italic sentence: "${ptShort}"
+3. RIGHT SIDE CREDENTIAL CARDS (x 52%–98%, y 41%–86%, stacked with gap):
+   • Card 1: 🛡 icon + "${f1}" — white background, ${hex} left border, dark bold text
+   • Card 2: 🏅 icon + "${f2}" — white background, ${hex} left border, dark bold text
+   • Card 3: ⭐ icon + "${f3}" — white background, ${hex} left border, dark bold text
+   • Card 4: ✔ icon + "${f4}" — white background, ${hex} left border, dark bold text
+4. BOTTOM STRIP (y=87%–95%, ${hex} background): "${cta}" — bold white centered
+5. TOP-RIGHT corner (x 68%–97%, y 10%–21%): small white rounded badge: "${pname || 'Certificado'}"
+6. BOTTOM-LEFT (x 2%–46%, y 87%–94%): "${sub}" — small white italic on dark card
 
-DECORATIVE: Premium ${hex} accent lines. Certification seal graphic bottom-right. Clean, sharp elements.
+DECORATIVE: Certification seal graphic lower-right. Premium ${hex} accent lines. Clean precision design.
 
 STYLE: Expert, premium, minimal, trust-building. Clinical precision meets premium branding. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
+${COPY_DENSITY_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── COMPARISON ───────────────────────────────────────────────────────────────
@@ -499,29 +542,36 @@ PRODUCT: ${ctx}
 
 ${SCENE_ADAPT}
 
-LAYOUT — COMPARISON SPLIT:
-TOP BANNER (full width, y=9%–27% of canvas, h≈18%, ${hex} background): "${h1} ${h2}" — ultra-bold white, centered, large
+LAYOUT — COMPARISON SPLIT (7 TEXT LAYERS):
+TOP BANNER (full width, y=9%–27% of canvas, h≈18%, ${hex} background):
+• "${h1}" — ultra-bold white, left half of banner, massive Impact/Anton
+• "${h2}" — ultra-bold white, right half of banner, same size
 
-UPPER PHOTO STRIP (h≈40%, split):
-LEFT PHOTO (x 0–50%): Moody, desaturated — the target customer in the BEFORE/WITHOUT-PRODUCT state, struggling, dark cool tones. Derive the specific scene from the product context.
-RIGHT PHOTO (x 50–100%): Bright, vibrant — the same target customer in the AFTER/WITH-PRODUCT state, thriving, warm golden tones. Derive the specific scene from the product context.
+BODY STRIP (full width, y=27%–34%, dark background): "${ptShort}" — white italic centered
 
-LOWER COMPARISON PANEL (h≈42%, split):
-LEFT (x 0–50%, dark background #1a1a2e):
-   • "OTROS" header — bold white, large
+UPPER PHOTO STRIP (y=34%–58%, split):
+LEFT PHOTO (x 0%–50%): Moody, desaturated — target customer WITHOUT the product, struggling. Dark cool tones. Specific to product context.
+RIGHT PHOTO (x 50%–100%): Bright, vibrant — same customer WITH the product, thriving. Warm golden tones. Specific to product context.
+
+LOWER COMPARISON PANEL (y=59%–86%, split):
+LEFT (x 0%–48%, dark background #1a1a2e):
+   • "OTROS" header — bold white uppercase, large
    • "✗ ${b1}"
    • "✗ ${b2}"
-RIGHT (x 50–100%, ${hex} background):
-   • "NOSOTROS" header — bold white, large
+RIGHT (x 52%–100%, ${hex} background):
+   • "NOSOTROS" header — bold white uppercase, large
    • "✓ ${a1}"
    • "✓ ${a2}"
 
-CENTER COLUMN (x 44–56%): Vertical white divider with "VS" badge. Product zone: bottom-center (x 40–60%, y 55–100%) — KEEP CLEAR.
+CENTER COLUMN (x 45%–55%): Bold vertical white line with "VS" circular badge at midpoint. Product zone: bottom-center (x 38%–62%, y 57%–86%) — KEEP CLEAR.
+
+BOTTOM STRIP (y=87%–95%, dark background): "${cta}" — bold white ${hex} pill button centered + "${sub}" small italic beside it.
 
 STYLE: Clean, professional, high-contrast split. Clear winner layout. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
+${COPY_DENSITY_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── GUARANTEE ────────────────────────────────────────────────────────────────
@@ -532,25 +582,29 @@ PRODUCT: ${ctx}
 
 BACKGROUND SCENE:
 ${SCENE_ADAPT}
-MOOD: Calm, warm, peaceful. Completely relaxed and satisfied target customer in a setting appropriate for the product category — gentle warm light, soft bokeh, serene atmosphere. RIGHT 55% of frame. LEFT lower area (x 0–40%, y 50–95%): clean neutral surface — keep CLEAR.
+MOOD: Calm, warm, peaceful. Completely relaxed and satisfied target customer appropriate to the product category — gentle warm light, soft bokeh. RIGHT 55% of frame. LEFT lower area (x 0%–40%, y 50%–95%): clean neutral surface — keep CLEAR.
 
-TYPOGRAPHY:
-1. TOP-CENTER (y=9%–22%): Large guarantee seal/badge (hexagonal or shield shape, ${hex} color): "GARANTÍA 30 DÍAS" in white bold text inside the badge
-2. BELOW BADGE — Headline:
-   • "${h1}" — ultra-bold white, large Anton/Impact font
-   • "${h2}" — ultra-bold ${hex}, same size
-3. CENTER — White sub-text pill: "${sub}"
-4. LOWER-LEFT (dark card): three guarantee points:
+TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
+1. TOP-CENTER (y=9%–24%): Large guarantee seal/badge (hexagonal or shield shape, ${hex} fill, white border): bold white text inside: "GARANTÍA 30 DÍAS ✓"
+2. BELOW BADGE (y=25%–44%): Headline:
+   • "${h1}" — ultra-bold white Impact/Anton font, large, centered
+   • "${h2}" — ultra-bold ${hex}, same large size, line below
+3. MID CENTER (y=45%–53%): Full-width dark pill, white italic sentence: "${ptShort}"
+4. MID CENTER (y=54%–60%): Small ${hex} italic text: "${sub}"
+5. LOWER-LEFT GUARANTEE CARD (x 2%–44%, y 62%–83%): dark card, bold white header "SIN RIESGO:", then:
    • "✓ ${b1}"
    • "✓ ${b2}"
    • "✓ ${b3}"
+6. LOWER-LEFT BOTTOM (x 2%–44%, y 84%–93%): ${hex} rounded pill: "${cta}" — bold white centered
+7. TOP-RIGHT badge (x 68%–97%, y 10%–22%): white rounded badge: "${pname || 'Riesgo Cero'}"
 
-DECORATIVE: Soft golden glow around guarantee badge. Checkmark icons. Trust-building palette (greens, golds, ${hex} accents).
+DECORATIVE: Soft golden glow around guarantee badge. Green checkmark icons. Trust palette (gold, green, ${hex}).
 
 STYLE: Safe, reassuring, zero-risk feel. Warm, premium, trust-driven. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
+${COPY_DENSITY_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── SOCIAL PROOF ─────────────────────────────────────────────────────────────
@@ -561,29 +615,34 @@ PRODUCT: ${ctx}
 
 BACKGROUND SCENE:
 ${SCENE_ADAPT}
-MOOD: Warm, community-feel. TOP HALF: happy, glowing target customer who has benefited from this product — natural warm lighting, genuine smile, relatable setting. LOWER HALF: slightly blurred or darkened to accommodate text panels.
+MOOD: Warm, community-feel. TOP 50%: happy, glowing target customer who has benefited from this product — natural warm lighting, genuine smile, relatable setting for the product category. LOWER 50%: slightly darkened to accommodate text panels.
 
-TYPOGRAPHY:
-1. TOP BANNER (${hex} background, y=9%–25% of canvas, h≈16%): "★★★★★  +10.000 clientes satisfechos" — bold white, centered
-2. BELOW PHOTO (left aligned): "${h1}" — ultra-bold white, large
-   "${h2}" — ${hex}, same style
-3. TWO TESTIMONIAL CARDS side by side (lower half):
-   LEFT card (white background, rounded corners):
-   • Circular avatar placeholder
+TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
+1. TOP BANNER (${hex} background, y=9%–23% of canvas, h≈14%): "★★★★★  +10.000 clientes satisfechos" — bold white centered, star icons ${hex}
+2. UPPER TEXT (y=24%–42%):
+   • "${h1}" — ultra-bold white Anton/Impact, large, left-aligned
+   • "${h2}" — ultra-bold ${hex}, same size, second line
+3. BODY TEXT (y=43%–50%): dark semi-transparent strip, white italic: "${ptShort}"
+4. TWO TESTIMONIAL CARDS side by side (y=51%–82%):
+   LEFT card (white background, rounded corners, dark shadow):
+   • Circular avatar (silhouette icon)
    • "${r1}"
    • "★★★★★" in ${hex}
-   RIGHT card (white background, rounded corners):
-   • Circular avatar placeholder
+   RIGHT card (white background, rounded corners, dark shadow):
+   • Circular avatar (silhouette icon)
    • "${r2}"
    • "★★★★★" in ${hex}
-4. Bottom strip (${hex}): "${sub}" white bold centered
+5. BOTTOM STRIP (${hex} background, y=83%–91%): "${cta}" — bold white centered
+6. BELOW BOTTOM (y=92%–97%): "${sub}" — small white italic centered on dark strip
+7. TOP-RIGHT corner badge (x 68%–97%, y 10%–20%): white rounded badge: "${pname || 'Ya Probado'}"
 
-DECORATIVE: Star icons scattered subtly. Social proof number badge top. Warm vignette.
+DECORATIVE: Star ★ icons scattered subtly in background. Rating badge top. Warm golden vignette.
 
 STYLE: Warm, community, validated. Trust through real testimonials. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
+${COPY_DENSITY_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── CURIOSITY ────────────────────────────────────────────────────────────────
@@ -594,26 +653,30 @@ PRODUCT: ${ctx}
 
 BACKGROUND SCENE:
 ${SCENE_ADAPT}
-MOOD: Dark, atmospheric, cinematic. The target customer leaning in to discover something surprising about the product — dramatic single-light spotlight effect, deep shadows, rich dark tones. The scene should feel like a revelation is about to happen.
+MOOD: Dark, atmospheric, cinematic. The target customer leaning in to discover something surprising — dramatic single-light spotlight, deep shadows, rich dark tones. The scene feels like a revelation is about to happen. LEFT side of frame.
 
-TYPOGRAPHY:
-1. CENTER — Giant question mark "?" as a design element (very large, ${hex}, semi-transparent, behind the main text)
-2. TOP-LEFT area (y=9%–32%): Main headline:
-   • "${h1}" — ultra-bold white, large Anton/Impact
-   • "${h2}" — ultra-bold ${hex}, same size, line below
-3. CENTER — Three mystery/hint pills (dark background, ${hex} border, white text):
-   • "◆ ${copy?.h1 || sub}"
-   • "◆ ${copy?.h2 || b1}"
-   • "◆ ${copy?.h3 || b2}"
-4. BOTTOM — "${sub}" — white italic on dark strip
-Product zone: RIGHT LOWER (x 52–92%, y 55–92%) — keep CLEAR.
+TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
+1. GIANT "?" DESIGN ELEMENT — very large, ${hex}, semi-transparent (30% opacity), behind main text, centered
+2. TOP-LEFT HEADLINE area (y=9%–34%):
+   • "${h1}" — ultra-bold white Anton/Impact, large, left-aligned
+   • "${h2}" — ultra-bold ${hex}, same large size, line below
+3. MID-LEFT BODY (y=35%–43%): dark pill, white italic: "${ptShort}"
+4. CENTER MYSTERY PILLS (y=44%–72%, x 2%–52%):
+   • Dark card with ${hex} left border: "◆ ${copy?.h1 || sub}"
+   • Dark card with ${hex} left border: "◆ ${copy?.h2 || b1}"
+   • Dark card with ${hex} left border: "◆ ${copy?.h3 || b2}"
+5. BOTTOM STRIP (full width, y=85%–93%, ${hex} background): "${cta}" — bold white centered
+6. BELOW BOTTOM (y=94%–98%): "${sub}" — small white italic centered
+7. UPPER-RIGHT corner badge (x 66%–96%, y 10%–20%): small rounded badge: "${pname || 'Descubre'}" — dark bg, ${hex} text
 
-DECORATIVE: Dramatic vignette. Spotlight beam effect. Floating particles. Cinematic letterbox bands.
+PRODUCT ZONE: RIGHT LOWER (x 54%–94%, y 50%–84%) — KEEP COMPLETELY CLEAR.
+DECORATIVE: Dramatic dark vignette. Spotlight beam effect. Floating light particles. Cinematic atmosphere.
 
 STYLE: Intriguing, mysterious, irresistible. Dark cinematic drama. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
+${COPY_DENSITY_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   // ── PRICE ────────────────────────────────────────────────────────────────────
@@ -624,29 +687,32 @@ PRODUCT: ${ctx}
 
 BACKGROUND SCENE:
 ${SCENE_ADAPT}
-MOOD: Energetic, celebratory. The target customer excited and celebrating — vibrant bright colors, festive confetti-like atmosphere, dynamic lighting. Upper 50%.
+MOOD: Energetic, celebratory. The target customer excited and celebrating — vibrant bright colors, festive confetti-like atmosphere, dynamic lighting. TOP 55% of frame.
 
-TYPOGRAPHY:
-1. TOP-LEFT (y=9%–17%): Small ${hex} pill badge: "🏷 OFERTA ESPECIAL"
-2. UPPER CENTER (y=17%–36%): Headline:
-   • "${h1}" — ultra-bold white, large, no shadow
-   • "${h2}" — ultra-bold ${hex}, same size
-3. CENTER — Large value display box (white background, rounded, shadow):
-   • Sub-text small: "${sub}"
-   • Scarcity line bold: "${b1 || '¡Solo por tiempo limitado!'}"
-   All text dark, clean, premium.
-4. LOWER-LEFT to CENTER (product zone, x 5–55%, y 58–95%): KEEP COMPLETELY CLEAR — product composited here.
-5. LOWER-RIGHT (x 58–98%, y 65–95%): Value stack in ${hex} background card:
+TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
+1. TOP-LEFT (y=9%–19%): Wide ${hex} pill badge: "🏷 OFERTA ESPECIAL" — bold white, hourglass icon left
+2. UPPER CENTER (y=20%–40%): Headline:
+   • "${h1}" — ultra-bold white Anton/Impact, large, no shadow
+   • "${h2}" — ultra-bold ${hex}, same size, line below
+3. MID CENTER (y=41%–49%): Large value display box (white background, rounded, drop-shadow):
+   • Sub-text small dark: "${ptShort}"
+   • Scarcity line bold dark: "${b1 || '¡Solo por tiempo limitado!'}"
+4. LOWER-LEFT (x 2%–52%, y 50%–62%): dark italic strip, white text: "${sub}"
+5. LOWER-LEFT to CENTER PRODUCT ZONE (x 4%–54%, y 62%–95%): KEEP COMPLETELY CLEAR
+6. LOWER-RIGHT VALUE CARD (x 56%–98%, y 65%–88%, ${hex} background, rounded):
    • "✓ Envío gratis"
    • "✓ Garantía incluida"
    • "✓ Pago seguro"
+   All bold white text
+7. BOTTOM STRIP (y=89%–97%, dark): "${cta}" — bold white ${hex} pill button, centered
 
-DECORATIVE: Confetti or geometric celebration shapes. Diagonal ${hex} accent stripe. Festive energy burst behind price box.
+DECORATIVE: Confetti or geometric shapes floating. Diagonal ${hex} energy stripe. Celebration burst behind headline.
 
-STYLE: Celebratory, value-forward, high-energy. Clear price emphasis. Premium feel despite the deal angle. NO prices with numbers, NO URLs.
+STYLE: Celebratory, value-forward, high-energy. Premium feel. NO actual prices with numbers, NO URLs.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
+${COPY_DENSITY_RULE}
 ${NO_LABEL_RULE}`.trim();
 
   return null;

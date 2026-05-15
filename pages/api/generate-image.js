@@ -725,6 +725,52 @@ ${NO_LABEL_RULE}`.trim();
 // ICON_STRIP_ANGLES is now unused — all angles use full Gemini design
 const ICON_STRIP_ANGLES = new Set([]);
 
+// ─── ICON PANEL GENERATION ───────────────────────────────────────────────────
+
+// Angles that use the feature strip at the bottom — icon panel is generated for these
+const ICON_STRIP_ANGLES_ACTIVE = new Set(['pain', 'urgency']);
+
+async function generateIconPanel(productContext, copy, primaryColor, apiKey) {
+  const features = [
+    copy.f1 || copy.b1 || 'Resultado visible',
+    copy.f2 || copy.b2 || 'Fórmula premium',
+    copy.f3 || copy.b3 || 'Uso diario',
+    copy.f4 || copy.cta || 'Garantizado',
+  ];
+
+  const prompt = `Generate a wide horizontal strip image (4:1 aspect ratio) with exactly 4 photorealistic 3D-rendered icon objects evenly distributed across it.
+
+Product: ${productContext}
+
+Each icon represents one of these 4 benefit concepts — derive the specific 3D object visually from the product context:
+1. "${features[0]}"
+2. "${features[1]}"
+3. "${features[2]}"
+4. "${features[3]}"
+
+STRICT REQUIREMENTS:
+• Background: pure solid very dark color, near-black (#0d1117) — fills the entire image
+• 4 icons placed in equal columns, one per quarter, each centered
+• Icon style: photorealistic 3D rendered objects with subtle ${primaryColor} glow and cinematic lighting from above
+• Icon materials: glass, metallic, or organic — premium commercial 3D render quality
+• Each icon takes up ~65% of its column width — small and well-lit
+• ABSOLUTELY NO text, NO labels, NO letters, NO borders, NO frames — only the 4 icon objects on dark background
+• Icons must clearly represent different concepts, not repeated`;
+
+  const res = await fetch(GEMINI_IMAGE_URL(apiKey), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) return null;
+  const imgPart = data.candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
+  return imgPart ? { data: imgPart.inlineData.data } : null;
+}
+
 // ─── BACKGROUND / FULL-DESIGN GENERATION ─────────────────────────────────────
 
 // productBase64: when provided, Gemini integrates the product into the scene directly.
@@ -833,19 +879,19 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, icon
     layers.push({ input: resizedProduct, ...placement, blend: 'over' });
   }
 
-  // 4. AI icon panel (canvas-template angles only)
+  // 4. AI icon panel — covers only the icon zone (top 53% of strip), never the text labels
   if (iconPanelBase64) {
     try {
       const stripH = Math.round(h * 0.205);
-      const iconAreaH = Math.round(stripH * 0.68);
-      const iconTop = h - stripH + Math.round((stripH - iconAreaH) / 2) - 8;
+      const iconAreaH = Math.round(stripH * 0.53); // stops before text labels start at ~64%
+      const iconTop = h - stripH + 5;              // just below the accent line
       const resizedIcons = await sharp(Buffer.from(iconPanelBase64, 'base64'))
         .resize(w, iconAreaH, { fit: 'fill' })
-        .png()
+        .jpeg({ quality: 88 })
         .toBuffer();
       layers.push({ input: resizedIcons, left: 0, top: iconTop, blend: 'over' });
     } catch {
-      // icon panel composite failed — canvas fallback icons remain visible
+      // icon panel composite failed — canvas fallback circles remain visible
     }
   }
 
@@ -901,23 +947,35 @@ export default async function handler(req, res) {
         const enrichedCopy = { ...(copy || {}), productName: productName || '' };
         const hasProduct = !!productImageBase64;
 
-        // 2. Gemini generates BACKGROUND SCENE ONLY — no text, no product
+        // 2. Build scene prompt
         const scenePromptFn = ANGLE_SCENES[a] || ANGLE_SCENES.desire;
         let scenePrompt = scenePromptFn(productContext, format);
         if (adjustmentInstruction) {
           scenePrompt += `\n\nSCENE ADJUSTMENT: ${adjustmentInstruction}`;
         }
-        const bgImage = await generateBackground(scenePrompt, apiKey);
 
-        // 3. Canvas renders ALL text programmatically — guaranteed correct Spanish
+        // 3. Generate background scene + icon panel in parallel (icon panel only for strip angles)
+        const needsIconPanel = ICON_STRIP_ANGLES_ACTIVE.has(a);
+        const [bgResult, iconResult] = await Promise.allSettled([
+          generateBackground(scenePrompt, apiKey),
+          needsIconPanel
+            ? generateIconPanel(productContext, enrichedCopy, primaryColor, apiKey)
+            : Promise.resolve(null),
+        ]);
+
+        if (bgResult.status === 'rejected') throw bgResult.reason;
+        const bgImage = bgResult.value;
+        const iconPanelData = iconResult.status === 'fulfilled' ? iconResult.value : null;
+
+        // 4. Canvas renders ALL text programmatically — guaranteed correct Spanish
         const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct);
 
-        // 4. Composite: background + text template + product photo
+        // 5. Composite: background + text template + product photo + AI icon panel
         const composited = await compositeAll({
           backgroundBase64: bgImage.data,
           templatePng,
           productBase64: productImageBase64 || null,
-          iconPanelBase64: null,
+          iconPanelBase64: iconPanelData?.data || null,
           format,
           angle: a,
           fullDesign: false,

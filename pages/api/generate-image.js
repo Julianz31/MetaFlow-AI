@@ -879,14 +879,13 @@ function getProductPlacement(angle, w, h, pw) {
 // Generates a single photorealistic square icon image for a benefit/feature text.
 async function generateIconImage(benefitText, productContext, primaryColor) {
   const categoryHint = productContext.substring(0, 80);
-  const prompt = `Single icon illustration for a premium product advertisement. Square 1:1 format.
-CONCEPT: Visually represent "${benefitText}" as a clean, centered icon or symbol.
-STYLE: Modern flat illustration or minimal product photography. The main subject must be centered and fill 65-75% of the frame.
-BACKGROUND: Solid ${primaryColor} colored circle or background — keep it clean and uniform.
-FOREGROUND: White or bright illustration/symbol representing the concept. Clear, simple, recognizable.
-QUALITY: Sharp, high contrast, professional icon quality. No gradients on subject — flat and clean.
-NO text, letters, or words anywhere.
-Product category hint: ${categoryHint}`;
+  const prompt = `Single flat icon on solid ${primaryColor} background. Square 1:1.
+ICON: A single clean white flat vector-style symbol representing "${benefitText}".
+Examples: shield for "protection/guarantee", heart for "health/love", star for "quality", leaf for "natural", drop for "hydration", lightning for "energy/fast", paw for "pets", muscle arm for "strength".
+The white symbol must fill 55-65% of the frame, perfectly centered.
+Ultra-clean edges. No gradients. No text. No shadows. Pure flat white icon on ${primaryColor}.
+Style: Apple-quality system icon, flat design.
+Product: ${categoryHint}`;
   return generateBackground(prompt);
 }
 // ─── COMPOSITE: background + template + product ───────────────────────────────

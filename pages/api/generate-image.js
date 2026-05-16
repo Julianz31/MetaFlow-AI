@@ -339,11 +339,12 @@ function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format
 
   const prefix = `⚠️ MANDATORY CANVAS RULES — APPLY BEFORE ANY OTHER INSTRUCTION:
 1. Canvas size: ${dims} pixels (${aspectLabel}). Fill completely — no letterbox, no pillarbox.
-2. TOP SAFE ZONE: The first 9% of canvas height from the top edge is FORBIDDEN for any content. No text, no band, no badge, no overlay may have ANY pixel above y=9%. Any layout element described as "TOP" or "UPPER" must be shifted so its topmost edge sits at y=9%, not y=0.
-3. ALL text characters (including ascenders/descenders) must start at or below y=9% and end at or above y=94%. No letter may be clipped by the frame.
+2. TOP SAFE ZONE: The first 9% of canvas height from the top edge is FORBIDDEN for any content. No text, no band, no badge, no overlay may have ANY pixel above y=9%.
+3. ALL text characters must start at or below y=9% and end at or above y=94%. No letter may be clipped.
 4. Left and right margins: no element within 5% of left or right edge.
-5. MINIMUM TEXT DENSITY: Every ad must contain at least 6 distinct text elements (headline × 2 lines, subheadline, body sentence, 3+ bullets or feature points, badge, CTA). Fewer than 6 text layers = INCOMPLETE design.
-6. SPANISH ACCURACY: All Spanish text must be spelled correctly with proper accent marks. Proofread every word before rendering.
+5. SPANISH ACCURACY: All Spanish text must be spelled correctly with proper accent marks.
+6. 🚫 ABSOLUTE BAN ON CIRCLES AND ICONS: Do NOT draw any circular shapes, circular badges, circular icons, icon placeholders, or round graphic elements ANYWHERE in the design. This includes: icon circles before text, decorative round badges, timer circles, hourglass circles, arrow circles, muscle icons, leaf icons, or any emoji-style icon rendered as a circle. ALL badges and pills must be WIDE HORIZONTAL RECTANGLES with rounded corners — minimum width:height ratio of 4:1. A "pill" shape means WIDE AND FLAT, never circular. If you are tempted to add an icon, replace it with a short bold text label instead.
+7. 🚫 NO ICONS IN CTA STRIP: The bottom CTA strip contains ONLY the CTA text. No icons, no arrows, no symbols, no decorative elements alongside the text.
 
 `;
 
@@ -553,24 +554,25 @@ MOOD: High-energy, dynamic scene. Target customer in an excited, action-ready st
 
 TEXT LAYERS — 5 ELEMENTS, BOLD AND URGENT:
 
-1. URGENCY BADGE (y=9%–18%, x 3%–55%): HORIZONTAL RECTANGULAR pill (wide, short height ~8% canvas), solid ${hex} background, white ultra-bold text: "⏱ OFERTA LIMITADA — HOY". This must be a wide flat rectangle — NOT a circle, NOT a square.
+1. URGENCY LABEL (y=9%–17%, x 3%–50%): WIDE FLAT HORIZONTAL RECTANGLE (width ~47% canvas, height ~7% canvas), solid ${hex} fill, sharp corners allowed or very slightly rounded. White bold text inside: "OFERTA LIMITADA — SOLO HOY". No emojis. No icons. Text only inside the rectangle.
 
-2. HEADLINE BAND (semi-dark overlay, y=19%–48%):
+2. HEADLINE BAND (full-width semi-dark overlay, y=18%–48%):
    • "${h1}" — ultra-bold white Anton/Impact, ~13% canvas height, fills 82% width
    • "${h2}" — same ultra-bold, solid ${hex} color, same size
 
-3. SUBHEADLINE (y=49%–56%, x 2%–56%): white semi-transparent pill, bold dark text: "${ptShort}"
+3. SUBHEADLINE BAR (y=49%–56%, x 2%–56%): full-width dark bar, white italic text: "${ptShort}"
 
-4. FEATURE PILLS ROW (y=58%–68%, x 2%–56%): 4 RECTANGULAR dark rounded pills arranged in a 2×2 grid. Each pill = dark background + white bold text ONLY. NO circles, NO icons, NO circular elements, NO icon placeholders before the text:
-   [ ${f1} ]  [ ${f2} ]
-   [ ${f3} ]  [ ${f4} ]
-   (Pure text inside rectangular dark pills. Nothing else.)
+4. BENEFITS LIST (x 3%–54%, y 58%–82%): single dark semi-transparent card. Inside: 4 lines of white bold text, each preceded by a "▶" or "—" text character (NOT a circle, NOT an icon):
+   ▶ ${f1}
+   ▶ ${f2}
+   ▶ ${f3}
+   ▶ ${f4}
 
-5. BOTTOM CTA STRIP (full-width, y=87%–96%, solid ${hex} background): "${cta}" — ultra-bold uppercase white centered, ~36px. NO icons in the CTA strip. Text only.
+5. BOTTOM CTA STRIP (full-width, y=85%–95%, solid ${hex} background): "${cta}" — ultra-bold uppercase white centered, ~36px. TEXT ONLY. No icons, no arrows, no symbols.
 
-PRODUCT ZONE: x 58%–97%, y 44%–86% — KEEP COMPLETELY CLEAR.
+PRODUCT ZONE: x 58%–97%, y 44%–84% — KEEP COMPLETELY CLEAR. No text, no overlays, no decorations here.
 
-STYLE: Bold, loud, high-energy ad. Background partially visible. Urgency badge dominates top. Headline massive. Features as clean rectangular text pills. Strong CTA. NO circular elements anywhere. NO icon placeholders. NO prices, NO URLs.
+STYLE: Bold, high-energy, urgent. Background scene visible. One dominant headline. Benefits as a clean dark text card. Strong full-width CTA strip. NO circular shapes anywhere. NO icon decorations. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}

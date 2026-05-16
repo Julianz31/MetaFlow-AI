@@ -415,7 +415,7 @@ TEXT LAYERS — 5 ELEMENTS, BOLD AND CLEAN:
 
 4. BOTTOM CTA STRIP (full-width, y=86%–95%, solid ${hex} background): "${cta}" — ultra-bold uppercase white, centered, ~34px
 
-5. TOP-RIGHT BADGE (x 66%–97%, y 10%–22%): small rounded pill, ${hex} background, white bold: "${pname || 'Solución Comprobada'}"
+5. TOP-RIGHT BADGE (x 66%–97%, y 10%–20%): small HORIZONTAL RECTANGULAR pill (wide, short), ${hex} background, white bold: "${pname || 'Solución Comprobada'}". Must be a flat wide rectangle — NOT a circle.
 
 PRODUCT ZONE: x 3%–42%, y 48%–85% — KEEP COMPLETELY CLEAR. No text, no overlays here.
 
@@ -452,7 +452,7 @@ TEXT LAYERS — 5 ELEMENTS, BOLD AND ASPIRATIONAL:
 
 4. BOTTOM CTA STRIP (full-width, y=85%–94%, solid ${hex} background): "${cta}" — ultra-bold uppercase white centered, ~34px
 
-5. TOP-RIGHT BADGE (x 66%–97%, y 10%–22%): small ${hex} rounded pill, white bold: "${pname || 'Resultado Garantizado'}"
+5. TOP-RIGHT BADGE (x 66%–97%, y 10%–20%): small HORIZONTAL RECTANGULAR pill (wide, short), ${hex} background, white bold: "${pname || 'Resultado Garantizado'}". Must be a flat wide rectangle — NOT a circle.
 
 PRODUCT ZONE: x 3%–40%, y 43%–84% — KEEP COMPLETELY CLEAR. No text, no overlays here.
 
@@ -553,7 +553,7 @@ MOOD: High-energy, dynamic scene. Target customer in an excited, action-ready st
 
 TEXT LAYERS — 5 ELEMENTS, BOLD AND URGENT:
 
-1. URGENCY BADGE (y=9%–18%, x 3%–55%): wide rounded pill, solid ${hex} background, white ultra-bold: "⏱ OFERTA LIMITADA — HOY"
+1. URGENCY BADGE (y=9%–18%, x 3%–55%): HORIZONTAL RECTANGULAR pill (wide, short height ~8% canvas), solid ${hex} background, white ultra-bold text: "⏱ OFERTA LIMITADA — HOY". This must be a wide flat rectangle — NOT a circle, NOT a square.
 
 2. HEADLINE BAND (semi-dark overlay, y=19%–48%):
    • "${h1}" — ultra-bold white Anton/Impact, ~13% canvas height, fills 82% width
@@ -561,15 +561,16 @@ TEXT LAYERS — 5 ELEMENTS, BOLD AND URGENT:
 
 3. SUBHEADLINE (y=49%–56%, x 2%–56%): white semi-transparent pill, bold dark text: "${ptShort}"
 
-4. FEATURE PILLS ROW (y=58%–68%, x 2%–56%): 4 dark rounded pills in a 2×2 grid, each white bold text ~24px:
+4. FEATURE PILLS ROW (y=58%–68%, x 2%–56%): 4 RECTANGULAR dark rounded pills arranged in a 2×2 grid. Each pill = dark background + white bold text ONLY. NO circles, NO icons, NO circular elements, NO icon placeholders before the text:
    [ ${f1} ]  [ ${f2} ]
    [ ${f3} ]  [ ${f4} ]
+   (Pure text inside rectangular dark pills. Nothing else.)
 
-5. BOTTOM CTA STRIP (full-width, y=87%–96%, solid ${hex} background): "${cta}" — ultra-bold uppercase white centered, ~36px
+5. BOTTOM CTA STRIP (full-width, y=87%–96%, solid ${hex} background): "${cta}" — ultra-bold uppercase white centered, ~36px. NO icons in the CTA strip. Text only.
 
 PRODUCT ZONE: x 58%–97%, y 44%–86% — KEEP COMPLETELY CLEAR.
 
-STYLE: Bold, loud, high-energy ad. Background partially visible. Urgency badge dominates top. Headline massive. Features as clean pills. Strong CTA. NO prices, NO URLs, NO extra decoration.
+STYLE: Bold, loud, high-energy ad. Background partially visible. Urgency badge dominates top. Headline massive. Features as clean rectangular text pills. Strong CTA. NO circular elements anywhere. NO icon placeholders. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}

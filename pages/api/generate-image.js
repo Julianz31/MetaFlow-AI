@@ -323,11 +323,13 @@ const NO_LABEL_RULE = `CRITICAL RENDERING RULES:
   - Double-check every word ending in "-ción", "-ción", "-mente", "-ado", "-ido" for correct spelling
 • TEXT DENSITY: A professional Facebook ad must have MINIMUM 5 distinct text elements. Sparse text = low-converting ad. Fill the design with copy — headlines, subheadlines, bullets, badges, callouts, CTA.`;
 
-const COPY_DENSITY_RULE = `TEXT RICHNESS RULE — High-converting ads have RICH typography:
-• Every design must include at minimum: (1) massive headline, (2) supporting subheadline, (3) body copy sentence, (4) 3+ bullet points or feature pills, (5) badge/callout element, (6) CTA button or action strip.
-• Use varied font sizes: headline at ~15% canvas height, subheadline at ~5%, body at ~3%, bullets at ~2.5%, badges at ~2%.
-• Use typographic contrast: ultra-bold headlines + regular body + semi-bold bullets. Mix uppercase headlines with sentence-case body copy.
-• All text must be on high-contrast backgrounds: dark overlay behind white text, or white/light panel behind dark text. Never text directly over busy image areas without a backing layer.`;
+const COPY_DENSITY_RULE = `TEXT QUALITY RULE — High-converting ads are BOLD and CLEAN, not cluttered:
+• LESS IS MORE: Include only (1) one MASSIVE headline (2 lines), (2) one supporting subheadline or benefit sentence, (3) 3 benefit bullets with ✓ or ✗ icons, (4) one strong full-width CTA strip, (5) one small brand/product badge.
+• Headline font size: ~13-15% of canvas height — it must dominate the image. Bullets: ~3%. CTA: ~4%.
+• DO NOT stack multiple dark panels or cards on top of each other. Use ONE clean overlay per section.
+• Product must be clearly visible — never cover more than 40% of the product zone with text elements.
+• Background scene must be partially visible — no more than 60% of the image covered with overlays.
+• All text on high-contrast backgrounds: dark overlay behind white text, or white/light panel behind dark text.`;
 
 function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format, hasProduct = false) {
   const prompt = _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct);
@@ -389,30 +391,35 @@ AD PERFORMANCE RULES — This is a paid Facebook/Instagram ad competing in a noi
 
   // ── PAIN ─────────────────────────────────────────────────────────────────────
   if (angle === 'pain') return `
-Design a COMPLETE ${dims} professional Facebook ad. Every design element must be included — background scene, typography, overlays, decorative graphics. World-class advertising quality.
+Design a COMPLETE ${dims} premium Facebook ad. Clean, bold, product-forward. Agency quality.
 
 PRODUCT: ${ctx}
 
-BACKGROUND SCENE (photorealistic, 8K):
+BACKGROUND SCENE (photorealistic, cinematic 8K):
 ${SCENE_ADAPT}
-MOOD: The target customer on the RIGHT 55% of the frame showing genuine frustration, worry, or pain about the exact problem this product solves — moody dramatic lighting, cinematic depth-of-field bokeh. LEFT LOWER quadrant (x 0–38%, y 55–100%): a clean surface appropriate to the product category — keep this area NEUTRAL AND CLEAR.
+MOOD: RIGHT 55% of frame — target customer showing genuine frustration or pain related to the product. Moody dramatic lighting, soft bokeh. LEFT side (x 0–42%, y 48%–92%): COMPLETELY CLEAR neutral surface — this zone is reserved for the product photo overlay. Do NOT place person, objects, or decoration here.
 
-TYPOGRAPHY — 6 REQUIRED TEXT LAYERS (render all text sharply):
-1. TOP BAND — Full-width dark overlay (y=9%–48% of canvas, h≈39%). Inside this band:
-   • Line 1: "${h1}" — ultra-bold Impact/Anton font, pure WHITE, font size fills ~80% canvas width, no shadow
-   • Line 2: "${h2}" — same ultra-bold font, color ${hex}, same massive size, no shadow
-2. BELOW HEADLINE (y=50%–57%) — Wide semi-transparent dark pill, white sentence-case text: "${ptShort}"
-3. LOWER-LEFT BULLETS PANEL (x 2%–44%, y 58%–84%) — Dark translucent card, white bold header "EL PROBLEMA:", then three lines below:
-   • "✗ ${b1}"
-   • "✗ ${b2}"
-   • "✗ ${b3}"
-4. LOWER-LEFT BOTTOM (x 2%–44%, y 85%–94%) — ${hex} rounded pill: "${cta}" — bold white centered
-5. UPPER-RIGHT corner badge (x 68%–98%, y 10%–22%) — small rounded rectangle, ${hex} background, white bold text: "${pname || 'Solución Natural'}"
-6. RIGHT-CENTER area (x 52%–98%, y 50%–58%) — small italic white text on dark strip: "${sub}"
+TEXT LAYERS — 5 ELEMENTS, BOLD AND CLEAN:
 
-DECORATIVE: 3–4 small thematic icons in white ~40% opacity scattered upper-right. Dark vignette top & bottom. Thin ${hex} accent line below the headline band.
+1. TOP BAND (full-width semi-dark overlay, y=9%–46%):
+   • "${h1}" — ultra-bold white Anton/Impact, font size ~14% of canvas height, fills 80% width
+   • "${h2}" — same ultra-bold, color ${hex}, same size
 
-STYLE: Premium emotional Facebook ad. Cinematic 8K. Dramatic moody tone. NO prices, NO URLs.
+2. SUBHEADLINE PILL (y=47%–54%, x 2%–98%): semi-transparent dark rounded bar, white italic text: "${ptShort}"
+
+3. LEFT PAIN BULLETS (x 3%–42%, y 56%–84%): single dark card, ${hex} left-side accent bar, bold white text:
+   ✗  ${b1}
+   ✗  ${b2}
+   ✗  ${b3}
+   (Each line ~28px bold, well-spaced. No header label — bullets only.)
+
+4. BOTTOM CTA STRIP (full-width, y=86%–95%, solid ${hex} background): "${cta}" — ultra-bold uppercase white, centered, ~34px
+
+5. TOP-RIGHT BADGE (x 66%–97%, y 10%–22%): small rounded pill, ${hex} background, white bold: "${pname || 'Solución Comprobada'}"
+
+PRODUCT ZONE: x 3%–42%, y 48%–85% — KEEP COMPLETELY CLEAR. No text, no overlays here.
+
+STYLE: Premium cinematic ad. Clean design — background scene clearly visible. One dominant headline, clean bullet card, bold CTA. NO prices, NO URLs, NO extra decorative elements.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
@@ -421,30 +428,35 @@ ${NO_LABEL_RULE}`.trim();
 
   // ── DESIRE ───────────────────────────────────────────────────────────────────
   if (angle === 'desire') return `
-Design a COMPLETE ${dims} professional Facebook ad. World-class advertising quality.
+Design a COMPLETE ${dims} premium Facebook ad. Clean, aspirational, product-forward. Agency quality.
 
 PRODUCT: ${ctx}
 
-BACKGROUND SCENE (photorealistic, 8K):
+BACKGROUND SCENE (photorealistic, cinematic 8K):
 ${SCENE_ADAPT}
-MOOD: The target customer on the RIGHT 58% of the frame, radiant and happy after experiencing the product's results — warm golden sunlight, bokeh, vibrant colors. LEFT area: a bright clean surface appropriate to the product category (x 0–38%, y 40–90%) — keep this zone NEUTRAL AND CLEAN.
+MOOD: RIGHT 58% of frame — target customer glowing, radiant, happy — they've achieved the ideal result this product delivers. Warm golden sunlight, cinematic bokeh, rich warm colors. LEFT side (x 0%–40%, y 42%–90%): COMPLETELY CLEAR bright neutral surface — product photo zone. No person or objects here.
 
-TYPOGRAPHY — 6 REQUIRED TEXT LAYERS (render all text sharply):
-1. TOP BAND — Semi-dark gradient overlay (y=9%–47% of canvas, h≈38%). Inside this band:
-   • Line 1: "${h1}" — ultra-bold white Anton/Impact, fills ~80% canvas width, no shadow
-   • Line 2: "${h2}" — same font, color ${hex}, same massive size, no shadow
-2. BELOW HEADLINE (y=49%–57%) — White rounded badge with ${hex} left accent bar: "✓ ${ptShort}"
-3. LOWER-LEFT BENEFITS CARD (x 2%–44%, y 59%–83%) — White semi-transparent card with rounded corners, dark text header "RESULTADOS REALES:", then:
-   • "✓ ${b1}"
-   • "✓ ${b2}"
-   • "✓ ${b3}"
-4. LOWER-LEFT BOTTOM (x 2%–44%, y 84%–94%) — ${hex} rounded pill button: "${cta}" — bold white centered
-5. UPPER-RIGHT badge (x 66%–96%, y 10%–21%) — small ${hex} rounded rectangle: "${pname || 'Resultado Garantizado'}" — bold white text
-6. MID-RIGHT (x 52%–96%, y 50%–58%) — small white italic text on semi-dark strip: "${sub}"
+TEXT LAYERS — 5 ELEMENTS, BOLD AND ASPIRATIONAL:
 
-DECORATIVE: Warm golden bokeh particles. Thin ${hex} accent line below headline band. Soft warm vignette. Sparkle ✨ icons beside checkmarks.
+1. TOP BAND (semi-dark gradient overlay, y=9%–45%):
+   • "${h1}" — ultra-bold white Anton/Impact, ~14% canvas height, fills 80% width
+   • "${h2}" — same ultra-bold, color ${hex}, same size
 
-STYLE: Aspirational, warm, magazine-quality Facebook ad. Cinematic golden-hour lighting. NO prices, NO URLs.
+2. SUBHEADLINE (y=46%–53%, x 2%–98%): white rounded pill with ${hex} left-accent bar: "✓ ${ptShort}"
+
+3. LEFT RESULTS BULLETS (x 3%–41%, y 55%–83%): single white semi-transparent card, dark bold text:
+   ✓  ${b1}
+   ✓  ${b2}
+   ✓  ${b3}
+   (Each line ~27px bold dark text on white card. Well-spaced. No header label.)
+
+4. BOTTOM CTA STRIP (full-width, y=85%–94%, solid ${hex} background): "${cta}" — ultra-bold uppercase white centered, ~34px
+
+5. TOP-RIGHT BADGE (x 66%–97%, y 10%–22%): small ${hex} rounded pill, white bold: "${pname || 'Resultado Garantizado'}"
+
+PRODUCT ZONE: x 3%–40%, y 43%–84% — KEEP COMPLETELY CLEAR. No text, no overlays here.
+
+STYLE: Warm, aspirational, magazine-quality ad. Background scene clearly visible. Bright palette. One dominant headline, clean result bullets, bold CTA. NO prices, NO URLs, NO extra decorative elements.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
@@ -453,31 +465,39 @@ ${NO_LABEL_RULE}`.trim();
 
   // ── TRANSFORMATION ───────────────────────────────────────────────────────────
   if (angle === 'transformation') return `
-Design a COMPLETE ${dims} professional Facebook ad. World-class advertising quality.
+Design a COMPLETE ${dims} premium Facebook ad. Dramatic before/after split. Agency quality.
 
 PRODUCT: ${ctx}
 
 ${SCENE_ADAPT}
 
-LAYOUT — SPLIT BEFORE/AFTER:
-LEFT HALF (x 0–50%): Desaturated, dark, moody atmosphere. Target customer in the BEFORE state — struggling with the exact problem this product solves. Dark blue-grey tone. Derive specific struggle and setting from the product context.
-RIGHT HALF (x 50–100%): Vibrant, warm, bright, full color. Same target customer in the AFTER state — thriving. Warm golden light. Same setting transformed.
-CENTER DIVIDER: Thin vertical accent line in ${hex} with bold "→" arrow at midpoint.
+LAYOUT — BOLD BEFORE/AFTER SPLIT:
 
-TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
-1. TOP SPANNING BANNER (full width, y=9%–30% of canvas, h≈21%, dark #111 background):
-   • "${h1}" — ultra-bold white Impact/Anton, left side of banner
-   • "${h2}" — ultra-bold ${hex}, right side, same massive size
-2. LEFT PANEL LABEL (x 5%–45%, y 32%–38%): "ANTES" label — bold white, ALL CAPS, small caps pill with dark background
-3. RIGHT PANEL LABEL (x 55%–95%, y 32%–38%): "DESPUÉS" label — bold ${hex}, ALL CAPS, small caps pill with ${hex} background
-4. LEFT lower dark card (x 2%–46%, y 72%–86%): "${b1}" — white text, 3 lines max
-5. RIGHT lower ${hex} card (x 54%–98%, y 72%–86%): "${a1}" — white text, 3 lines max
-6. BOTTOM CENTER strip (full width, dark, y=87%–94%): "${ptShort}" — white italic centered
-7. CENTER BADGE (x 40%–60%, y 60%–70%): circular or rounded badge, ${hex} background, bold white text: "${pname || '30 DÍAS'}"
+LEFT HALF (x 0%–49%): Desaturated, dark, cold atmosphere. Target customer in the BEFORE state — genuinely struggling with the exact problem this product solves. Dark blue-grey desaturated tones. Specific to product context.
 
-DECORATIVE: Large bold "→" arrow in ${hex} at center y=50%. Sparkle ✨ icons on the right AFTER side. Dark vignette edges.
+RIGHT HALF (x 51%–100%): Vibrant, warm, full color. Same target customer in the AFTER state — thriving and happy. Warm golden light. Same environment transformed.
 
-STYLE: Dramatic transformation contrast. Premium commercial quality. NO prices, NO URLs.
+CENTER: Thin vertical ${hex} divider line with a bold "→" arrow at y=52%.
+
+TEXT LAYERS — 5 ELEMENTS:
+
+1. TOP HEADLINE BAND (full-width, solid dark background #111, y=9%–28%):
+   • "${h1}" — ultra-bold white Anton/Impact, ~12% canvas height, left side
+   • "${h2}" — same ultra-bold ${hex}, right side, same size
+
+2. BEFORE LABEL (x 4%–44%, y 30%–37%): pill with dark #222 background, bold white uppercase: "ANTES"
+
+3. AFTER LABEL (x 56%–96%, y 30%–37%): pill with solid ${hex} background, bold white uppercase: "DESPUÉS"
+
+4. BEFORE card (x 3%–47%, y 72%–84%): dark semi-transparent card: "${b1}" — white bold text, 2 lines max
+
+5. AFTER card + CTA (x 53%–97%):
+   • y=72%–82%: ${hex} card: "${a1}" — white bold text, 2 lines max
+   • y=83%–92%: dark pill: "${cta}" — white ultra-bold centered
+
+BOTTOM STRIP (full-width, y=86%–94%, dark overlay): "${ptShort}" — white italic centered small
+
+STYLE: Dramatic, cinematic contrast. Left cold+dark vs right warm+vibrant. Clean split with clear labels. NO prices, NO URLs, NO extra decoration.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
@@ -523,29 +543,33 @@ ${NO_LABEL_RULE}`.trim();
 
   // ── URGENCY ──────────────────────────────────────────────────────────────────
   if (angle === 'urgency') return `
-Design a COMPLETE ${dims} professional Facebook ad. World-class advertising quality.
+Design a COMPLETE ${dims} premium Facebook ad. High-energy, bold, urgent. Agency quality.
 
 PRODUCT: ${ctx}
 
-BACKGROUND SCENE:
+BACKGROUND SCENE (photorealistic, cinematic 8K):
 ${SCENE_ADAPT}
-MOOD: High-energy, dynamic scene. The target customer in an active, excited state — vivid colors, dramatic lighting, motion feel. Dark dramatic gradient overlay covering 65% of the image for text readability.
+MOOD: High-energy, dynamic scene. Target customer in an excited, action-ready state — vivid colors, dramatic lighting. RIGHT 40% (x 58%–98%, y 45%–92%): COMPLETELY CLEAR — product photo zone. Do NOT place subjects or decorations here.
 
-TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
-1. TOP AREA (y=9%–19%): Bold urgency badge: "⏱ OFERTA LIMITADA" — wide rounded pill, ${hex} background, white ultra-bold text, hourglass icon left
-2. UPPER CENTER (y=20%–46%): Main headline:
-   • "${h1}" — ultra-bold white Impact/Anton font, fills ~85% width, no shadow
-   • "${h2}" — ultra-bold ${hex}, same massive size, line below
-3. MID CENTER (y=47%–54%): White semi-transparent rounded card: "${ptShort}"
-4. MID CENTER (y=55%–62%): Small italic ${hex} text: "${sub}"
-5. LOWER BAND (dark strip, y=63%–74%, full width): 4 feature pills separated by ${hex} vertical dividers:
-   "${f1}"  |  "${f2}"  |  "${f3}"  |  "${f4}"
-6. PRODUCT ZONE (x 55%–95%, y 58%–92%): KEEP CLEAR
-7. BOTTOM STRIP (y=88%–96%, ${hex} background): "${cta}" — bold white centered uppercase
+TEXT LAYERS — 5 ELEMENTS, BOLD AND URGENT:
 
-DECORATIVE: Red/orange diagonal energy glow behind headline. Timer icon top-left. ${hex} accent flash lines.
+1. URGENCY BADGE (y=9%–18%, x 3%–55%): wide rounded pill, solid ${hex} background, white ultra-bold: "⏱ OFERTA LIMITADA — HOY"
 
-STYLE: High-energy, urgent, conversion-driven. Bold, loud, dynamic. NO prices, NO URLs.
+2. HEADLINE BAND (semi-dark overlay, y=19%–48%):
+   • "${h1}" — ultra-bold white Anton/Impact, ~13% canvas height, fills 82% width
+   • "${h2}" — same ultra-bold, solid ${hex} color, same size
+
+3. SUBHEADLINE (y=49%–56%, x 2%–56%): white semi-transparent pill, bold dark text: "${ptShort}"
+
+4. FEATURE PILLS ROW (y=58%–68%, x 2%–56%): 4 dark rounded pills in a 2×2 grid, each white bold text ~24px:
+   [ ${f1} ]  [ ${f2} ]
+   [ ${f3} ]  [ ${f4} ]
+
+5. BOTTOM CTA STRIP (full-width, y=87%–96%, solid ${hex} background): "${cta}" — ultra-bold uppercase white centered, ~36px
+
+PRODUCT ZONE: x 58%–97%, y 44%–86% — KEEP COMPLETELY CLEAR.
+
+STYLE: Bold, loud, high-energy ad. Background partially visible. Urgency badge dominates top. Headline massive. Features as clean pills. Strong CTA. NO prices, NO URLs, NO extra decoration.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}

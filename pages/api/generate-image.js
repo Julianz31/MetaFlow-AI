@@ -307,18 +307,84 @@ function _splitHeadline(headline) {
   return [w.slice(0, m).join(' '), w.slice(m).join(' ') || w.slice(0, m).join(' ')];
 }
 
+function cleanSpanishSpelling(text) {
+  if (!text) return '';
+  return text
+    .replace(/\bnosutros\b/gi, 'nosotros')
+    .replace(/\bnosoutros\b/gi, 'nosotros')
+    .replace(/\bdiferncia\b/gi, 'diferencia')
+    .replace(/\bdiferricia\b/gi, 'diferencia')
+    .replace(/\bsuppcales\b/gi, 'suplementos')
+    .replace(/\babsrorición\b/gi, 'absorción')
+    .replace(/\babsoricion\b/gi, 'absorción')
+    .replace(/\bresultass\b/gi, 'resultados')
+    .replace(/\blimitade\b/gi, 'limitada')
+    .replace(/\bprecuera\b/gi, 'preocupa')
+    .replace(/\bvitailad\b/gi, 'vitalidad')
+    .replace(/\bvitatidad\b/gi, 'vitalidad')
+    .replace(/\bvitalad\b/gi, 'vitalidad')
+    .replace(/\bspetas\b/gi, 'Spets')
+    .replace(/\bspetas\s+liquidm\b/gi, 'Spets Líquido')
+    .replace(/\bspetas\s+liquido\b/gi, 'Spets Líquido')
+    .replace(/\bliquidm\b/gi, 'líquido')
+    .replace(/\bgarantias\b/gi, 'garantiza')
+    .replace(/\bgarantzas\b/gi, 'garantiza')
+    .replace(/\bgarantizzada\b/gi, 'garantizada')
+    .replace(/\bforto\b/gi, 'forte')
+    .replace(/\bhalta\b/gi, 'alta')
+    .replace(/\baproveha\b/gi, 'aprovecha')
+    .replace(/\baproveeva\b/gi, 'aprovecha')
+    .replace(/\bmovesre\b/gi, 'moverse')
+    .replace(/\bamingo\b/gi, 'amigo')
+    .replace(/\bpreocuaciones\b/gi, 'preocupaciones')
+    .replace(/\bsecerto\b/gi, 'secreto')
+    .replace(/\bcompaneo\b/gi, 'compañero')
+    .replace(/\bavanazda\b/gi, 'avanzada')
+    .replace(/\bbienesear\b/gi, 'bienestar')
+    .replace(/\bartuctucciones\s+rigídes\b/gi, 'articulaciones rígidas')
+    .replace(/\bartuctucciones\b/gi, 'articulaciones')
+    .replace(/\brigídes\b/gi, 'rígidas')
+    .replace(/\bsana\s+sana\b/gi, 'sana');
+}
+
+function cleanProductContextForImage(text) {
+  if (!text) return '';
+  return text
+    .replace(/\bgotero\b/gi, 'suplemento')
+    .replace(/\bdropper\s+bottle\b/gi, 'supplement')
+    .replace(/\bdropper\b/gi, 'supplement')
+    .replace(/\bbottle\b/gi, 'product')
+    .replace(/\bfrasco\b/gi, 'producto')
+    .replace(/\benvase\b/gi, 'producto')
+    .replace(/\bpackaging\b/gi, 'product')
+    .replace(/\bpackage\b/gi, 'product')
+    .replace(/\bjar\b/gi, 'product');
+}
+
+
 const NO_LABEL_RULE = `CRITICAL RENDERING RULES:
 • NEVER write instruction labels in the image such as "Text 1:", "Text 2:", "Line 1:", "Typography:", or any other descriptor. Render ONLY the actual text content.
 • NEVER include placeholder text like "[headline]" or "[subtext]" — only the real text provided.
 • Every text element must be rendered sharp, anti-aliased, and fully legible.
 • NO drop shadows on any text. All text is rendered clean and flat — no shadow, no glow, no blur behind letters.
-• SPELL ALL SPANISH WORDS CORRECTLY — this is non-negotiable. Proofread EVERY single word before rendering. Common errors to avoid:
-  - "movesre" → CORRECT: "moverse" | "garantizzada" → CORRECT: "garantizada" | "amingo" → CORRECT: "amigo"
-  - "PREOCUACIONES" → CORRECT: "PREOCUPACIONES" | "PREOCUPACION" → CORRECT: "PREOCUPACIÓN"
-  - "NOSOUTROS" → CORRECT: "NOSOTROS" | "SECERTO" → CORRECT: "SECRETO" | "COMPANEO" → CORRECT: "COMPAÑERO"
-  - "VITATIDAD" → CORRECT: "VITALIDAD" | "picazzon" → CORRECT: "picazón" | "apagada" is correct
-  - "AVANAZDA" → CORRECT: "AVANZADA" | "APROVEEVA" → CORRECT: "APROVECHA" | "BIENESEAR" → CORRECT: "BIENESTAR"
-  - "PERDER" alone is wrong in sentences like "tu perro PERDER" → use "PIERDE" | "SUFRE" is correct
+• SPELL ALL SPANISH WORDS CORRECTLY — this is non-negotiable. Proofread EVERY single word letter-by-letter before rendering. Specific incorrect words you MUST NOT use under any circumstances and their correct spelling:
+  - "NOSUTROS" or "NOSOUTROS" → CORRECT: "NOSOTROS"
+  - "Artuctucciones rigídes" or similar → CORRECT: "ARTICULACIONES RÍGIDAS" (or "Articulaciones rígidas")
+  - "diferncia" or "diferricia" → CORRECT: "diferencia"
+  - "suppcales" → CORRECT: "suplementos"
+  - "absrorición" or "absoricion" → CORRECT: "absorción"
+  - "resultass" → CORRECT: "resultados"
+  - "OFERTA LIMITADE" → CORRECT: "OFERTA LIMITADA"
+  - "precuera" → CORRECT: "preocupa"
+  - "vitailad" or "vitatidad" or "vitalad" → CORRECT: "vitalidad"
+  - "Spetas" or "Spetas Liquidm" → CORRECT: "Spets" or "Spets Liquid"
+  - "garantias" or "garantzas" or "garantizzada" → CORRECT: "garantiza" or "garantías"
+  - "forto" → CORRECT: "forte" (e.g. "fórmula forte")
+  - "halta" → CORRECT: "alta"
+  - "Aproveha" or "APROVEEVA" → CORRECT: "Aprovecha"
+  - "movesre" → CORRECT: "moverse" | "amingo" → CORRECT: "amigo"
+  - "PREOCUACIONES" → CORRECT: "PREOCUPACIONES" | "SECERTO" → CORRECT: "SECRETO" | "COMPANEO" → CORRECT: "COMPAÑERO"
+  - "AVANAZDA" → CORRECT: "AVANZADA" | "BIENESEAR" → CORRECT: "BIENESTAR"
   - Always add accent marks: "más", "también", "después", "además", "último", "cómo", "qué", "día", "solución"
   - Double-check every word ending in "-ción", "-ción", "-mente", "-ado", "-ido" for correct spelling
 • TEXT DENSITY: A professional Facebook ad must have MINIMUM 5 distinct text elements. Sparse text = low-converting ad. Fill the design with copy — headlines, subheadlines, bullets, badges, callouts, CTA.`;
@@ -332,7 +398,7 @@ const COPY_DENSITY_RULE = `TEXT QUALITY RULE — High-converting ads are BOLD an
 • All text on high-contrast backgrounds: dark overlay behind white text, or white/light panel behind dark text.`;
 
 function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format, hasProduct = false) {
-  const prompt = _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct);
+  const prompt = _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct, true);
   if (!prompt) return null;
   const dims = format === 'vertical' ? '1080x1920' : format === 'horizontal' ? '1920x1080' : '1080x1080';
   const aspectLabel = format === 'vertical' ? '9:16 portrait' : format === 'horizontal' ? '16:9 landscape' : '1:1 square';
@@ -346,6 +412,7 @@ function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format
 6. 🚫 ABSOLUTE BAN ON CIRCLES AND ICONS: Do NOT draw any circular shapes, circular badges, circular icons, icon placeholders, or round graphic elements ANYWHERE in the design. This includes: icon circles before text, decorative round badges, timer circles, hourglass circles, arrow circles, muscle icons, leaf icons, or any emoji-style icon rendered as a circle. ALL badges and pills must be WIDE HORIZONTAL RECTANGLES with rounded corners — minimum width:height ratio of 4:1. A "pill" shape means WIDE AND FLAT, never circular. If you are tempted to add an icon, replace it with a short bold text label instead.
 7. 🚫 NO ICONS IN CTA STRIP: The bottom CTA strip contains ONLY the CTA text. No icons, no arrows, no symbols, no decorative elements alongside the text.
 8. 🚫 ABSOLUTE BAN ON GENERATING THE PRODUCT ITSELF: Do NOT draw, generate, or render any product bottles, dropper bottles, jars, packages, containers, boxes, or product representations anywhere in the background or foreground! The background scene must represent the target lifestyle, people, pets, or environments ONLY, and must be completely clean of any generated product container. Keep the product zone completely blank and free of any generated product bottle. The actual product PNG will be overlaid by us.
+9. 🚫 BOTTOM CTA SAFE ZONE: The bottom CTA strip/button must be rendered strictly between y=86% and y=95% of the canvas height. Do NOT render any other cards, boxes, text, or elements below y=85% that could overlap with this zone. Keep the area from y=80% to y=85% completely clear and neutral as a transition zone.
 
 `;
 
@@ -354,11 +421,15 @@ function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format
   return prefix + prompt + suffix;
 }
 
-function _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct) {
+function _buildPromptBody(angle, productContext, copy, primaryColor, format, hasProduct, isFullDesign = false) {
   const [h1, h2] = _splitHeadline(copy?.headline || '');
   const sub    = copy?.description || (copy?.primaryText || '').split('.')[0] || '';
   const pt     = (copy?.primaryText || '').split('.').slice(0, 2).join('. ').trim() + (copy?.primaryText ? '.' : '');
-  const ptShort = (copy?.primaryText || '').split('.')[0].trim() || sub;
+  
+  // ptShort must be a clean punchy short subheadline under 55 characters to avoid wrapping, typos, and component overlapping.
+  const rawPtShort = copy?.description || (copy?.primaryText || '').split('.')[0].trim() || '';
+  const ptShort = rawPtShort.length > 55 ? rawPtShort.substring(0, 52) + '...' : rawPtShort;
+  
   const cta    = copy?.cta || 'Ver más';
   const pname  = copy?.productName || '';
   const hex    = primaryColor || '#6366f1';
@@ -373,9 +444,12 @@ function _buildPromptBody(angle, productContext, copy, primaryColor, format, has
   const s1 = copy?.s1 || ''; const s2 = copy?.s2 || ''; const s3 = copy?.s3 || '';
   const r1 = copy?.r1 || ''; const r2 = copy?.r2 || '';
 
-  const productRule = hasProduct
-    ? `\nPRODUCT INTEGRATION: The product image provided as the first input must be placed in the designated product zone. Integrate it naturally: match the scene lighting, correct perspective. The product label/packaging must remain clearly readable. Do NOT distort or stylize the product — keep it photorealistic.`
-    : `\nPRODUCT ZONE: Leave the designated product zone as a clean, neutral surface (table, pedestal, or empty space) — a product photo will be composited there later.`;
+  const productRule = isFullDesign
+    ? `\nSAFE ZONE FOR OVERLAY: The designated safe zone must be a completely seamless, natural, empty, and blurred part of the background environment (such as grass, room wall, floor, or outdoor foliage). It must contain absolutely no objects, no cards, no boxes, no pedestals, no containers, and no artificial elements of any kind. Keep it entirely vacant, clean, and neutral empty space.`
+    : (hasProduct
+        ? `\nPRODUCT INTEGRATION: The product image provided as the first input must be placed in the designated product zone. Integrate it naturally: match the scene lighting, correct perspective. The product label/packaging must remain clearly readable. Do NOT distort or stylize the product — keep it photorealistic.`
+        : `\nPRODUCT ZONE: Leave the designated product zone as a clean, neutral surface (table, pedestal, or empty space) — a product photo will be composited there later.`);
+
 
   // Universal rule for every angle — paid ad visual impact
   const IMPACT_RULE = `
@@ -399,7 +473,7 @@ PRODUCT: ${ctx}
 
 BACKGROUND SCENE (photorealistic, cinematic 8K):
 ${SCENE_ADAPT}
-MOOD: LEFT 55% of frame — target customer showing genuine frustration or pain related to the product. Moody dramatic lighting, soft bokeh. RIGHT side (x 58%–98%, y 48%–92%): COMPLETELY CLEAR neutral surface — this zone is reserved for the product photo overlay. Do NOT place person, objects, or decoration here.
+MOOD: LEFT 55% of frame — target customer showing genuine frustration or pain related to the product. Moody dramatic lighting, soft bokeh. RIGHT side (x 58%–98%, y 48%–92%): COMPLETELY CLEAR SAFE ZONE FOR OVERLAY. Do NOT place person, objects, or decoration here. Must be empty background scene only.
 
 TEXT LAYERS — 5 ELEMENTS, BOLD AND CLEAN:
 
@@ -419,7 +493,7 @@ TEXT LAYERS — 5 ELEMENTS, BOLD AND CLEAN:
 
 5. TOP-RIGHT BADGE (x 66%–97%, y 10%–20%): small HORIZONTAL RECTANGULAR pill (wide, short), ${hex} background, white bold: "${pname || 'Solución Comprobada'}". Must be a flat wide rectangle — NOT a circle.
 
-PRODUCT ZONE: x 58%–97%, y 48%–85% — KEEP COMPLETELY CLEAR. No text, no overlays here.
+SAFE ZONE FOR OVERLAY: x 58%–97%, y 48%–85% — KEEP COMPLETELY CLEAR. No text, no overlays here.
 
 STYLE: Premium cinematic ad. Clean design — background scene clearly visible. One dominant headline, clean bullet card, bold CTA. NO prices, NO URLs, NO extra decorative elements.
 ${fmt}
@@ -428,7 +502,6 @@ ${IMPACT_RULE}
 ${COPY_DENSITY_RULE}
 ${NO_LABEL_RULE}`.trim();
 
-  // ── DESIRE ───────────────────────────────────────────────────────────────────
   if (angle === 'desire') return `
 Design a COMPLETE ${dims} premium Facebook ad. Clean, aspirational, product-forward. Agency quality.
 
@@ -436,7 +509,7 @@ PRODUCT: ${ctx}
 
 BACKGROUND SCENE (photorealistic, cinematic 8K):
 ${SCENE_ADAPT}
-MOOD: LEFT 58% of frame — target customer glowing, radiant, happy — they've achieved the ideal result this product delivers. Warm golden sunlight, cinematic bokeh, rich warm colors. RIGHT side (x 58%–98%, y 42%–90%): COMPLETELY CLEAR bright neutral surface — product photo zone. No person or objects here.
+MOOD: LEFT 58% of frame — target customer glowing, radiant, happy — they've achieved the ideal result this product delivers. Warm golden sunlight, cinematic bokeh, rich warm colors. RIGHT side (x 58%–98%, y 42%–90%): COMPLETELY CLEAR SAFE ZONE FOR OVERLAY. No person or objects here.
 
 TEXT LAYERS — 5 ELEMENTS, BOLD AND ASPIRATIONAL:
 
@@ -456,7 +529,7 @@ TEXT LAYERS — 5 ELEMENTS, BOLD AND ASPIRATIONAL:
 
 5. TOP-RIGHT BADGE (x 66%–97%, y 10%–20%): small HORIZONTAL RECTANGULAR pill (wide, short), ${hex} background, white bold: "${pname || 'Resultado Garantizado'}". Must be a flat wide rectangle — NOT a circle.
 
-PRODUCT ZONE: x 58%–97%, y 43%–84% — KEEP COMPLETELY CLEAR. No text, no overlays here.
+SAFE ZONE FOR OVERLAY: x 58%–97%, y 43%–84% — KEEP COMPLETELY CLEAR. No text, no overlays here.
 
 STYLE: Warm, aspirational, magazine-quality ad. Background scene clearly visible. Bright palette. One dominant headline, clean result bullets, bold CTA. NO prices, NO URLs, NO extra decorative elements.
 ${fmt}
@@ -530,7 +603,7 @@ TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
    • "✓ ${s1}"
    • "✓ ${s2}"
    • "✓ ${s3}"
-4. CENTER DIVIDER vertical line with "VS" pill badge. Keep center zone (x 38%-62%) clear for product.
+4. CENTER DIVIDER vertical line with "VS" pill badge. Keep center zone (x 38%-62%) completely empty as a SAFE ZONE FOR OVERLAY.
 5. BOTTOM STRIP (y=85%–94%, ${hex} background): "${cta}" — bold white centered button
 6. UPPER-RIGHT corner (x 68%–97%, y 10%–20%): small white rounded badge: "${pname || 'Garantizado'}"
 
@@ -551,7 +624,7 @@ PRODUCT: ${ctx}
 
 BACKGROUND SCENE (photorealistic, cinematic 8K):
 ${SCENE_ADAPT}
-MOOD: High-energy, dynamic scene. Target customer in an excited, action-ready state — vivid colors, dramatic lighting. RIGHT 40% (x 58%–98%, y 45%–92%): COMPLETELY CLEAR — product photo zone. Do NOT place subjects or decorations here.
+MOOD: High-energy, dynamic scene. Target customer in an excited, action-ready state — vivid colors, dramatic lighting. RIGHT 40% (x 58%–98%, y 45%–92%): COMPLETELY CLEAR SAFE ZONE FOR OVERLAY. Do NOT place subjects or decorations here.
 
 TEXT LAYERS — 5 ELEMENTS, BOLD AND URGENT:
 
@@ -571,7 +644,7 @@ TEXT LAYERS — 5 ELEMENTS, BOLD AND URGENT:
 
 5. BOTTOM CTA STRIP (full-width, y=85%–95%, solid ${hex} background): "${cta}" — ultra-bold uppercase white centered, ~36px. TEXT ONLY. No icons, no arrows, no symbols.
 
-PRODUCT ZONE: x 58%–97%, y 44%–84% — KEEP COMPLETELY CLEAR. No text, no overlays, no decorations here.
+SAFE ZONE FOR OVERLAY: x 58%–97%, y 44%–84% — KEEP COMPLETELY CLEAR. No text, no overlays, no decorations here.
 
 STYLE: Bold, high-energy, urgent. Background scene visible. One dominant headline. Benefits as a clean dark text card. Strong full-width CTA strip. NO circular shapes anywhere. NO icon decorations. NO prices, NO URLs.
 ${fmt}
@@ -603,7 +676,7 @@ TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
 4. BOTTOM STRIP (y=87%–95%, ${hex} background): "${cta}" — bold white centered
 5. TOP-RIGHT corner (x 68%–97%, y 10%–21%): small white rounded badge: "${pname || 'Certificado'}"
 6. BOTTOM-LEFT (x 2%–32%, y 87%–94%): "${sub}" — small white italic on dark card
-PRODUCT ZONE: x 65%–97%, y 43%–86% — KEEP COMPLETELY CLEAR.
+SAFE ZONE FOR OVERLAY: x 65%–97%, y 43%–86% — KEEP COMPLETELY CLEAR.
 
 DECORATIVE: Certification seal graphic lower-right. Premium ${hex} accent lines. Clean precision design.
 
@@ -643,7 +716,7 @@ RIGHT (x 64%–98%, ${hex} background):
    • "✓ ${a1}"
    • "✓ ${a2}"
 
-CENTER COLUMN (x 45%–55%): Bold vertical white line with "VS" circular badge at midpoint. Product zone: bottom-center (x 38%–62%, y 57%–86%) — KEEP CLEAR.
+CENTER COLUMN (x 45%–55%): Bold vertical white line with "VS" circular badge at midpoint. Safe zone for overlay: bottom-center (x 38%–62%, y 57%–86%) — KEEP COMPLETELY CLEAR.
 
 BOTTOM STRIP (y=87%–95%, dark background): "${cta}" — bold white ${hex} pill button centered + "${sub}" small italic beside it.
 
@@ -714,7 +787,7 @@ TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
    • "★★★★★" in ${hex}
 5. BOTTOM STRIP (${hex} background, y=85%–91%): "${cta}" — bold white centered
 6. BELOW BOTTOM (y=92%–97%): "${sub}" — small white italic centered on dark strip
-PRODUCT ZONE: RIGHT LOWER (x 58%–97%, y 45%–84%) — KEEP COMPLETELY CLEAR.
+SAFE ZONE FOR OVERLAY: RIGHT LOWER (x 58%–97%, y 45%–84%) — KEEP COMPLETELY CLEAR.
 7. TOP-RIGHT corner badge (x 68%–97%, y 10%–20%): white rounded badge: "${pname || 'Ya Probado'}"
 
 DECORATIVE: Star ★ icons scattered subtly in background. Rating badge top. Warm golden vignette.
@@ -750,7 +823,7 @@ TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
 6. BELOW BOTTOM (y=94%–98%): "${sub}" — small white italic centered
 7. UPPER-RIGHT corner badge (x 66%–96%, y 10%–20%): small rounded badge: "${pname || 'Descubre'}" — dark bg, ${hex} text
 
-PRODUCT ZONE: RIGHT LOWER (x 54%–94%, y 50%–84%) — KEEP COMPLETELY CLEAR.
+SAFE ZONE FOR OVERLAY: RIGHT LOWER (x 54%–94%, y 50%–84%) — KEEP COMPLETELY CLEAR.
 DECORATIVE: Dramatic dark vignette. Spotlight beam effect. Floating light particles. Cinematic atmosphere.
 
 STYLE: Intriguing, mysterious, irresistible. Dark cinematic drama. NO prices, NO URLs.
@@ -779,7 +852,7 @@ TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
    • Sub-text small dark: "${ptShort}"
    • Scarcity line bold dark: "${b1 || '¡Solo por tiempo limitado!'}"
 4. LOWER-LEFT (x 2%–52%, y 50%–62%): dark italic strip, white text: "${sub}"
-5. LOWER-LEFT to CENTER PRODUCT ZONE (x 4%–54%, y 62%–95%): KEEP COMPLETELY CLEAR
+5. LOWER-LEFT to CENTER SAFE ZONE FOR OVERLAY (x 4%–54%, y 62%–95%): KEEP COMPLETELY CLEAR
 6. LOWER-RIGHT VALUE CARD (x 56%–98%, y 65%–88%, ${hex} background, rounded):
    • "✓ Envío gratis"
    • "✓ Garantía incluida"
@@ -938,28 +1011,30 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, icon
 
   // 3. Composite product photo with angle-aware placement
   if (productBase64) {
-    const targetH = Math.round(h * 0.48);
-    const targetW = Math.round(w * 0.32);
+    const isFull = !!fullDesign;
+    const targetH = isFull ? Math.round(h * 0.31) : Math.round(h * 0.48);
+    const targetW = isFull ? Math.round(w * 0.21) : Math.round(w * 0.32);
     const resizedProduct = await sharp(Buffer.from(productBase64, 'base64'))
       .resize({ height: targetH, width: targetW, fit: 'inside', withoutEnlargement: false })
       .png()
       .toBuffer();
 
+
     const { width: pw } = await sharp(resizedProduct).metadata();
 
     // Full-design product zones match what each prompt tells Gemini to leave clear
     const FULL_DESIGN_ZONES = {
-      pain:         (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.54) }),
+      pain:         (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
       desire:       (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.44) }),
-      transformation:(cw,ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.55) }),
-      objection:    (cw, ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.55) }),
-      urgency:      (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.44) }),
-      authority:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.43) }),
-      comparison:   (cw, ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.56) }),
-      guarantee:    (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.19) - Math.round(p/2)), top: Math.round(ch*0.50) }),
-      social_proof: (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.45) }),
-      curiosity:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.52), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.50) }),
-      price:        (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.22) - Math.round(p/2)), top: Math.round(ch*0.55) }),
+      transformation:(cw,ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.48) }),
+      objection:    (cw, ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.48) }),
+      urgency:      (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
+      authority:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
+      comparison:   (cw, ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.48) }),
+      guarantee:    (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.19) - Math.round(p/2)), top: Math.round(ch*0.48) }),
+      social_proof: (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
+      curiosity:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.52), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
+      price:        (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.22) - Math.round(p/2)), top: Math.round(ch*0.48) }),
     };
 
     let placement;
@@ -1025,6 +1100,13 @@ async function generateOneVariation({ a, variationIdx, productContext, productNa
   const vIdx = Math.floor(Math.random() * 3);
 
   const copy = await generateCopy(productContext, a, label);
+  if (copy) {
+    for (const key in copy) {
+      if (typeof copy[key] === 'string') {
+        copy[key] = cleanSpanishSpelling(copy[key]);
+      }
+    }
+  }
   const enrichedCopy = { ...(copy || {}), productName: productName || '' };
 
   const isFullDesign = fullDesign && FULL_DESIGN_ANGLES.has(a);
@@ -1034,14 +1116,16 @@ async function generateOneVariation({ a, variationIdx, productContext, productNa
   let templatePng = null;
 
   if (isFullDesign) {
-    let scenePrompt = buildFullDesignPrompt(a, productContext, enrichedCopy, primaryColor, format, hasProduct);
+    const cleanedCtx = cleanProductContextForImage(productContext);
+    let scenePrompt = buildFullDesignPrompt(a, cleanedCtx, enrichedCopy, primaryColor, format, hasProduct);
     if (adjustmentInstruction) scenePrompt += `\n\nSCENE ADJUSTMENT: ${adjustmentInstruction}`;
 
     const bgResult = await generateBackground(scenePrompt);
     bgImageBase64 = bgResult.data;
   } else {
     const scenePromptFn = ANGLE_SCENES[a] || ANGLE_SCENES.desire;
-    let scenePrompt = scenePromptFn(productContext, format);
+    const cleanedCtx = cleanProductContextForImage(productContext);
+    let scenePrompt = scenePromptFn(cleanedCtx, format);
     scenePrompt += SCENE_STYLE_VARIANTS[vIdx];
     if (adjustmentInstruction) scenePrompt += `\n\nSCENE ADJUSTMENT: ${adjustmentInstruction}`;
 
@@ -1053,7 +1137,7 @@ async function generateOneVariation({ a, variationIdx, productContext, productNa
     ];
     const [bgRes, ...iconResults] = await Promise.allSettled([
       generateBackground(scenePrompt),
-      ...features.map(f => generateIconImage(f, productContext, primaryColor)),
+      ...features.map(f => generateIconImage(f, cleanedCtx, primaryColor)),
     ]);
 
     if (bgRes.status === 'rejected') throw bgRes.reason;

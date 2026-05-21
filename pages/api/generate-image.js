@@ -230,15 +230,16 @@ Objetivo: ${instruction}
 Palabras de poder para este ángulo: ${powerWords}
 
 REGLAS DE COPY:
-• El headline debe PARAR el scroll en 0.3 segundos — debe provocar emoción inmediata (dolor reconocido, curiosidad urgente, deseo intenso)
-• Usa segunda persona (tú/tu), voz activa, verbos de acción
-• Sé ESPECÍFICO: números reales, problemas concretos, resultados tangibles — nada genérico
-• El primaryText: gancho emocional + prueba/razón para creer + cierre con urgencia o beneficio
-• Prohibido: frases genéricas como "el mejor producto", "alta calidad", "excelente para ti"
+• El headline debe PARAR el scroll en 0.3 segundos — debe provocar emoción inmediata (dolor reconocido, curiosidad urgente, deseo intenso).
+• Usa segunda persona (tú/tu), voz activa, verbos de acción.
+• Sé ESPECÍFICO: números reales, problemas concretos, resultados tangibles — nada genérico.
+• El headline debe ser ultra-corto, directo y con un máximo absoluto de 5 palabras. Prohibido repetir palabras o frases.
+• El primaryText: gancho emocional + prueba/razón para creer + cierre con urgencia o beneficio.
+• Prohibido: frases genéricas como "el mejor producto", "alta calidad", "excelente para ti".
 
 Retorna ÚNICAMENTE un objeto JSON válido — sin markdown, sin explicaciones:
 {
-  "headline": "Máx 45 chars. IMPACTO inmediato. Provoca emoción en 2 segundos.",
+  "headline": "Máx 32 chars (máx 5 palabras). Ultra-corto, directo, SIN palabras repetidas. Ej: '¡Piel libre de acné!'",
   "primaryText": "3 oraciones cortas. Gancho emocional + prueba concreta + cierre urgente. Directo al corazón.",
   "description": "Máx 32 chars. Beneficio concreto o cifra impactante.",
   "cta": "Uno de: Comprar ahora | Ver más | Obtener oferta | Saber más | Aprovechar oferta | Lo quiero | Quiero esto"${extraFields}
@@ -302,9 +303,28 @@ const FULL_DESIGN_ANGLES = new Set([
 ]);
 
 function _splitHeadline(headline) {
-  const w = (headline || '').toUpperCase().split(' ');
+  const cleanHeadline = (headline || '').toUpperCase().trim();
+  const w = cleanHeadline.split(' ');
+  if (w.length <= 2) return [cleanHeadline, ''];
   const m = Math.ceil(w.length / 2);
-  return [w.slice(0, m).join(' '), w.slice(m).join(' ') || w.slice(0, m).join(' ')];
+  return [w.slice(0, m).join(' '), w.slice(m).join(' ')];
+}
+
+function truncateHeadline(headline, maxLen = 35) {
+  if (!headline) return '';
+  const trimmed = headline.trim();
+  if (trimmed.length <= maxLen) return trimmed;
+
+  const words = trimmed.split(/\s+/);
+  let current = '';
+  for (const word of words) {
+    if ((current ? current + ' ' + word : word).length <= maxLen) {
+      current = current ? current + ' ' + word : word;
+    } else {
+      break;
+    }
+  }
+  return current || trimmed.substring(0, maxLen);
 }
 
 function cleanSpanishSpelling(text) {
@@ -363,6 +383,7 @@ function cleanProductContextForImage(text) {
 
 
 const NO_LABEL_RULE = `CRITICAL RENDERING RULES:
+• 🚫 NO WORD REPETITIONS: Do NOT repeat the same word or phrase multiple times in the headline or upper text layers. Render each phrase exactly once. No loop hallucinations.
 • NEVER write instruction labels in the image such as "Text 1:", "Text 2:", "Line 1:", "Typography:", or any other descriptor. Render ONLY the actual text content.
 • NEVER include placeholder text like "[headline]" or "[subtext]" — only the real text provided.
 • Every text element must be rendered sharp, anti-aliased, and fully legible.
@@ -1105,6 +1126,9 @@ async function generateOneVariation({ a, variationIdx, productContext, productNa
       if (typeof copy[key] === 'string') {
         copy[key] = cleanSpanishSpelling(copy[key]);
       }
+    }
+    if (copy.headline) {
+      copy.headline = truncateHeadline(copy.headline, 35);
     }
   }
   const enrichedCopy = { ...(copy || {}), productName: productName || '' };

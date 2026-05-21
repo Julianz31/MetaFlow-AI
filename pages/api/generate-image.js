@@ -399,7 +399,7 @@ PRODUCT: ${ctx}
 
 BACKGROUND SCENE (photorealistic, cinematic 8K):
 ${SCENE_ADAPT}
-MOOD: RIGHT 55% of frame — target customer showing genuine frustration or pain related to the product. Moody dramatic lighting, soft bokeh. LEFT side (x 0–42%, y 48%–92%): COMPLETELY CLEAR neutral surface — this zone is reserved for the product photo overlay. Do NOT place person, objects, or decoration here.
+MOOD: LEFT 55% of frame — target customer showing genuine frustration or pain related to the product. Moody dramatic lighting, soft bokeh. RIGHT side (x 58%–98%, y 48%–92%): COMPLETELY CLEAR neutral surface — this zone is reserved for the product photo overlay. Do NOT place person, objects, or decoration here.
 
 TEXT LAYERS — 5 ELEMENTS, BOLD AND CLEAN:
 
@@ -409,7 +409,7 @@ TEXT LAYERS — 5 ELEMENTS, BOLD AND CLEAN:
 
 2. SUBHEADLINE PILL (y=47%–54%, x 2%–98%): semi-transparent dark rounded bar, white italic text: "${ptShort}"
 
-3. LEFT PAIN BULLETS (x 3%–42%, y 56%–84%): single dark card, ${hex} left-side accent bar, bold white text:
+3. LEFT PAIN BULLETS (x 3%–52%, y 56%–84%): single dark card, ${hex} left-side accent bar, bold white text:
    ✗  ${b1}
    ✗  ${b2}
    ✗  ${b3}
@@ -419,7 +419,7 @@ TEXT LAYERS — 5 ELEMENTS, BOLD AND CLEAN:
 
 5. TOP-RIGHT BADGE (x 66%–97%, y 10%–20%): small HORIZONTAL RECTANGULAR pill (wide, short), ${hex} background, white bold: "${pname || 'Solución Comprobada'}". Must be a flat wide rectangle — NOT a circle.
 
-PRODUCT ZONE: x 3%–42%, y 48%–85% — KEEP COMPLETELY CLEAR. No text, no overlays here.
+PRODUCT ZONE: x 58%–97%, y 48%–85% — KEEP COMPLETELY CLEAR. No text, no overlays here.
 
 STYLE: Premium cinematic ad. Clean design — background scene clearly visible. One dominant headline, clean bullet card, bold CTA. NO prices, NO URLs, NO extra decorative elements.
 ${fmt}
@@ -436,7 +436,7 @@ PRODUCT: ${ctx}
 
 BACKGROUND SCENE (photorealistic, cinematic 8K):
 ${SCENE_ADAPT}
-MOOD: RIGHT 58% of frame — target customer glowing, radiant, happy — they've achieved the ideal result this product delivers. Warm golden sunlight, cinematic bokeh, rich warm colors. LEFT side (x 0%–40%, y 42%–90%): COMPLETELY CLEAR bright neutral surface — product photo zone. No person or objects here.
+MOOD: LEFT 58% of frame — target customer glowing, radiant, happy — they've achieved the ideal result this product delivers. Warm golden sunlight, cinematic bokeh, rich warm colors. RIGHT side (x 58%–98%, y 42%–90%): COMPLETELY CLEAR bright neutral surface — product photo zone. No person or objects here.
 
 TEXT LAYERS — 5 ELEMENTS, BOLD AND ASPIRATIONAL:
 
@@ -446,7 +446,7 @@ TEXT LAYERS — 5 ELEMENTS, BOLD AND ASPIRATIONAL:
 
 2. SUBHEADLINE (y=46%–53%, x 2%–98%): white rounded pill with ${hex} left-accent bar: "✓ ${ptShort}"
 
-3. LEFT RESULTS BULLETS (x 3%–41%, y 55%–83%): single white semi-transparent card, dark bold text:
+3. LEFT RESULTS BULLETS (x 3%–52%, y 55%–83%): single white semi-transparent card, dark bold text:
    ✓  ${b1}
    ✓  ${b2}
    ✓  ${b3}
@@ -456,7 +456,7 @@ TEXT LAYERS — 5 ELEMENTS, BOLD AND ASPIRATIONAL:
 
 5. TOP-RIGHT BADGE (x 66%–97%, y 10%–20%): small HORIZONTAL RECTANGULAR pill (wide, short), ${hex} background, white bold: "${pname || 'Resultado Garantizado'}". Must be a flat wide rectangle — NOT a circle.
 
-PRODUCT ZONE: x 3%–40%, y 43%–84% — KEEP COMPLETELY CLEAR. No text, no overlays here.
+PRODUCT ZONE: x 58%–97%, y 43%–84% — KEEP COMPLETELY CLEAR. No text, no overlays here.
 
 STYLE: Warm, aspirational, magazine-quality ad. Background scene clearly visible. Bright palette. One dominant headline, clean result bullets, bold CTA. NO prices, NO URLs, NO extra decorative elements.
 ${fmt}
@@ -487,13 +487,13 @@ TEXT LAYERS — 5 ELEMENTS:
    • "${h1}" — ultra-bold white Anton/Impact, ~12% canvas height, left side
    • "${h2}" — same ultra-bold ${hex}, right side, same size
 
-2. BEFORE LABEL (x 4%–44%, y 30%–37%): pill with dark #222 background, bold white uppercase: "ANTES"
+2. BEFORE LABEL (x 4%–36%, y 30%–37%): pill with dark #222 background, bold white uppercase: "ANTES"
 
-3. AFTER LABEL (x 56%–96%, y 30%–37%): pill with solid ${hex} background, bold white uppercase: "DESPUÉS"
+3. AFTER LABEL (x 64%–96%, y 30%–37%): pill with solid ${hex} background, bold white uppercase: "DESPUÉS"
 
-4. BEFORE card (x 3%–47%, y 72%–84%): dark semi-transparent card: "${b1}" — white bold text, 2 lines max
+4. BEFORE card (x 3%–36%, y 72%–84%): dark semi-transparent card: "${b1}" — white bold text, 2 lines max
 
-5. AFTER card + CTA (x 53%–97%):
+5. AFTER card + CTA (x 64%–97%):
    • y=72%–82%: ${hex} card: "${a1}" — white bold text, 2 lines max
    • y=83%–92%: dark pill: "${cta}" — white ultra-bold centered
 
@@ -522,15 +522,15 @@ TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
    • "${h2}" — bold ${hex}, same size, second line
 2. BELOW HEADLINE (y=31%–38%): full-width dark strip with white italic: "${ptShort}"
 3. LOWER SPLIT PANEL (y=39%–84%):
-   LEFT panel (x 2%–47%, dark #1a1a2e background): bold ${hex} header "¿LO DUDAS?", then:
+   LEFT panel (x 2%–37%, dark #1a1a2e background): bold ${hex} header "¿LO DUDAS?", then:
    • "✗ ${p1}"
    • "✗ ${p2}"
    • "✗ ${p3}"
-   RIGHT panel (x 53%–98%, ${hex} background): bold white header "LA REALIDAD:", then:
+   RIGHT panel (x 63%–98%, ${hex} background): bold white header "LA REALIDAD:", then:
    • "✓ ${s1}"
    • "✓ ${s2}"
    • "✓ ${s3}"
-4. CENTER DIVIDER vertical line with "VS" pill badge
+4. CENTER DIVIDER vertical line with "VS" pill badge. Keep center zone (x 38%-62%) clear for product.
 5. BOTTOM STRIP (y=85%–94%, ${hex} background): "${cta}" — bold white centered button
 6. UPPER-RIGHT corner (x 68%–97%, y 10%–20%): small white rounded badge: "${pname || 'Garantizado'}"
 
@@ -595,14 +595,15 @@ TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
    • "${h1}" — ultra-bold dark (#111) heavy sans-serif, large, left-aligned
    • "${h2}" — bold ${hex}, same large size, second line
 2. BELOW HEADLINE (y=33%–40%): full-width dark strip, white italic sentence: "${ptShort}"
-3. RIGHT SIDE CREDENTIAL CARDS (x 52%–98%, y 41%–86%, stacked with gap):
+3. RIGHT SIDE CREDENTIAL CARDS (x 35%–62%, y 41%–86%, stacked with gap):
    • Card 1: 🛡 icon + "${f1}" — white background, ${hex} left border, dark bold text
    • Card 2: 🏅 icon + "${f2}" — white background, ${hex} left border, dark bold text
    • Card 3: ⭐ icon + "${f3}" — white background, ${hex} left border, dark bold text
    • Card 4: ✔ icon + "${f4}" — white background, ${hex} left border, dark bold text
 4. BOTTOM STRIP (y=87%–95%, ${hex} background): "${cta}" — bold white centered
 5. TOP-RIGHT corner (x 68%–97%, y 10%–21%): small white rounded badge: "${pname || 'Certificado'}"
-6. BOTTOM-LEFT (x 2%–46%, y 87%–94%): "${sub}" — small white italic on dark card
+6. BOTTOM-LEFT (x 2%–32%, y 87%–94%): "${sub}" — small white italic on dark card
+PRODUCT ZONE: x 65%–97%, y 43%–86% — KEEP COMPLETELY CLEAR.
 
 DECORATIVE: Certification seal graphic lower-right. Premium ${hex} accent lines. Clean precision design.
 
@@ -633,11 +634,11 @@ LEFT PHOTO (x 0%–50%): Moody, desaturated — target customer WITHOUT the prod
 RIGHT PHOTO (x 50%–100%): Bright, vibrant — same customer WITH the product, thriving. Warm golden tones. Specific to product context.
 
 LOWER COMPARISON PANEL (y=59%–86%, split):
-LEFT (x 0%–48%, dark background #1a1a2e):
+LEFT (x 2%–36%, dark background #1a1a2e):
    • "OTROS" header — bold white uppercase, large
    • "✗ ${b1}"
    • "✗ ${b2}"
-RIGHT (x 52%–100%, ${hex} background):
+RIGHT (x 64%–98%, ${hex} background):
    • "NOSOTROS" header — bold white uppercase, large
    • "✓ ${a1}"
    • "✓ ${a2}"
@@ -670,11 +671,11 @@ TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
    • "${h2}" — ultra-bold ${hex}, same large size, line below
 3. MID CENTER (y=45%–53%): Full-width dark pill, white italic sentence: "${ptShort}"
 4. MID CENTER (y=54%–60%): Small ${hex} italic text: "${sub}"
-5. LOWER-LEFT GUARANTEE CARD (x 2%–44%, y 62%–83%): dark card, bold white header "SIN RIESGO:", then:
+5. LOWER-RIGHT GUARANTEE CARD (x 54%–97%, y 62%–83%): dark card, bold white header "SIN RIESGO:", then:
    • "✓ ${b1}"
    • "✓ ${b2}"
    • "✓ ${b3}"
-6. LOWER-LEFT BOTTOM (x 2%–44%, y 84%–93%): ${hex} rounded pill: "${cta}" — bold white centered
+6. LOWER-RIGHT BOTTOM (x 54%–97%, y 84%–93%): ${hex} rounded pill: "${cta}" — bold white centered
 7. TOP-RIGHT badge (x 68%–97%, y 10%–22%): white rounded badge: "${pname || 'Riesgo Cero'}"
 
 DECORATIVE: Soft golden glow around guarantee badge. Green checkmark icons. Trust palette (gold, green, ${hex}).
@@ -702,17 +703,18 @@ TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
    • "${h1}" — ultra-bold white Anton/Impact, large, left-aligned
    • "${h2}" — ultra-bold ${hex}, same size, second line
 3. BODY TEXT (y=43%–50%): dark semi-transparent strip, white italic: "${ptShort}"
-4. TWO TESTIMONIAL CARDS side by side (y=51%–82%):
-   LEFT card (white background, rounded corners, dark shadow):
+4. TWO TESTIMONIAL CARDS STACKED VERTICALLY ON THE LEFT (x 3%–52%, y=51%–84%):
+   TESTIMONIAL 1 (y=51%–66%, x 3%–52%, white background, rounded corners, dark shadow):
    • Circular avatar (silhouette icon)
    • "${r1}"
    • "★★★★★" in ${hex}
-   RIGHT card (white background, rounded corners, dark shadow):
+   TESTIMONIAL 2 (y=68%–83%, x 3%–52%, white background, rounded corners, dark shadow):
    • Circular avatar (silhouette icon)
    • "${r2}"
    • "★★★★★" in ${hex}
-5. BOTTOM STRIP (${hex} background, y=83%–91%): "${cta}" — bold white centered
+5. BOTTOM STRIP (${hex} background, y=85%–91%): "${cta}" — bold white centered
 6. BELOW BOTTOM (y=92%–97%): "${sub}" — small white italic centered on dark strip
+PRODUCT ZONE: RIGHT LOWER (x 58%–97%, y 45%–84%) — KEEP COMPLETELY CLEAR.
 7. TOP-RIGHT corner badge (x 68%–97%, y 10%–20%): white rounded badge: "${pname || 'Ya Probado'}"
 
 DECORATIVE: Star ★ icons scattered subtly in background. Rating badge top. Warm golden vignette.
@@ -947,12 +949,12 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, icon
 
     // Full-design product zones match what each prompt tells Gemini to leave clear
     const FULL_DESIGN_ZONES = {
-      pain:         (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.22) - Math.round(p/2)), top: Math.round(ch*0.54) }),
-      desire:       (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.19) - Math.round(p/2)), top: Math.round(ch*0.38) }),
+      pain:         (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.54) }),
+      desire:       (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.44) }),
       transformation:(cw,ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.55) }),
-      objection:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.52), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.55) }),
+      objection:    (cw, ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.55) }),
       urgency:      (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.44) }),
-      authority:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.52), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.43) }),
+      authority:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.43) }),
       comparison:   (cw, ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.56) }),
       guarantee:    (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.19) - Math.round(p/2)), top: Math.round(ch*0.50) }),
       social_proof: (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.45) }),

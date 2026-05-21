@@ -223,11 +223,19 @@ async function generateCopy(productContext, angleKey, angleLabel) {
   const extraFields = ANGLE_EXTRA_FIELDS[angleKey] ? `,\n  ${ANGLE_EXTRA_FIELDS[angleKey]}` : '';
   const prompt = `Eres el mejor copywriter de respuesta directa de Latinoamérica. Genera copy de alto impacto para un anuncio pagado de Facebook/Instagram en español.
 
-Producto: ${productContext}
+INFORMACIÓN DEL PRODUCTO:
+${productContext}
 
 Ángulo publicitario: ${angleLabel}
 Objetivo: ${instruction}
 Palabras de poder para este ángulo: ${powerWords}
+
+REGLAS CRÍTICAS DE VERACIDAD (GROUNDING):
+• 🚫 CERO ALUCINACIONES Y CERO INVENCIONES: Debes basarte ÚNICAMENTE en los beneficios, características, ingredientes y propósitos reales que el vendedor describió explícitamente en la sección "[REAL SELLER DESCRIPTION]".
+• 🚫 PROHIBIDO INVENTAR BENEFICIOS NO RELACIONADOS: Por ejemplo, si la descripción real solo habla de "piel sana y pelaje", está estrictamente prohibido inventar o mencionar beneficios sobre "articulaciones", "movilidad", "digestión", "ansiedad", "alivio del dolor", etc. No asumas ni agregues problemas médicos, soluciones ni ingredientes que el vendedor no haya mencionado de manera explícita.
+• La sección "[VISUAL ANALYSIS]" sirve solo de apoyo visual (para identificar el nombre del producto, formato, etc.), pero NUNCA debes inventar beneficios a partir de ella si contradicen o exceden lo indicado en la descripción real del vendedor.
+• 💡 CÓMO MANEJAR DESCRIPCIONES CORTAS: Si la descripción real del vendedor es muy corta y tiene pocos beneficios, NO inventes beneficios nuevos. En su lugar, repite, reformula creativamente o expande los mismos beneficios reales en los diferentes campos requeridos. Por ejemplo, si el producto solo ayuda al pelaje y a la piel, enfoca todas tus viñetas (b1, b2, b3, f1, f2, f3, f4, etc.) en diferentes aspectos del pelaje y la piel (por ejemplo: 'Pelaje suave', 'Piel sin resequedad', 'Brillo saludable', 'Nutrición para el pelo') en lugar de inventar salud articular, digestión, o control del estrés.
+• Si el ángulo requiere múltiples viñetas o campos y no hay suficientes beneficios descritos, amplíalos emocionalmente en torno a los beneficios REALES o destaca los ingredientes reales que mencionó el vendedor.
 
 REGLAS DE COPY:
 • El headline debe PARAR el scroll en 0.3 segundos — debe provocar emoción inmediata (dolor reconocido, curiosidad urgente, deseo intenso).
@@ -268,13 +276,21 @@ async function adjustCopy(existingCopy, adjustmentInstruction, productContext, a
   const prompt = `Eres el mejor copywriter de respuesta directa de Latinoamérica.
 Estamos editando un anuncio publicitario.
 
+INFORMACIÓN DEL PRODUCTO:
+${productContext}
+
 Ángulo publicitario: ${angleLabel}
-Producto: ${productContext}
 
 Copywriting Actual:
 ${JSON.stringify(existingCopy, null, 2)}
 
 Instrucción de ajuste del usuario: "${adjustmentInstruction}"
+
+REGLAS CRÍTICAS DE VERACIDAD (GROUNDING):
+• 🚫 CERO ALUCINACIONES Y CERO INVENCIONES: Debes basarte ÚNICAMENTE en los beneficios, características, ingredientes y propósitos reales que el vendedor describió explícitamente en la sección "[REAL SELLER DESCRIPTION]".
+• 🚫 PROHIBIDO INVENTAR BENEFICIOS NO RELACIONADOS: Por ejemplo, si la descripción real solo habla de "piel sana y pelaje", está estrictamente prohibido inventar o mencionar beneficios sobre "articulaciones", "movilidad", "digestión", "ansiedad", "alivio del dolor", etc. No asumas ni agregues problemas médicos, soluciones ni ingredientes que el vendedor no haya mencionado de manera explícita.
+• La sección "[VISUAL ANALYSIS]" sirve solo de apoyo visual (para identificar el nombre del producto, formato, etc.), pero NUNCA debes inventar beneficios a partir de ella si contradicen o exceden lo indicado en la descripción real del vendedor.
+• 💡 CÓMO MANEJAR DESCRIPCIONES CORTAS Y AJUSTES: Si la instrucción de ajuste del usuario te pide agregar o corregir textos, hazlo asegurándote de que no se introduzcan beneficios, ingredientes o afirmaciones de salud que no estén en la descripción real del vendedor. Si el vendedor describe pocos beneficios, concéntrate en ellos de forma creativa y emocional, pero sin inventar otros ingredientes o promesas médicas.
 
 Objetivos:
 1. Si la instrucción del usuario se refiere a cambios en el texto (ej. cambiar el título, corregir una frase, usar otra palabra, corregir ortografía, etc.), actualiza los campos correspondientes (headline, primaryText, description, cta) siguiendo estrictamente su instrucción.
@@ -318,14 +334,13 @@ async function analyzeProduct(imageBase64) {
       contents: [{
         parts: [
           {
-            text: `Analyze this product image for high-impact advertising. Return a concise marketing brief (max 100 words):
-- Product name and exact type
-- The core emotional problem it solves for the customer
-- Top 4 specific, concrete benefits (measurable when possible)
-- Target customer profile (who buys this)
-- Key differentiator from competitors
+            text: `Analyze this product image to extract factual branding information for high-impact advertising. Return a concise brief (max 100 words):
+- Product name and exact physical type/format (e.g. liquid dropper bottle, cream tube, plastic jar, capsules, etc.)
+- ONLY the factual text, ingredients, or benefits that are EXPLICITLY printed and clearly readable on the physical packaging label (Do NOT guess, assume, or fabricate any benefits, ingredients, or functional claims that are not clearly visible in the image. If the label text is not readable, explicitly say 'No readable claims on packaging').
 - Product category (pet, beauty, fitness, food, supplement, etc.)
-Be specific and factual. Use marketing language that creates desire.`,
+- Visual style of the packaging (colors, branding, design language)
+
+STRICT WARNING: Do not invent or assume any functional health benefits or claims (such as joint mobility, anxiety relief, digestive support, etc.) that are not clearly printed on the bottle itself. Under no circumstances should you fabricate claims.`,
           },
           { inlineData: { mimeType: 'image/jpeg', data: imageBase64 } },
         ],
@@ -1281,11 +1296,15 @@ export default async function handler(req, res) {
     let productContext = '';
     if (productImageBase64) {
       const visualAnalysis = await analyzeProduct(productImageBase64);
-      productContext = description
-        ? `${visualAnalysis}\n\nSeller description: ${description}`
-        : visualAnalysis;
+      productContext = `[VISUAL ANALYSIS OF PRODUCT PACKAGING]:
+${visualAnalysis}
+
+[REAL SELLER DESCRIPTION - MUST BE THE PRIMARY SOURCE OF BENEFITS AND CLAIMS]:
+${description || 'No description provided.'}`;
     } else {
-      productContext = `Product: ${productName}. ${description || ''}`;
+      productContext = `[REAL SELLER DESCRIPTION - MUST BE THE PRIMARY SOURCE OF BENEFITS AND CLAIMS]:
+Product Name: ${productName}
+Description: ${description || ''}`;
     }
 
     const jobs = selectedAngles.flatMap(a =>

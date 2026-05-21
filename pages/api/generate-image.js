@@ -1015,7 +1015,7 @@ const SCENE_STYLE_VARIANTS = [
   '\nSCENE STYLE VARIANT: Cinematic environmental portrait. Strong depth of field, subject sharply separated from a richly detailed background. Premium editorial feel.',
 ];
 
-async function generateOneVariation({ a, variationIdx, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction }) {
+async function generateOneVariation({ a, variationIdx, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction, fullDesign = false }) {
   const label = ANGLE_LABELS[a] || a;
   const hasProduct = !!productImageBase64;
   // Pick a random template+scene variant on every call for visual diversity
@@ -1024,36 +1024,50 @@ async function generateOneVariation({ a, variationIdx, productContext, productNa
   const copy = await generateCopy(productContext, a, label);
   const enrichedCopy = { ...(copy || {}), productName: productName || '' };
 
-  const scenePromptFn = ANGLE_SCENES[a] || ANGLE_SCENES.desire;
-  let scenePrompt = scenePromptFn(productContext, format);
-  scenePrompt += SCENE_STYLE_VARIANTS[vIdx];
-  if (adjustmentInstruction) scenePrompt += `\n\nSCENE ADJUSTMENT: ${adjustmentInstruction}`;
+  const isFullDesign = fullDesign && FULL_DESIGN_ANGLES.has(a);
 
-  const features = [
-    enrichedCopy.f1 || 'Resultados probados',
-    enrichedCopy.f2 || 'Formula premium',
-    enrichedCopy.f3 || 'Uso diario seguro',
-    enrichedCopy.f4 || 'Satisfaccion total',
-  ];
-  const [bgImage, ...iconResults] = await Promise.allSettled([
-    generateBackground(scenePrompt),
-    ...features.map(f => generateIconImage(f, productContext, primaryColor)),
-  ]);
+  let bgImageBase64;
+  let aiIconImages = null;
+  let templatePng = null;
 
-  if (bgImage.status === 'rejected') throw bgImage.reason;
-  const aiIconImages = iconResults.map(r => r.status === 'fulfilled' ? r.value.data : null);
+  if (isFullDesign) {
+    let scenePrompt = buildFullDesignPrompt(a, productContext, enrichedCopy, primaryColor, format, hasProduct);
+    if (adjustmentInstruction) scenePrompt += `\n\nSCENE ADJUSTMENT: ${adjustmentInstruction}`;
 
-  const templatePng = buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct, vIdx);
+    const bgResult = await generateBackground(scenePrompt);
+    bgImageBase64 = bgResult.data;
+  } else {
+    const scenePromptFn = ANGLE_SCENES[a] || ANGLE_SCENES.desire;
+    let scenePrompt = scenePromptFn(productContext, format);
+    scenePrompt += SCENE_STYLE_VARIANTS[vIdx];
+    if (adjustmentInstruction) scenePrompt += `\n\nSCENE ADJUSTMENT: ${adjustmentInstruction}`;
+
+    const features = [
+      enrichedCopy.f1 || 'Resultados probados',
+      enrichedCopy.f2 || 'Formula premium',
+      enrichedCopy.f3 || 'Uso diario seguro',
+      enrichedCopy.f4 || 'Satisfaccion total',
+    ];
+    const [bgRes, ...iconResults] = await Promise.allSettled([
+      generateBackground(scenePrompt),
+      ...features.map(f => generateIconImage(f, productContext, primaryColor)),
+    ]);
+
+    if (bgRes.status === 'rejected') throw bgRes.reason;
+    bgImageBase64 = bgRes.value.data;
+    aiIconImages = iconResults.map(r => r.status === 'fulfilled' ? r.value.data : null);
+    templatePng = buildTemplate(a, enrichedCopy, primaryColor, format, hasProduct, vIdx);
+  }
 
   const composited = await compositeAll({
-    backgroundBase64: bgImage.value.data,
+    backgroundBase64: bgImageBase64,
     templatePng,
     productBase64: productImageBase64 || null,
     iconPanelBase64: null,
     iconImages: aiIconImages,
     format,
     angle: a,
-    fullDesign: false,
+    fullDesign: isFullDesign,
   });
 
   return { imageUrl: `data:image/jpeg;base64,${composited}`, angle: a, variation: variationIdx, label, copy };
@@ -1077,6 +1091,7 @@ export default async function handler(req, res) {
     productImageBase64,
     adjustmentInstruction,
     variationsCount = 1,
+    fullDesign = false,
   } = req.body;
 
   if (!productName && !productImageBase64) {
@@ -1107,7 +1122,7 @@ export default async function handler(req, res) {
 
     const jobs = selectedAngles.flatMap(a =>
       Array.from({ length: numVariations }, (_, v) =>
-        generateOneVariation({ a, variationIdx: v, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction })
+        generateOneVariation({ a, variationIdx: v, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction, fullDesign: !!fullDesign })
       )
     );
 

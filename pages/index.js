@@ -673,6 +673,7 @@ function App() {
       adjustmentInstruction: note,
       variationsCount: 1,
       fullDesign: !!adForm.fullDesign,
+      existingCopy: img.copy,
     }, { headers: authHeader, timeout: 300000 });
     const updated = response.data.images?.[0];
     if (updated) {

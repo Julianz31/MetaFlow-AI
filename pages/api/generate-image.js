@@ -264,6 +264,50 @@ Retorna ÚNICAMENTE un objeto JSON válido — sin markdown, sin explicaciones:
   }
 }
 
+async function adjustCopy(existingCopy, adjustmentInstruction, productContext, angleLabel) {
+  const prompt = `Eres el mejor copywriter de respuesta directa de Latinoamérica.
+Estamos editando un anuncio publicitario.
+
+Ángulo publicitario: ${angleLabel}
+Producto: ${productContext}
+
+Copywriting Actual:
+${JSON.stringify(existingCopy, null, 2)}
+
+Instrucción de ajuste del usuario: "${adjustmentInstruction}"
+
+Objetivos:
+1. Si la instrucción del usuario se refiere a cambios en el texto (ej. cambiar el título, corregir una frase, usar otra palabra, corregir ortografía, etc.), actualiza los campos correspondientes (headline, primaryText, description, cta) siguiendo estrictamente su instrucción.
+2. Si la instrucción es puramente visual, espacial o ambiental (ej. "pon un parque de fondo", "más luz", "quitar el gotero duplicado", "fondo más oscuro"), NO cambies ninguno de los textos y mantén el copy exactamente igual al original.
+3. El headline editado debe ser ultra-corto, directo (máx 32 chars, máx 5 palabras) y SIN palabras repetidas.
+
+Retorna ÚNICAMENTE un objeto JSON válido — sin markdown, sin explicaciones:
+{
+  "headline": "Título editado (máx 32 chars)",
+  "primaryText": "Texto principal editado",
+  "description": "Descripción editada",
+  "cta": "CTA editado"
+}`;
+
+  const res = await fetch(GEMINI_VISION_URL(getGeminiKey()), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.2 },
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) return existingCopy;
+  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  try {
+    const clean = raw.replace(/```json|```/g, '').trim();
+    return JSON.parse(clean);
+  } catch {
+    return existingCopy;
+  }
+}
+
 // ─── PRODUCT ANALYSIS ────────────────────────────────────────────────────────
 
 async function analyzeProduct(imageBase64) {
@@ -1114,13 +1158,23 @@ const SCENE_STYLE_VARIANTS = [
   '\nSCENE STYLE VARIANT: Cinematic environmental portrait. Strong depth of field, subject sharply separated from a richly detailed background. Premium editorial feel.',
 ];
 
-async function generateOneVariation({ a, variationIdx, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction, fullDesign = false }) {
+async function generateOneVariation({ a, variationIdx, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction, fullDesign = false, existingCopy }) {
   const label = ANGLE_LABELS[a] || a;
   const hasProduct = !!productImageBase64;
   // Pick a random template+scene variant on every call for visual diversity
   const vIdx = Math.floor(Math.random() * 3);
 
-  const copy = await generateCopy(productContext, a, label);
+  let copy;
+  if (existingCopy) {
+    if (adjustmentInstruction) {
+      copy = await adjustCopy(existingCopy, adjustmentInstruction, productContext, label);
+    } else {
+      copy = { ...existingCopy };
+    }
+  } else {
+    copy = await generateCopy(productContext, a, label);
+  }
+
   if (copy) {
     for (const key in copy) {
       if (typeof copy[key] === 'string') {
@@ -1202,6 +1256,7 @@ export default async function handler(req, res) {
     productImageBase64,
     adjustmentInstruction,
     variationsCount = 1,
+    existingCopy,
   } = req.body;
 
   // Internally force fullDesign to true (always use premium Complete AI Design)
@@ -1235,7 +1290,7 @@ export default async function handler(req, res) {
 
     const jobs = selectedAngles.flatMap(a =>
       Array.from({ length: numVariations }, (_, v) =>
-        generateOneVariation({ a, variationIdx: v, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction, fullDesign: !!fullDesign })
+        generateOneVariation({ a, variationIdx: v, productContext, productName, primaryColor, productImageBase64, format, adjustmentInstruction, fullDesign: !!fullDesign, existingCopy })
       )
     );
 

@@ -3124,23 +3124,6 @@ function AdCreatorView({ products, loading, generatedImages, adForm, onFormChang
               </div>
             </div>
 
-            {/* Modo de Generación */}
-            <div className="acp-block">
-              <label className="acp-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                Modo de Generación
-                <span className="acp-optional" style={{ background: '#6366f1', color: '#ffffff', padding: '2px 6px', borderRadius: 4, fontSize: 9, fontWeight: 700, letterSpacing: '0.05em' }}>PREMIUM</span>
-              </label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
-                <label className={`format-chip ${adForm.fullDesign ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', border: '1px solid rgba(255,255,255,0.08)', background: adForm.fullDesign ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s', width: '100%', boxSizing: 'border-box' }}>
-                  <input type="checkbox" checked={!!adForm.fullDesign} onChange={e => onFormChange({ ...adForm, fullDesign: e.target.checked })} style={{ marginTop: 3, accentColor: '#6366f1', cursor: 'pointer' }} />
-                  <div>
-                    <span style={{ display: 'block', fontSize: 13, fontWeight: 700, color: adForm.fullDesign ? '#c4b5fd' : '#f1f5f9' }}>Diseño IA Completo (Estilo ClickAds)</span>
-                    <span style={{ display: 'block', fontSize: 10, color: '#64748b', marginTop: 3, lineHeight: '1.4' }}>La IA genera el fondo, texto de conversión, copys, iconos y diseño de forma integrada. Creativos de alto nivel.</span>
-                  </div>
-                </label>
-              </div>
-            </div>
-
             <button type="submit" className="generate-cta" disabled={loading}>
               {loading
                 ? <><Loader2 className="spin" size={18} /> Generando {selectedAngles.length} creativo{selectedAngles.length !== 1 ? 's' : ''}...</>

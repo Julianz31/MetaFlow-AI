@@ -345,6 +345,7 @@ function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format
 5. SPANISH ACCURACY: All Spanish text must be spelled correctly with proper accent marks.
 6. 🚫 ABSOLUTE BAN ON CIRCLES AND ICONS: Do NOT draw any circular shapes, circular badges, circular icons, icon placeholders, or round graphic elements ANYWHERE in the design. This includes: icon circles before text, decorative round badges, timer circles, hourglass circles, arrow circles, muscle icons, leaf icons, or any emoji-style icon rendered as a circle. ALL badges and pills must be WIDE HORIZONTAL RECTANGLES with rounded corners — minimum width:height ratio of 4:1. A "pill" shape means WIDE AND FLAT, never circular. If you are tempted to add an icon, replace it with a short bold text label instead.
 7. 🚫 NO ICONS IN CTA STRIP: The bottom CTA strip contains ONLY the CTA text. No icons, no arrows, no symbols, no decorative elements alongside the text.
+8. 🚫 ABSOLUTE BAN ON GENERATING THE PRODUCT ITSELF: Do NOT draw, generate, or render any product bottles, dropper bottles, jars, packages, containers, boxes, or product representations anywhere in the background or foreground! The background scene must represent the target lifestyle, people, pets, or environments ONLY, and must be completely clean of any generated product container. Keep the product zone completely blank and free of any generated product bottle. The actual product PNG will be overlaid by us.
 
 `;
 
@@ -1091,8 +1092,10 @@ export default async function handler(req, res) {
     productImageBase64,
     adjustmentInstruction,
     variationsCount = 1,
-    fullDesign = false,
   } = req.body;
+
+  // Internally force fullDesign to true (always use premium Complete AI Design)
+  const fullDesign = true;
 
   if (!productName && !productImageBase64) {
     return res.status(400).json({ error: 'Se requiere nombre del producto o imagen.' });

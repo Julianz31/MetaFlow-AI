@@ -493,6 +493,7 @@ function buildFullDesignPrompt(angle, productContext, copy, primaryColor, format
 7. 🚫 NO ICONS IN CTA STRIP: The bottom CTA strip contains ONLY the CTA text. No icons, no arrows, no symbols, no decorative elements alongside the text.
 8. 🚫 ABSOLUTE BAN ON GENERATING THE PRODUCT ITSELF: Do NOT draw, generate, or render any product bottles, dropper bottles, jars, packages, containers, boxes, or product representations anywhere in the background or foreground! The background scene must represent the target lifestyle, people, pets, or environments ONLY, and must be completely clean of any generated product container. Keep the product zone completely blank and free of any generated product bottle. The actual product PNG will be overlaid by us.
 9. 🚫 BOTTOM CTA SAFE ZONE: The bottom CTA strip/button must be rendered strictly between y=86% and y=95% of the canvas height. Do NOT render any other cards, boxes, text, or elements below y=85% that could overlap with this zone. Keep the area from y=80% to y=85% completely clear and neutral as a transition zone.
+10. 🚫 ABSOLUTE BAN ON CARDS/PODIUMS IN OVERLAY ZONE: Do NOT draw any artificial white/grey cards, transparent cards, rounded rectangles, boxes, borders, containers, pedestals, or shadows behind the product inside the "SAFE ZONE FOR OVERLAY". The safe zone must be 100% natural, clean, seamless, and empty background scene only (e.g. blurred room, foliage, floor, or wall). Absolutely NO artificial elements, podiums, or visual borders should exist behind the product.
 
 `;
 
@@ -632,7 +633,7 @@ LEFT HALF (x 0%–49%): Desaturated, dark, cold atmosphere. Target customer in t
 
 RIGHT HALF (x 51%–100%): Vibrant, warm, full color. Same target customer in the AFTER state — thriving and happy. Warm golden light. Same environment transformed.
 
-CENTER: Thin vertical ${hex} divider line with a bold "→" arrow at y=52%.
+CENTER: Thin vertical ${hex} divider line with a bold "→" arrow badge rendered strictly near the bottom (y=78%–84%). Safe zone for overlay: upper-center of the divider line (x 38%–62%, y 32%–62%) — KEEP COMPLETELY CLEAR.
 
 TEXT LAYERS — 5 ELEMENTS:
 
@@ -796,7 +797,7 @@ RIGHT (x 64%–98%, ${hex} background):
    • "✓ ${a1}"
    • "✓ ${a2}"
 
-CENTER COLUMN (x 45%–55%): Bold vertical white line with "VS" circular badge at midpoint. Safe zone for overlay: bottom-center (x 38%–62%, y 57%–86%) — KEEP COMPLETELY CLEAR.
+CENTER COLUMN (x 45%–55%): Bold vertical white line with a "VS" circular badge rendered strictly near the bottom (y=78%–84%). Safe zone for overlay: upper-center of the divider line (x 38%–62%, y 32%–62%) — KEEP COMPLETELY CLEAR.
 
 BOTTOM STRIP (y=87%–95%, dark background): "${cta}" — bold white ${hex} pill button centered + "${sub}" small italic beside it.
 
@@ -867,7 +868,7 @@ TYPOGRAPHY — 7 REQUIRED TEXT LAYERS:
    • "★★★★★" in ${hex}
 5. BOTTOM STRIP (${hex} background, y=85%–91%): "${cta}" — bold white centered
 6. BELOW BOTTOM (y=92%–97%): "${sub}" — small white italic centered on dark strip
-SAFE ZONE FOR OVERLAY: RIGHT LOWER (x 58%–97%, y 45%–84%) — KEEP COMPLETELY CLEAR.
+SAFE ZONE FOR OVERLAY (x 58%–97%, y 45%–84%): Keep this right-lower zone COMPLETELY EMPTY of any text, cards, boxes, shapes, rounded rectangles, or borders. It must ONLY show the natural, empty, clean background environment (e.g., room floor, wall, grass, or furniture) with a soft blur. Absolutely NO white, grey, or transparent overlay card/box should be drawn behind the product on the right side. Do NOT draw a third card or container placeholder there!
 7. TOP-RIGHT corner badge (x 68%–97%, y 10%–20%): white rounded badge: "${pname || 'Ya Probado'}"
 
 DECORATIVE: Star ★ icons scattered subtly in background. Rating badge top. Warm golden vignette.
@@ -1106,11 +1107,11 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, icon
     const FULL_DESIGN_ZONES = {
       pain:         (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
       desire:       (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.44) }),
-      transformation:(cw,ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.48) }),
+      transformation:(cw,ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.32) }),
       objection:    (cw, ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.48) }),
       urgency:      (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
       authority:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
-      comparison:   (cw, ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.48) }),
+      comparison:   (cw, ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.32) }),
       guarantee:    (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.19) - Math.round(p/2)), top: Math.round(ch*0.48) }),
       social_proof: (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
       curiosity:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.52), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),

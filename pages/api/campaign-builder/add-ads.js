@@ -3,6 +3,14 @@ const { getMetaCredentials } = require('../../../lib/apiHelpers');
 const { requireAuth } = require('../../../lib/auth');
 const { requireActiveAccount } = require('../../../lib/accountGuard');
 
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '50mb',
+        },
+    },
+};
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).end();
 

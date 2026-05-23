@@ -301,12 +301,53 @@ function App() {
             throw new Error('Meta no devolvió un ID para el video subido.');
           }
 
+          const videoId = response.data.id;
+
+          // Esperamos a que Meta termine de procesar/codificar el video para evitar que la creación del adcreative falle con status 400
+          console.log(`Esperando a que Meta procese el video: ${creative.name}...`);
+          let isReady = false;
+          let attempts = 0;
+          const maxAttempts = 30; // 30 intentos * 3s = 90 segundos máx
+          
+          while (!isReady && attempts < maxAttempts) {
+            attempts++;
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            try {
+              const statusResponse = await axios.get(
+                `https://graph.facebook.com/v19.0/${videoId}`,
+                {
+                  params: {
+                    fields: 'status',
+                    access_token: token
+                  }
+                }
+              );
+              
+              const videoStatus = statusResponse.data?.status?.video_status;
+              console.log(`Estado del video (intento ${attempts}):`, videoStatus);
+              
+              if (videoStatus === 'ready') {
+                isReady = true;
+              } else if (videoStatus === 'error' || videoStatus === 'invalid') {
+                throw new Error('Meta reportó que el video es inválido o falló su procesamiento.');
+              }
+            } catch (err) {
+              // Si falla temporalmente por propagación
+              console.warn('Fallo temporal al consultar estado del video, reintentando...', err);
+            }
+          }
+
+          if (!isReady) {
+            console.warn('El video sigue procesándose en Meta. Procediendo de todas formas...');
+          }
+
           // Retornamos el creativo simplificado sin la dataUrl base64 pesada
           return {
             name: creative.name,
             type: creative.type,
             size: creative.size,
-            videoId: response.data.id
+            videoId: videoId
           };
         } catch (err) {
           console.error('Error subiendo video a Meta:', err);

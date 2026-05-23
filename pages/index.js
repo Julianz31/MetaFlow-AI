@@ -1624,18 +1624,31 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
   };
 
   const handleGenerateCopy = async () => {
-    const copy = await onGenerateCopy({
-      ...form,
-      creatives
-    });
+    try {
+      // Evitamos enviar los strings base64 pesados (dataUrl) que superan los límites de tamaño
+      // de Next.js (413 Payload Too Large). Solo necesitamos los nombres y tipos de creativos.
+      const sanitizedCreatives = (creatives || []).map(c => ({
+        name: c.name,
+        type: c.type,
+        size: c.size
+      }));
 
-    setForm(current => ({
-      ...current,
-      primaryText: copy.primaryText,
-      headline: copy.headline,
-      description: copy.description,
-      policyNotes: copy.policyNotes || []
-    }));
+      const copy = await onGenerateCopy({
+        ...form,
+        creatives: sanitizedCreatives
+      });
+
+      setForm(current => ({
+        ...current,
+        primaryText: copy.primaryText,
+        headline: copy.headline,
+        description: copy.description,
+        policyNotes: copy.policyNotes || []
+      }));
+    } catch (err) {
+      console.error('Error al generar copy con IA:', err);
+      alert(err.response?.data?.error || err.message || 'Error al conectar con el servidor para generar el copy. Por favor, intenta de nuevo.');
+    }
   };
 
   if (batchUpload) {

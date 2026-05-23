@@ -260,20 +260,82 @@ function App() {
     }
   };
 
+  const cleanAdAccountId = (id) => {
+    if (!id) return '';
+    const numeric = id.replace(/\D/g, '');
+    return `act_${numeric}`;
+  };
+
+  const uploadVideosToMetaIfAny = async (creativesList) => {
+    if (!creativesList || creativesList.length === 0) return creativesList;
+
+    const token = metaConnection?.accessToken;
+    const rawAdAccountId = metaConnection?.adAccountId;
+
+    if (!token || !rawAdAccountId) {
+      throw new Error('Falta la conexión de Meta (Access Token o Ad Account ID). Por favor configúrala en Ajustes.');
+    }
+
+    const adAccountId = cleanAdAccountId(rawAdAccountId);
+
+    return await Promise.all(creativesList.map(async (creative) => {
+      if (creative.type?.startsWith('video/') && creative.file) {
+        const formData = new FormData();
+        formData.append('access_token', token);
+        formData.append('source', creative.file);
+
+        try {
+          console.log(`Subiendo video directamente a Meta desde el cliente: ${creative.name}...`);
+          
+          const response = await axios.post(
+            `https://graph.facebook.com/v19.0/${adAccountId}/advideos`,
+            formData,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            }
+          );
+
+          if (!response.data || !response.data.id) {
+            throw new Error('Meta no devolvió un ID para el video subido.');
+          }
+
+          // Retornamos el creativo simplificado sin la dataUrl base64 pesada
+          return {
+            name: creative.name,
+            type: creative.type,
+            size: creative.size,
+            videoId: response.data.id
+          };
+        } catch (err) {
+          console.error('Error subiendo video a Meta:', err);
+          const errMsg = err.response?.data?.error?.message || err.message || 'Error desconocido al subir el video a Meta.';
+          throw new Error(`Error al subir el video "${creative.name}" a Facebook Ads: ${errMsg}`);
+        }
+      }
+      return creative;
+    }));
+  };
+
   const BATCH_SIZE = 5;
   const BATCH_COOLDOWN_SECONDS = 320;
 
   const createCampaign = async (payload) => {
     const allCreatives = payload.creatives || [];
-    const batches = [];
-    for (let i = 0; i < allCreatives.length; i += BATCH_SIZE) {
-      batches.push(allCreatives.slice(i, i + BATCH_SIZE));
-    }
 
     try {
       setBuilderLoading(true);
       setBuilderResult(null);
       setBatchUpload(null);
+
+      // Subimos todos los videos directamente a Meta Graph API antes de llamar al backend
+      const processedCreatives = await uploadVideosToMetaIfAny(allCreatives);
+
+      const batches = [];
+      for (let i = 0; i < processedCreatives.length; i += BATCH_SIZE) {
+        batches.push(processedCreatives.slice(i, i + BATCH_SIZE));
+      }
 
       const firstResponse = await axios.post(`${API_BASE_URL}/api/campaign-builder/create`, {
         ...payload,
@@ -2931,9 +2993,9 @@ function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     // Si no es un entorno de navegador o no es una imagen, hacemos el comportamiento normal
     if (typeof window === 'undefined' || !file.type.startsWith('image/')) {
-      // Si es un video, validamos el tamaño preventivamente (límite de 4MB)
-      if (file.type.startsWith('video/') && file.size > 4 * 1024 * 1024) {
-        reject(new Error(`El video "${file.name}" supera el límite de 4MB para subidas directas. Por favor, compresiónalo o sube uno más corto.`));
+      // Si es un video, validamos el tamaño preventivamente a un límite razonable (100MB)
+      if (file.type.startsWith('video/') && file.size > 100 * 1024 * 1024) {
+        reject(new Error(`El video "${file.name}" supera el límite de 100MB.`));
         return;
       }
       
@@ -2942,7 +3004,8 @@ function readFileAsDataUrl(file) {
         name: file.name,
         type: file.type,
         size: file.size,
-        dataUrl: reader.result
+        dataUrl: reader.result,
+        file: file // Adjuntamos el archivo original para subida directa a Meta
       });
       reader.onerror = reject;
       reader.readAsDataURL(file);

@@ -1492,6 +1492,15 @@ function CampaignCardContent({ campaign }) {
 }
 
 function CampaignBuilderView({ assets, copyLoading, objectives, loading, result, batchUpload, onBatchReady, onBatchTick, onCreate, onGenerateCopy, prefill, onPrefillApplied, onGoToCreator }) {
+  const isValidUrl = (urlString) => {
+    try {
+      const url = new URL(urlString);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   useEffect(() => {
     if (!batchUpload || batchUpload.countdown === null || batchUpload.countdown <= 0) {
       if (batchUpload && batchUpload.countdown === 0) onBatchReady();
@@ -2049,7 +2058,21 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
             {needsUrl && (
               <label style={{ display: 'block', marginBottom: '20px' }}>
                 URL destino
-                <input name="destinationUrl" value={form.destinationUrl} onChange={handleChange} placeholder="https://..." />
+                <input 
+                  name="destinationUrl" 
+                  value={form.destinationUrl} 
+                  onChange={handleChange} 
+                  placeholder="https://..." 
+                  style={{
+                    borderColor: form.destinationUrl && !isValidUrl(form.destinationUrl) ? 'rgba(239, 68, 68, 0.6)' : 'rgba(99, 102, 241, 0.25)',
+                    boxShadow: form.destinationUrl && !isValidUrl(form.destinationUrl) ? '0 0 0 1px rgba(239, 68, 68, 0.6)' : 'none'
+                  }}
+                />
+                {form.destinationUrl && !isValidUrl(form.destinationUrl) && (
+                  <span style={{ color: '#ef4444', fontSize: '12px', marginTop: '6px', display: 'block', fontWeight: '500' }}>
+                    ⚠️ Ingresa una URL válida (ej: https://antojitoscol.com/gotas-plant-pwr)
+                  </span>
+                )}
               </label>
             )}
             {needsWhatsapp && (
@@ -2159,7 +2182,14 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
             </button>
             <div className="wizard-actions">
               <button className="secondary-button compact-button" type="button" onClick={() => setStep(2)}>Atrás</button>
-              <button className="primary-button" type="button" disabled={!form.primaryText || !form.headline} onClick={() => setStep(4)}>Revisar</button>
+              <button 
+                className="primary-button" 
+                type="button" 
+                disabled={!form.primaryText || !form.headline || (needsUrl && !isValidUrl(form.destinationUrl))} 
+                onClick={() => setStep(4)}
+              >
+                Revisar
+              </button>
             </div>
           </div>
         )}

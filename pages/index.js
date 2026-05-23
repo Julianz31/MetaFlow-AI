@@ -1606,16 +1606,26 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
   };
 
   const handleFiles = async (event) => {
-    const files = Array.from(event.target.files || []);
-    const encodedFiles = await Promise.all(files.map(readFileAsDataUrl));
-    setCreatives(encodedFiles);
+    try {
+      const files = Array.from(event.target.files || []);
+      const encodedFiles = await Promise.all(files.map(readFileAsDataUrl));
+      setCreatives(encodedFiles);
+    } catch (err) {
+      console.error('Error al procesar archivos:', err);
+      alert(err.message || 'Error al procesar los archivos. Por favor, asegúrate de que no superen los límites permitidos.');
+    }
   };
 
   const handleDrop = async (event) => {
     event.preventDefault();
-    const files = Array.from(event.dataTransfer.files || []);
-    const encodedFiles = await Promise.all(files.map(readFileAsDataUrl));
-    setCreatives(encodedFiles);
+    try {
+      const files = Array.from(event.dataTransfer.files || []);
+      const encodedFiles = await Promise.all(files.map(readFileAsDataUrl));
+      setCreatives(encodedFiles);
+    } catch (err) {
+      console.error('Error al procesar archivos arrastrados:', err);
+      alert(err.message || 'Error al procesar los archivos. Por favor, asegúrate de que no superen los límites permitidos.');
+    }
   };
 
   const handleSubmit = (event) => {
@@ -2919,13 +2929,112 @@ function formatInteger(value) {
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
+    // Si no es un entorno de navegador o no es una imagen, hacemos el comportamiento normal
+    if (typeof window === 'undefined' || !file.type.startsWith('image/')) {
+      // Si es un video, validamos el tamaño preventivamente (límite de 4MB)
+      if (file.type.startsWith('video/') && file.size > 4 * 1024 * 1024) {
+        reject(new Error(`El video "${file.name}" supera el límite de 4MB para subidas directas. Por favor, compresiónalo o sube uno más corto.`));
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = () => resolve({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        dataUrl: reader.result
+      });
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    // Si es una imagen, la comprimimos en el cliente usando HTML5 Canvas
     const reader = new FileReader();
-    reader.onload = () => resolve({
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      dataUrl: reader.result
-    });
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          // Redimensionamos proporcionalmente si supera el máximo
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round((width * MAX_HEIGHT) / height);
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            // Fallback si no podemos obtener el contexto
+            resolve({
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              dataUrl: reader.result
+            });
+            return;
+          }
+
+          // Dibujar la imagen redimensionada
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convertir a JPEG a 85% calidad para máxima optimización
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+          // Estimar el nuevo tamaño en bytes a partir del string base64
+          const stringLength = compressedDataUrl.length - 'data:image/jpeg;base64,'.length;
+          const estimatedSize = Math.round(stringLength * 0.75);
+
+          // Ajustar el nombre de archivo a formato .jpg
+          let newName = file.name;
+          const extIndex = newName.lastIndexOf('.');
+          if (extIndex !== -1) {
+            newName = newName.substring(0, extIndex) + '.jpg';
+          } else {
+            newName = newName + '.jpg';
+          }
+
+          resolve({
+            name: newName,
+            type: 'image/jpeg',
+            size: estimatedSize,
+            dataUrl: compressedDataUrl
+          });
+        } catch (e) {
+          // Fallback en caso de cualquier error durante la compresión canvas
+          console.warn('Canvas compression failed, falling back to original image:', e);
+          resolve({
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            dataUrl: reader.result
+          });
+        }
+      };
+      img.onerror = () => {
+        // Fallback si la imagen no se puede decodificar
+        resolve({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          dataUrl: reader.result
+        });
+      };
+      img.src = reader.result;
+    };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });

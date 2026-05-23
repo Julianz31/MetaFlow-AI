@@ -1535,6 +1535,22 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
   });
   const [creatives, setCreatives] = useState([]);
   const [step, setStep] = useState(1);
+  
+  const [showPageDropdown, setShowPageDropdown] = useState(false);
+  const [showPixelDropdown, setShowPixelDropdown] = useState(false);
+  const [showWhatsappDropdown, setShowWhatsappDropdown] = useState(false);
+
+  const handlePageSelect = (page) => {
+    setForm(current => ({
+      ...current,
+      pageId: page.id,
+      pageName: page.name,
+      instagramAccountId: page.instagram?.id || '',
+      instagramName: page.instagram?.username || '',
+      whatsappNumber: page.whatsappNumber || current.whatsappNumber || ''
+    }));
+  };
+
   const selectedObjective = objectives.find(objective => objective.value === form.objective);
   const selectedPage = assets.pages?.find(page => page.id === form.pageId);
   const needsUrl = selectedObjective?.requires?.includes('META_DESTINATION_URL');
@@ -1745,67 +1761,376 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
 
         {step === 3 && (
           <div className="wizard-pane">
-            <div className="builder-grid">
-              <label>
+            <style>{`
+              @keyframes mf-pulse-green {
+                0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+                70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+              }
+            `}</style>
+            <div className="builder-grid" style={{ marginBottom: '20px' }}>
+              <label style={{ position: 'relative' }}>
                 Fan Page
-                <select name="pageId" value={form.pageId} onChange={handleChange}>
-                  <option value="">Selecciona una Fan Page</option>
-                  {assets.pages?.map((page) => (
-                    <option key={page.id} value={page.id}>{page.name}</option>
-                  ))}
-                </select>
+                <div 
+                  onClick={() => setShowPageDropdown(!showPageDropdown)} 
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    background: 'rgba(15, 23, 42, 0.6)',
+                    border: '1px solid rgba(99, 102, 241, 0.25)',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    minHeight: '48px',
+                    transition: 'all 0.2s',
+                    boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.6)'; e.currentTarget.style.boxShadow = '0 0 10px rgba(99, 102, 241, 0.15)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.25)'; e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'; }}
+                >
+                  {selectedPage ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      {selectedPage.picture ? (
+                        <img 
+                          src={selectedPage.picture} 
+                          alt={selectedPage.name} 
+                          style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} 
+                        />
+                      ) : (
+                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg, #1877f2, #0d59c6)', display: 'grid', placeItems: 'center', fontSize: '12px', fontWeight: 'bold', color: '#fff' }}>
+                          {selectedPage.name.substring(0,2).toUpperCase()}
+                        </div>
+                      )}
+                      <span style={{ fontWeight: '600', color: '#f8fafc' }}>{selectedPage.name}</span>
+                    </div>
+                  ) : (
+                    <span style={{ color: '#64748b' }}>Selecciona una Fan Page</span>
+                  )}
+                  <span style={{ color: '#64748b', fontSize: '12px' }}>▼</span>
+                </div>
+                
+                {showPageDropdown && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    marginTop: '6px',
+                    background: '#0f172a',
+                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5), 0 8px 10px -6px rgba(0,0,0,0.5)',
+                    zIndex: 999,
+                    maxHeight: '250px',
+                    overflowY: 'auto',
+                    padding: '6px'
+                  }}>
+                    {assets.pages?.length > 0 ? (
+                      assets.pages.map((page) => (
+                        <div
+                          key={page.id}
+                          onClick={() => {
+                            handlePageSelect(page);
+                            setShowPageDropdown(false);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '10px 12px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s',
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.15)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          {page.picture ? (
+                            <img 
+                              src={page.picture} 
+                              alt={page.name} 
+                              style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} 
+                            />
+                          ) : (
+                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #1877f2, #0d59c6)', display: 'grid', placeItems: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff' }}>
+                              {page.name.substring(0,2).toUpperCase()}
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: '500', color: '#f8fafc', fontSize: '14px' }}>{page.name}</span>
+                            <span style={{ fontSize: '11px', color: '#64748b' }}>ID: {page.id}</span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ padding: '16px', textAlignment: 'center', color: '#64748b' }}>No se encontraron Fan Pages</div>
+                    )}
+                  </div>
+                )}
               </label>
               <label>
                 Instagram
-                <input
-                  name="instagramAccountId"
-                  value={form.instagramAccountId}
-                  onChange={handleChange}
-                  placeholder={selectedPage?.instagram?.username || 'Instagram conectado'}
-                />
+                {selectedPage?.instagram ? (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    background: 'linear-gradient(135deg, rgba(225, 48, 108, 0.08), rgba(225, 48, 108, 0.02))',
+                    border: '1px solid rgba(225, 48, 108, 0.25)',
+                    borderRadius: '12px',
+                    minHeight: '48px',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      {selectedPage.instagram.profilePictureUrl ? (
+                        <img 
+                          src={selectedPage.instagram.profilePictureUrl} 
+                          alt={selectedPage.instagram.username} 
+                          style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(225,48,108,0.3)' }} 
+                        />
+                      ) : (
+                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', display: 'grid', placeItems: 'center', fontSize: '11px', fontWeight: 'bold', color: '#fff' }}>
+                          IG
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: '600', color: '#f8fafc', fontSize: '14px' }}>@{selectedPage.instagram.username}</span>
+                        <span style={{ fontSize: '10px', color: '#e1306c', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#e1306c' }}></span>
+                          Presencia de Instagram vinculada
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{
+                      background: 'rgba(225, 48, 108, 0.15)',
+                      color: '#e1306c',
+                      padding: '4px 8px',
+                      borderRadius: '20px',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      letterSpacing: '0.5px'
+                    }}>
+                      CONECTADO
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '12px 14px',
+                    background: 'rgba(15, 23, 42, 0.4)',
+                    border: '1px dashed rgba(255, 255, 255, 0.1)',
+                    borderRadius: '12px',
+                    minHeight: '48px',
+                  }}>
+                    <span style={{ color: '#64748b', fontSize: '13px' }}>
+                      {selectedPage ? 'Sin cuenta de Instagram (usará la presencia de la Fan Page)' : 'Selecciona una Fan Page primero'}
+                    </span>
+                  </div>
+                )}
               </label>
             </div>
             {needsPixel && (
-              <label>
+              <label style={{ position: 'relative', display: 'block', marginBottom: '20px' }}>
                 Pixel de Meta{!pixelRequired && <span style={{ fontWeight: 400, color: '#64748b', marginLeft: 6 }}>(opcional)</span>}
                 {assets.pixels?.length > 0 ? (
-                  <select name="pixelId" value={form.pixelId} onChange={handleChange}>
-                    <option value="">Selecciona un Pixel</option>
-                    {assets.pixels.map((pixel) => (
-                      <option key={pixel.id} value={pixel.id}>
-                        {pixel.name} · {pixel.id}
-                      </option>
-                    ))}
-                  </select>
+                  <>
+                    <div 
+                      onClick={() => setShowPixelDropdown(!showPixelDropdown)} 
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '12px 16px',
+                        background: 'rgba(15, 23, 42, 0.6)',
+                        border: '1px solid rgba(99, 102, 241, 0.25)',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        minHeight: '48px',
+                        transition: 'all 0.2s',
+                        boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.6)'; e.currentTarget.style.boxShadow = '0 0 10px rgba(99, 102, 241, 0.15)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.25)'; e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'; }}
+                    >
+                      {form.pixelId ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981', animation: 'mf-pulse-green 1.5s infinite' }}></span>
+                          <span style={{ fontWeight: '600', color: '#f8fafc' }}>
+                            {assets.pixels.find(p => p.id === form.pixelId)?.name || form.pixelId}
+                          </span>
+                          <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '6px' }}>({form.pixelId})</span>
+                        </div>
+                      ) : (
+                        <span style={{ color: '#64748b' }}>Selecciona un Pixel de Meta</span>
+                      )}
+                      <span style={{ color: '#64748b', fontSize: '12px' }}>▼</span>
+                    </div>
+
+                    {showPixelDropdown && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        marginTop: '6px',
+                        background: '#0f172a',
+                        border: '1px solid rgba(99, 102, 241, 0.3)',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5), 0 8px 10px -6px rgba(0,0,0,0.5)',
+                        zIndex: 999,
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        padding: '6px'
+                      }}>
+                        <div
+                          onClick={() => {
+                            setForm(c => ({ ...c, pixelId: '' }));
+                            setShowPixelDropdown(false);
+                          }}
+                          style={{
+                            padding: '10px 12px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            color: '#64748b',
+                            fontSize: '14px',
+                            transition: 'background 0.2s',
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          Ninguno / Omitir
+                        </div>
+                        {assets.pixels.map((pixel) => (
+                          <div
+                            key={pixel.id}
+                            onClick={() => {
+                              setForm(c => ({ ...c, pixelId: pixel.id }));
+                              setShowPixelDropdown(false);
+                            }}
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '2px',
+                              padding: '10px 12px',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              transition: 'background 0.2s',
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.15)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <span style={{ fontWeight: '500', color: '#f8fafc', fontSize: '14px' }}>{pixel.name}</span>
+                            <span style={{ fontSize: '11px', color: '#64748b' }}>ID: {pixel.id} {pixel.lastFired ? `· Activo el ${new Date(pixel.lastFired).toLocaleDateString()}` : ''}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <input name="pixelId" value={form.pixelId} onChange={handleChange} placeholder="ID del Pixel de Meta" />
                 )}
               </label>
             )}
             {needsUrl && (
-              <label>
+              <label style={{ display: 'block', marginBottom: '20px' }}>
                 URL destino
                 <input name="destinationUrl" value={form.destinationUrl} onChange={handleChange} placeholder="https://..." />
               </label>
             )}
             {needsWhatsapp && (
-              <label>
+              <label style={{ position: 'relative', display: 'block', marginBottom: '20px' }}>
                 WhatsApp
                 {whatsappOptions.length > 0 ? (
-                  <select name="whatsappNumber" value={form.whatsappNumber} onChange={handleChange}>
-                    <option value="">Selecciona WhatsApp</option>
-                    {whatsappOptions.map((phone) => (
-                      <option key={`${phone.id}-${phone.display_phone_number}`} value={phone.display_phone_number}>
-                        {phone.verified_name || phone.display_phone_number} · {phone.display_phone_number}
-                      </option>
-                    ))}
-                  </select>
+                  <>
+                    <div 
+                      onClick={() => setShowWhatsappDropdown(!showWhatsappDropdown)} 
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '12px 16px',
+                        background: 'linear-gradient(135deg, rgba(37, 211, 102, 0.08), rgba(37, 211, 102, 0.02))',
+                        border: '1px solid rgba(37, 211, 102, 0.25)',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        minHeight: '48px',
+                        transition: 'all 0.2s',
+                        boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(37, 211, 102, 0.6)'; e.currentTarget.style.boxShadow = '0 0 10px rgba(37, 211, 102, 0.15)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(37, 211, 102, 0.25)'; e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'; }}
+                    >
+                      {form.whatsappNumber ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="#25D366" style={{ filter: 'drop-shadow(0 0 3px rgba(37,211,102,0.4))' }}>
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.713-1.455L0 24zm6.59-4.846c1.6.95 3.18 1.449 4.825 1.451 5.436 0 9.858-4.42 9.862-9.864.002-2.637-1.017-5.114-2.87-6.97C16.51 1.916 14.032.894 11.4.894c-5.44 0-9.866 4.418-9.87 9.865-.001 1.702.463 3.362 1.34 4.8l-.927 3.385 3.475-.91c1.554.848 3.125 1.299 4.632 1.299zm11.233-7.6c-.3-.149-1.772-.874-2.046-.973-.274-.1-.474-.149-.674.15-.2.299-.773.973-.948 1.172-.175.199-.35.224-.65.075-.3-.15-1.265-.466-2.41-1.487-.893-.796-1.496-1.78-1.67-2.08-.175-.299-.019-.461.13-.61.135-.133.3-.349.45-.523.15-.174.2-.299.3-.499.1-.2.05-.374-.025-.524-.075-.15-.674-1.623-.924-2.223-.244-.589-.493-.51-.674-.519-.174-.009-.374-.01-.574-.01s-.524.075-.798.374c-.274.299-1.047 1.022-1.047 2.492 0 1.47 1.072 2.89 1.222 3.09.15.199 2.11 3.22 5.11 4.516.714.308 1.272.492 1.707.63.717.228 1.368.196 1.883.118.574-.087 1.772-.723 2.022-1.42.25-.697.25-1.294.175-1.42-.075-.125-.275-.199-.575-.349z" />
+                          </svg>
+                          <span style={{ fontWeight: '600', color: '#f8fafc' }}>
+                            {whatsappOptions.find(phone => phone.display_phone_number === form.whatsappNumber)?.verified_name || 'WhatsApp Conectado'}
+                          </span>
+                          <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '6px' }}>({form.whatsappNumber})</span>
+                        </div>
+                      ) : (
+                        <span style={{ color: '#64748b' }}>Selecciona WhatsApp</span>
+                      )}
+                      <span style={{ color: '#64748b', fontSize: '12px' }}>▼</span>
+                    </div>
+
+                    {showWhatsappDropdown && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        marginTop: '6px',
+                        background: '#0f172a',
+                        border: '1px solid rgba(37, 211, 102, 0.3)',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5), 0 8px 10px -6px rgba(0,0,0,0.5)',
+                        zIndex: 999,
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        padding: '6px'
+                      }}>
+                        {whatsappOptions.map((phone) => (
+                          <div
+                            key={`${phone.id}-${phone.display_phone_number}`}
+                            onClick={() => {
+                              setForm(c => ({ ...c, whatsappNumber: phone.display_phone_number }));
+                              setShowWhatsappDropdown(false);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              padding: '10px 12px',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              transition: 'background 0.2s',
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(37, 211, 102, 0.15)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="#25D366">
+                              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.713-1.455L0 24zm6.59-4.846c1.6.95 3.18 1.449 4.825 1.451 5.436 0 9.858-4.42 9.862-9.864.002-2.637-1.017-5.114-2.87-6.97C16.51 1.916 14.032.894 11.4.894c-5.44 0-9.866 4.418-9.87 9.865-.001 1.702.463 3.362 1.34 4.8l-.927 3.385 3.475-.91c1.554.848 3.125 1.299 4.632 1.299zm11.233-7.6c-.3-.149-1.772-.874-2.046-.973-.274-.1-.474-.149-.674.15-.2.299-.773.973-.948 1.172-.175.199-.35.224-.65.075-.3-.15-1.265-.466-2.41-1.487-.893-.796-1.496-1.78-1.67-2.08-.175-.299-.019-.461.13-.61.135-.133.3-.349.45-.523.15-.174.2-.299.3-.499.1-.2.05-.374-.025-.524-.075-.15-.674-1.623-.924-2.223-.244-.589-.493-.51-.674-.519-.174-.009-.374-.01-.574-.01s-.524.075-.798.374c-.274.299-1.047 1.022-1.047 2.492 0 1.47 1.072 2.89 1.222 3.09.15.199 2.11 3.22 5.11 4.516.714.308 1.272.492 1.707.63.717.228 1.368.196 1.883.118.574-.087 1.772-.723 2.022-1.42.25-.697.25-1.294.175-1.42-.075-.125-.275-.199-.575-.349z" />
+                            </svg>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontWeight: '500', color: '#f8fafc', fontSize: '14px' }}>{phone.verified_name || phone.display_phone_number}</span>
+                              <span style={{ fontSize: '11px', color: '#64748b' }}>Número: {phone.display_phone_number}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <input name="whatsappNumber" value={form.whatsappNumber} onChange={handleChange} placeholder="573001234567" />
                 )}
               </label>
             )}
-            <div className="builder-grid">
+            <div className="builder-grid" style={{ marginBottom: '20px' }}>
               <label>
                 Nombre
                 <input name="name" value={form.name} onChange={handleChange} placeholder="La IA puede completarlo si lo dejas vacío" />

@@ -2167,19 +2167,25 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
         {step === 4 && (
           <div className="wizard-pane">
             <div className="review-panel">
-              <span className="badge">{selectedObjective?.label}</span>
-              <h3>{form.headline}</h3>
-              <p>{form.primaryText}</p>
-              <small>{form.description}</small>
+              <span className="badge">{selectedObjective?.label || ''}</span>
+              <h3>{form.headline || ''}</h3>
+              <p>{form.primaryText || ''}</p>
+              <small>{form.description || ''}</small>
             </div>
-            {form.policyNotes?.length > 0 && (
+            {Array.isArray(form.policyNotes) && form.policyNotes.length > 0 && (
               <div className="policy-notes">
-                {form.policyNotes.map((note) => <span key={note}>{note}</span>)}
+                {form.policyNotes.map((note, index) => (
+                  <span key={index}>
+                    {typeof note === 'object' ? JSON.stringify(note) : String(note || '')}
+                  </span>
+                ))}
               </div>
             )}
             {result && (
               <div className={`status-box ${result.success ? '' : 'status-error'}`}>
-                {result.success ? `Campaña lista para aprobación: ${result.result?.campaign_id}` : result.error}
+                {result.success 
+                  ? `Campaña lista para aprobación: ${result.result?.campaign_id || ''}` 
+                  : (typeof result.error === 'object' ? (result.error.message || JSON.stringify(result.error)) : String(result.error || ''))}
               </div>
             )}
             <div className="wizard-actions">

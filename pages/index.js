@@ -2991,21 +2991,45 @@ function formatInteger(value) {
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
-    // Si no es un entorno de navegador o no es una imagen, hacemos el comportamiento normal
-    if (typeof window === 'undefined' || !file.type.startsWith('image/')) {
-      // Si es un video, validamos el tamaño preventivamente a un límite razonable (100MB)
-      if (file.type.startsWith('video/') && file.size > 100 * 1024 * 1024) {
+    const nameLower = file.name?.toLowerCase() || '';
+    const isVideo = file.type?.startsWith('video/') || 
+                    nameLower.endsWith('.mp4') || 
+                    nameLower.endsWith('.mov') || 
+                    nameLower.endsWith('.avi') || 
+                    nameLower.endsWith('.quicktime');
+
+    const isImage = file.type?.startsWith('image/') || 
+                    nameLower.endsWith('.jpg') || 
+                    nameLower.endsWith('.jpeg') || 
+                    nameLower.endsWith('.png') || 
+                    nameLower.endsWith('.webp');
+
+    // Si es un video, resolvemos de inmediato sin leerlo como Base64 (FileReader).
+    // Esto previene que el navegador se congele, se quede sin memoria o tarde demasiado para archivos grandes.
+    if (isVideo) {
+      if (file.size > 100 * 1024 * 1024) {
         reject(new Error(`El video "${file.name}" supera el límite de 100MB.`));
         return;
       }
       
+      resolve({
+        name: file.name,
+        type: file.type || 'video/mp4', // fallback si es vacío
+        size: file.size,
+        dataUrl: '', // No es necesario para videos pre-subidos
+        file: file   // Guardamos el objeto File original para subirlo directamente a Meta
+      });
+      return;
+    }
+
+    // Si no es un entorno de navegador o no es una imagen, hacemos el comportamiento normal
+    if (typeof window === 'undefined' || !isImage) {
       const reader = new FileReader();
       reader.onload = () => resolve({
         name: file.name,
         type: file.type,
         size: file.size,
-        dataUrl: reader.result,
-        file: file // Adjuntamos el archivo original para subida directa a Meta
+        dataUrl: reader.result
       });
       reader.onerror = reject;
       reader.readAsDataURL(file);

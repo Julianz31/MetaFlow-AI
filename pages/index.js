@@ -1641,7 +1641,8 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
     businessContext: '',
     primaryText: '',
     headline: '',
-    description: ''
+    description: '',
+    useInstagramAccount: true
   });
   const [creatives, setCreatives] = useState([]);
   const [step, setStep] = useState(1);
@@ -1731,8 +1732,13 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    const finalInstagramAccountId = form.useInstagramAccount !== false && selectedPage?.instagram?.id
+      ? selectedPage.instagram.id
+      : '';
+
     onCreate({
       ...form,
+      instagramAccountId: finalInstagramAccountId,
       dailyBudget: Number(form.dailyBudget),
       generatedCopy: {
         primaryText: form.primaryText,
@@ -2005,46 +2011,63 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
               <label>
                 Instagram
                 {selectedPage?.instagram ? (
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '10px 14px',
-                    background: 'linear-gradient(135deg, rgba(225, 48, 108, 0.08), rgba(225, 48, 108, 0.02))',
-                    border: '1px solid rgba(225, 48, 108, 0.25)',
-                    borderRadius: '12px',
-                    minHeight: '48px',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      {selectedPage.instagram.profilePictureUrl ? (
-                        <img 
-                          src={selectedPage.instagram.profilePictureUrl} 
-                          alt={selectedPage.instagram.username} 
-                          style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(225,48,108,0.3)' }} 
-                        />
-                      ) : (
-                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', display: 'grid', placeItems: 'center', fontSize: '11px', fontWeight: 'bold', color: '#fff' }}>
-                          IG
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 14px',
+                      background: 'linear-gradient(135deg, rgba(225, 48, 108, 0.08), rgba(225, 48, 108, 0.02))',
+                      border: '1px solid rgba(225, 48, 108, 0.25)',
+                      borderRadius: '12px',
+                      minHeight: '48px',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        {selectedPage.instagram.profilePictureUrl ? (
+                          <img 
+                            src={selectedPage.instagram.profilePictureUrl} 
+                            alt={selectedPage.instagram.username} 
+                            style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(225,48,108,0.3)' }} 
+                          />
+                        ) : (
+                          <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', display: 'grid', placeItems: 'center', fontSize: '11px', fontWeight: 'bold', color: '#fff' }}>
+                            IG
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontWeight: '600', color: '#f8fafc', fontSize: '14px' }}>@{selectedPage.instagram.username}</span>
+                          <span style={{ fontSize: '10px', color: '#e1306c', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                            <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#e1306c' }}></span>
+                            Presencia de Instagram vinculada
+                          </span>
                         </div>
-                      )}
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontWeight: '600', color: '#f8fafc', fontSize: '14px' }}>@{selectedPage.instagram.username}</span>
-                        <span style={{ fontSize: '10px', color: '#e1306c', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                          <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#e1306c' }}></span>
-                          Presencia de Instagram vinculada
-                        </span>
+                      </div>
+                      <div style={{
+                        background: 'rgba(225, 48, 108, 0.15)',
+                        color: '#e1306c',
+                        padding: '4px 8px',
+                        borderRadius: '20px',
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        letterSpacing: '0.5px'
+                      }}>
+                        CONECTADO
                       </div>
                     </div>
-                    <div style={{
-                      background: 'rgba(225, 48, 108, 0.15)',
-                      color: '#e1306c',
-                      padding: '4px 8px',
-                      borderRadius: '20px',
-                      fontSize: '10px',
-                      fontWeight: 'bold',
-                      letterSpacing: '0.5px'
-                    }}>
-                      CONECTADO
+
+                    <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '500', color: '#cbd5e1', userSelect: 'none' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={form.useInstagramAccount !== false} 
+                          onChange={(e) => setForm(curr => ({ ...curr, useInstagramAccount: e.target.checked }))} 
+                          style={{ width: '16px', height: '16px', borderRadius: '4px', cursor: 'pointer' }}
+                        />
+                        Usar esta cuenta de Instagram para los anuncios
+                      </label>
+                      <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '24px', lineHeight: '1.4' }}>
+                        Desactívala si recibes errores de permisos (Instagram Actor). Si la desactivas, Meta mostrará tus anuncios en Instagram usando el nombre e imagen de tu Fan Page.
+                      </span>
                     </div>
                   </div>
                 ) : (

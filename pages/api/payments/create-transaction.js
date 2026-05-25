@@ -29,6 +29,10 @@ export default async function handler(req, res) {
   const signatureStr = `${reference}${amountInCents}${CURRENCY}${integritySecret}`;
   const signature = crypto.createHash('sha256').update(signatureStr).digest('hex');
 
+  const protocol = req.headers['x-forwarded-proto'] || 'http';
+  const host = req.headers.host || 'metaflow.tech';
+  const redirectUrl = `${protocol}://${host}/pricing?ref=${reference}`;
+
   return res.json({
     publicKey,
     reference,
@@ -37,6 +41,6 @@ export default async function handler(req, res) {
     signature,
     plan,
     userEmail,
-    redirectUrl: `https://metaflow.tech/pricing?ref=${reference}`,
+    redirectUrl,
   });
 }

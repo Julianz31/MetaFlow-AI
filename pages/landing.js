@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
+import { getSupabaseBrowser } from '../lib/supabase-browser';
 
 const features = [
   {
@@ -375,14 +376,22 @@ export default function Landing() {
     } catch {}
   }, []);
 
-  const handleSubscribe = async (planKey) => {
-    if (!user) { router.push(`/?signup=1&plan=${planKey}`); return; }
+  // Checkout Modal states
+  const [selectedPlan, setSelectedPlan] = useState(null); // 'pro', 'business', 'agency' or null
+  const [modalMode, setModalMode] = useState('register'); // 'register' | 'login' | 'email-confirm'
+  const [modalName, setModalName] = useState('');
+  const [modalEmail, setModalEmail] = useState('');
+  const [modalPassword, setModalPassword] = useState('');
+  const [modalError, setModalError] = useState('');
+  const [modalLoading, setModalLoading] = useState(false);
+
+  const triggerWompiCheckout = async (planKey, currentUser) => {
     setLoadingPlan(planKey);
     setPayError('');
     try {
       const { data } = await axios.post('/api/payments/create-transaction', {
-        userId: user.id,
-        userEmail: user.email,
+        userId: currentUser.id,
+        userEmail: currentUser.email,
         plan: planKey,
       });
       const script = document.createElement('script');
@@ -404,10 +413,69 @@ export default function Landing() {
           if (btn) btn.click();
         };
       }
-    } catch {
+    } catch (err) {
+      console.error(err);
       setPayError('Error iniciando el pago. Intenta de nuevo.');
     } finally {
       setLoadingPlan(null);
+    }
+  };
+
+  const handleSubscribe = async (planKey) => {
+    if (!user) {
+      setSelectedPlan(planKey);
+      setModalMode('register');
+      setModalError('');
+      return;
+    }
+    await triggerWompiCheckout(planKey, user);
+  };
+
+  const handleModalSubmit = async (e) => {
+    e.preventDefault();
+    setModalError('');
+    setModalLoading(true);
+    const supabase = getSupabaseBrowser();
+
+    try {
+      if (modalMode === 'register') {
+        const { data, error: err } = await supabase.auth.signUp({
+          email: modalEmail,
+          password: modalPassword,
+          options: { data: { name: modalName || modalEmail.split('@')[0] } }
+        });
+        if (err) { setModalError(err.message); return; }
+
+        if (!data.session) {
+          setModalMode('email-confirm');
+          return;
+        }
+
+        const u = data.user;
+        const nextUser = { id: u.id, name: u.user_metadata?.name || modalEmail.split('@')[0], email: u.email };
+        localStorage.setItem('metaflow_user', JSON.stringify(nextUser));
+        setUser(nextUser);
+        setSelectedPlan(null);
+        await triggerWompiCheckout(selectedPlan, nextUser);
+      } else {
+        const { data, error: err } = await supabase.auth.signInWithPassword({ email: modalEmail, password: modalPassword });
+        if (err) {
+          if (err.message === 'Invalid login credentials') setModalError('Email o contraseña incorrectos');
+          else if (err.message.includes('Email not confirmed')) setModalError('Debes confirmar tu email antes de ingresar. Revisa tu bandeja de entrada.');
+          else setModalError(err.message);
+          return;
+        }
+        const u = data.user;
+        const nextUser = { id: u.id, name: u.user_metadata?.name || u.email.split('@')[0], email: u.email };
+        localStorage.setItem('metaflow_user', JSON.stringify(nextUser));
+        setUser(nextUser);
+        setSelectedPlan(null);
+        await triggerWompiCheckout(selectedPlan, nextUser);
+      }
+    } catch (err) {
+      setModalError('Error en la autenticación. Revisa los datos.');
+    } finally {
+      setModalLoading(false);
     }
   };
 
@@ -722,6 +790,99 @@ export default function Landing() {
             <p className="l-footer-copy">© 2026 MetaFlow.AI — El copiloto de IA para tus Meta Ads.</p>
           </div>
         </footer>
+
+        {selectedPlan && (
+          <div className="checkout-modal-overlay" onClick={() => setSelectedPlan(null)}>
+            <div className="checkout-modal-card" onClick={(e) => e.stopPropagation()}>
+              <button className="checkout-modal-close" onClick={() => setSelectedPlan(null)}>×</button>
+              <div className="checkout-modal-header">
+                <div className="checkout-brand">
+                  <span className="checkout-logo-mark">⚡</span>
+                  <span>MetaFlow.AI</span>
+                </div>
+                <h2>
+                  {modalMode === 'email-confirm'
+                    ? '📬 Revisa tu correo'
+                    : modalMode === 'register'
+                    ? `Suscribirse a plan ${plans.find(p => p.key === selectedPlan)?.name}`
+                    : 'Iniciar sesión y pagar'}
+                </h2>
+                <p>
+                  {modalMode === 'email-confirm'
+                    ? 'Te hemos enviado un correo de confirmación.'
+                    : modalMode === 'register'
+                    ? 'Crea tu cuenta en 10 segundos para continuar con el pago.'
+                    : 'Ingresa a tu cuenta para continuar con el pago.'}
+                </p>
+              </div>
+
+              {modalMode === 'email-confirm' ? (
+                <div className="checkout-confirm-body">
+                  <p>Te enviamos un enlace de confirmación a: <strong style={{ color: '#a78bfa' }}>{modalEmail}</strong></p>
+                  <p className="checkout-confirm-hint">Haz clic en el enlace para activar tu cuenta. Una vez activa, inicia sesión aquí para completar tu pago.</p>
+                  <button
+                    type="button"
+                    className="checkout-submit-btn"
+                    onClick={() => { setModalMode('login'); setModalError(''); }}
+                  >
+                    Ir a iniciar sesión
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleModalSubmit} className="checkout-form">
+                  {modalMode === 'register' && (
+                    <div className="checkout-form-group">
+                      <label>Nombre completo</label>
+                      <input
+                        type="text"
+                        placeholder="Tu nombre completo"
+                        value={modalName}
+                        onChange={(e) => setModalName(e.target.value)}
+                        required
+                      />
+                    </div>
+                  )}
+                  <div className="checkout-form-group">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      placeholder="tu@correo.com"
+                      value={modalEmail}
+                      onChange={(e) => setModalEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="checkout-form-group">
+                    <label>Contraseña</label>
+                    <input
+                      type="password"
+                      placeholder="Mínimo 6 caracteres"
+                      value={modalPassword}
+                      onChange={(e) => setModalPassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                  </div>
+
+                  {modalError && <div className="checkout-error-msg">⚠️ {modalError}</div>}
+
+                  <button type="submit" className="checkout-submit-btn" disabled={modalLoading}>
+                    {modalLoading ? 'Procesando...' : modalMode === 'register' ? 'Crear cuenta y pagar' : 'Iniciar sesión y pagar'}
+                  </button>
+
+                  <div className="checkout-toggle-mode">
+                    {modalMode === 'register' ? (
+                      <p>¿Ya tienes una cuenta? <span onClick={() => { setModalMode('login'); setModalError(''); }}>Inicia sesión aquí</span></p>
+                    ) : (
+                      <p>¿No tienes cuenta? <span onClick={() => { setModalMode('register'); setModalError(''); }}>Regístrate aquí</span></p>
+                    )}
+                  </div>
+                </form>
+              )}
+              <p className="checkout-guarantee">🔒 Transacción 100% segura procesada por Wompi</p>
+            </div>
+          </div>
+        )}
 
       </div>
     </>

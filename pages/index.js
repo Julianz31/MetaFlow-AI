@@ -1132,8 +1132,6 @@ function AuthView({ onAuth, initialMode = 'login' }) {
 
     try {
       if (mode === 'register') {
-        setError('El registro está temporalmente cerrado. Contáctanos para obtener acceso.');
-        return;
         const { data, error: err } = await supabase.auth.signUp({
           email: form.email,
           password: form.password,

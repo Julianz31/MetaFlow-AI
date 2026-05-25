@@ -27,6 +27,7 @@ export default async function handler(req, res) {
         const ads = await metaAdsService.addAdsBatch(payload, campaignId, adsetId, getMetaCredentials(req));
         res.json({ success: true, ads });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        const errMsg = error.response?.data?.error?.message || error.message;
+        res.status(500).json({ success: false, error: errMsg });
     }
 }

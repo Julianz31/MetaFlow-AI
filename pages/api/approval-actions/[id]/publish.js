@@ -24,6 +24,7 @@ export default async function handler(req, res) {
 
         res.json({ success: true, result });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        const errMsg = error.response?.data?.error?.message || error.message;
+        res.status(500).json({ success: false, error: errMsg });
     }
 }

@@ -27,7 +27,10 @@ export default async function handler(req, res) {
         const ads = await metaAdsService.addAdsBatch(payload, campaignId, adsetId, getMetaCredentials(req));
         res.json({ success: true, ads });
     } catch (error) {
-        const errMsg = error.response?.data?.error?.message || error.message;
+        const metaErr = error.response?.data?.error;
+        const errMsg = metaErr
+            ? `${metaErr.error_user_title ? `${metaErr.error_user_title}: ` : ''}${metaErr.error_user_msg || metaErr.message}${metaErr.code || metaErr.error_subcode ? ` (Código: ${metaErr.code || ''}, Subcódigo: ${metaErr.error_subcode || ''})` : ''}`
+            : error.message;
         res.status(500).json({ success: false, error: errMsg });
     }
 }

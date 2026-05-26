@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from('connected_ad_accounts')
-    .select('id, ad_account_id, ad_account_name, currency, timezone, is_active, connected_at, last_switched_at, plan')
+    .select('id, ad_account_id, ad_account_name, currency, timezone, is_active, connected_at, last_switched_at, plan, facebook_page_id, facebook_page_name, instagram_account_id, pixel_id')
     .eq('user_email', user.email)
     .order('connected_at', { ascending: true });
 

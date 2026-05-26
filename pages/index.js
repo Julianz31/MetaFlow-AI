@@ -34,8 +34,9 @@ import {
 const API_BASE_URL = '';
 
 function App() {
-  const [user, setUser] = useState(loadSessionUser());
-  const [activeTab, setActiveTab] = useState(() => { try { return localStorage.getItem('metaflow_tab') || 'dashboard'; } catch { return 'dashboard'; } });
+  const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState({
     inversion: '0.00',
     roas: '0.00x',
@@ -52,7 +53,7 @@ function App() {
   const [campaignsLoading, setCampaignsLoading] = useState(false);
   const [objectives, setObjectives] = useState([]);
   const [businessAssets, setBusinessAssets] = useState({ pages: [], pixels: [], defaults: {} });
-  const [metaConnection, setMetaConnection] = useState(loadMetaConnection());
+  const [metaConnection, setMetaConnection] = useState({ accessToken: '', adAccountId: '' });
   const [approvalActions, setApprovalActions] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [approvalLoading, setApprovalLoading] = useState(false);
@@ -84,19 +85,27 @@ function App() {
   const [subscription, setSubscription] = useState(null); // null = loading, object = loaded
   const [imageGenLoading, setImageGenLoading] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
-  const [adForm, setAdForm] = useState(() => {
-    const defaults = { productName: '', description: '', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'square', selectedProductId: '', productImageBase64: '', productImageName: '', angles: ['pain', 'desire', 'transformation', 'objection', 'urgency', 'authority', 'comparison', 'guarantee', 'social_proof', 'curiosity', 'price'], fullDesign: true };
-    try {
-      const saved = localStorage.getItem('metaflow_adform');
-      if (saved) return { ...defaults, ...JSON.parse(saved), productImageBase64: '', productImageName: '' };
-    } catch {}
-    return defaults;
-  });
+  const [adForm, setAdForm] = useState({ productName: '', description: '', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'square', selectedProductId: '', productImageBase64: '', productImageName: '', angles: ['pain', 'desire', 'transformation', 'objection', 'urgency', 'authority', 'comparison', 'guarantee', 'social_proof', 'curiosity', 'price'], fullDesign: true });
   const [builderPrefill, setBuilderPrefill] = useState(null);
   const [libraryCreatives, setLibraryCreatives] = useState([]);
   const [libraryLoading, setLibraryLoading] = useState(false);
 
-  useEffect(() => { try { localStorage.setItem('metaflow_tab', activeTab); } catch {} }, [activeTab]);
+  useEffect(() => {
+    setUser(loadSessionUser());
+    try {
+      setActiveTab(localStorage.getItem('metaflow_tab') || 'dashboard');
+    } catch (_) {}
+    setMetaConnection(loadMetaConnection());
+    try {
+      const saved = localStorage.getItem('metaflow_adform');
+      if (saved) {
+        setAdForm(prev => ({ ...prev, ...JSON.parse(saved), productImageBase64: '', productImageName: '' }));
+      }
+    } catch (_) {}
+    setMounted(true);
+  }, []);
+
+  useEffect(() => { if (mounted) { try { localStorage.setItem('metaflow_tab', activeTab); } catch {} } }, [activeTab, mounted]);
 
   // Verificar suscripción cuando hay usuario logueado
   useEffect(() => {
@@ -842,6 +851,29 @@ function App() {
     localStorage.removeItem('metaflow_user');
     setUser(null);
   };
+
+  if (!mounted) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at 18% 8%, rgba(59,130,246,0.22), transparent 28%), radial-gradient(circle at 84% 12%, rgba(168,85,247,0.18), transparent 24%), #030509', gap: 24 }}>
+        <style>{`
+          @keyframes mf-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.7), 0 0 26px rgba(99,102,241,0.52), inset 0 0 12px rgba(255,255,255,0.24); transform: scale(1); }
+            50% { box-shadow: 0 0 0 12px rgba(99,102,241,0), 0 0 40px rgba(99,102,241,0.7), inset 0 0 12px rgba(255,255,255,0.24); transform: scale(1.08); }
+          }
+          @keyframes mf-fade {
+            0%, 100% { opacity: 0.5; } 50% { opacity: 1; }
+          }
+        `}</style>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 48, height: 48, display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,#2563eb,#7c3aed 58%,#ef4444)', borderRadius: 14, animation: 'mf-pulse 1.8s ease-in-out infinite' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <span style={{ fontSize: 22, fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.02em' }}>MetaFlow.AI</span>
+        </div>
+        <span style={{ fontSize: 13, color: '#475569', animation: 'mf-fade 1.8s ease-in-out infinite' }}>Cargando tu cuenta…</span>
+      </div>
+    );
+  }
 
   if (!user) {
     const initialMode = isBrowser && window.location.search.includes('signup=1') ? 'register' : 'login';
@@ -2518,12 +2550,22 @@ const PLAN_ACCOUNT_LIMITS = { pro: 1, business: 3, agency: 10 };
 const SWITCH_COOLDOWN_DAYS = 30;
 
 function SettingsView({ connection, metaConnection, loading, onConnect, onRefresh, user }) {
-  const [draft, setDraft] = useState(metaConnection || { accessToken: '', adAccountId: '' });
-  const [showToken, setShowToken] = useState(false);
   const [accounts, setAccounts] = useState([]);
   const [accountsLoading, setAccountsLoading] = useState(false);
   const [toggleLoading, setToggleLoading] = useState(null);
   const [accountError, setAccountError] = useState('');
+
+  // OAuth & Assets Discovery state
+  const [assets, setAssets] = useState(null);
+  const [assetsLoading, setAssetsLoading] = useState(false);
+  const [assetsError, setAssetsError] = useState('');
+  
+  const [selectedAdAccount, setSelectedAdAccount] = useState('');
+  const [selectedPage, setSelectedPage] = useState('');
+  const [selectedInstagram, setSelectedInstagram] = useState('');
+  const [selectedPixel, setSelectedPixel] = useState('');
+  const [savingConfig, setSavingConfig] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const loadAccounts = async () => {
     setAccountsLoading(true);
@@ -2538,9 +2580,49 @@ function SettingsView({ connection, metaConnection, loading, onConnect, onRefres
     }
   };
 
+  const loadDiscoveredAssets = async () => {
+    setAssetsLoading(true);
+    setAssetsError('');
+    try {
+      const authHeader = await getAuthHeader();
+      const { data } = await axios.get('/api/meta/discover-assets', { headers: authHeader });
+      setAssets(data);
+      
+      // Auto-populate from active saved connections in accounts list
+      const { data: accountsData } = await axios.get('/api/meta/my-accounts', { headers: authHeader });
+      const currentAccounts = accountsData.accounts || [];
+      const activeAccount = currentAccounts.find(a => a.is_active);
+
+      if (activeAccount) {
+        setSelectedAdAccount(activeAccount.ad_account_id || '');
+        setSelectedPage(activeAccount.facebook_page_id || '');
+        setSelectedInstagram(activeAccount.instagram_account_id || '');
+        setSelectedPixel(activeAccount.pixel_id || '');
+      } else if (data.adAccounts?.length > 0) {
+        setSelectedAdAccount(data.adAccounts[0].id);
+      }
+    } catch (err) {
+      if (err.response?.data?.code === 'NO_CONNECTION') {
+        setAssets(null);
+      } else {
+        setAssetsError(err.response?.data?.error || 'No se pudieron sincronizar tus activos.');
+      }
+    } finally {
+      setAssetsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (user?.email) loadAccounts();
+    if (user?.email) {
+      loadAccounts();
+    }
   }, [user?.email, connection?.ok]);
+
+  useEffect(() => {
+    if (user?.email && accounts.length > 0) {
+      loadDiscoveredAssets();
+    }
+  }, [user?.email, accounts.length]);
 
   const handleToggle = async (adAccountId, currentlyActive) => {
     setToggleLoading(adAccountId);
@@ -2559,13 +2641,93 @@ function SettingsView({ connection, metaConnection, loading, onConnect, onRefres
     }
   };
 
-  const handleChange = (event) => {
-    setDraft(current => ({ ...current, [event.target.name]: event.target.value }));
+  const handleFacebookConnect = async () => {
+    setAssetsLoading(true);
+    setAssetsError('');
+    try {
+      const authHeader = await getAuthHeader();
+      const { data } = await axios.get('/api/meta/oauth-url', { headers: authHeader });
+      if (!data.url) throw new Error('No se pudo generar el enlace de Facebook Login.');
+      
+      // Open standard centered popup
+      const width = 650;
+      const height = 700;
+      const left = window.screen.width / 2 - width / 2;
+      const top = window.screen.height / 2 - height / 2;
+      const popup = window.open(
+        data.url,
+        'Conectar Facebook',
+        `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,status=yes`
+      );
+      
+      // Listen for message events from the popup
+      const listener = async (event) => {
+        if (event.origin !== window.location.origin) return;
+        if (event.data?.type === 'META_OAUTH_SUCCESS') {
+          window.removeEventListener('message', listener);
+          await loadAccounts();
+          await loadDiscoveredAssets();
+        } else if (event.data?.type === 'META_OAUTH_ERROR') {
+          window.removeEventListener('message', listener);
+          setAssetsError(event.data.error || 'Error al conectar con Facebook.');
+        }
+      };
+      window.addEventListener('message', listener);
+    } catch (err) {
+      setAssetsError(err.response?.data?.error || err.message);
+    } finally {
+      setAssetsLoading(false);
+    }
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    await onConnect(draft);
+  const handlePageChange = (pageId) => {
+    setSelectedPage(pageId);
+    const chosenPage = assets?.pages?.find(p => p.pageId === pageId);
+    if (chosenPage?.instagramAccount) {
+      setSelectedInstagram(chosenPage.instagramAccount.id);
+    } else {
+      setSelectedInstagram('');
+    }
+  };
+
+  const handleSaveBrandConfig = async (e) => {
+    e.preventDefault();
+    setSavingConfig(true);
+    setSaveSuccess(false);
+    setAssetsError('');
+    try {
+      const authHeader = await getAuthHeader();
+      const chosenAccount = assets?.adAccounts?.find(a => a.id === selectedAdAccount);
+      const chosenPage = assets?.pages?.find(p => p.pageId === selectedPage);
+      
+      const payload = {
+        adAccountId: selectedAdAccount,
+        adAccountName: chosenAccount?.name || selectedAdAccount,
+        facebookPageId: selectedPage,
+        facebookPageName: chosenPage?.pageName || '',
+        instagramAccountId: selectedInstagram || null,
+        pixelId: selectedPixel || null,
+        currency: chosenAccount?.currency || null,
+        timezone: chosenAccount?.timezone || null
+      };
+      
+      await axios.post('/api/meta/save-brand-config', payload, { headers: authHeader });
+      
+      // Update parent connection and localStorage to make it instantly active!
+      const nextConnection = {
+        accessToken: assets?.decryptedToken || metaConnection?.accessToken || '',
+        adAccountId: selectedAdAccount
+      };
+      await onConnect(nextConnection);
+      
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 4000);
+      await loadAccounts();
+    } catch (err) {
+      setAssetsError(err.response?.data?.error || 'Error al guardar la configuración.');
+    } finally {
+      setSavingConfig(false);
+    }
   };
 
   const userPlan = accounts[0]?.plan || 'pro';
@@ -2578,59 +2740,135 @@ function SettingsView({ connection, metaConnection, loading, onConnect, onRefres
     return daysSince < SWITCH_COOLDOWN_DAYS ? Math.ceil(SWITCH_COOLDOWN_DAYS - daysSince) : 0;
   };
 
+  const chosenPage = assets?.pages?.find(p => p.pageId === selectedPage);
+  const detectedInstagramName = chosenPage?.instagramAccount
+    ? `@${chosenPage.instagramAccount.username}`
+    : null;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '560px' }}>
-      <form className="card narrow-panel token-panel" onSubmit={handleSubmit}>
-        <h2>Conecta tu System User</h2>
-        <p className="muted-copy">Pega el token generado en Business Manager. La app cargará las cuentas, Fan Pages, Instagram y WhatsApp permitidos.</p>
-        <div className={`status-box ${connection?.ok === false ? 'status-error' : ''}`}>
-          {loading && <><FuturisticLoader small /> Validando conexión con Meta Ads...</>}
-          {!loading && connection?.ok && `Conectado por System User a ${connection.account?.name || connection.adAccountId}.`}
-          {!loading && connection?.ok === false && (connection?.detail ? `Error: ${connection.detail}` : 'No se pudo validar la conexión con Meta Ads.')}
-          {!loading && !connection && 'Aún no hay una conexión validada.'}
-        </div>
-        <label>
-          System User Access Token
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <input
-              name="accessToken"
-              type={showToken ? 'text' : 'password'}
-              value={draft.accessToken || ''}
-              onChange={handleChange}
-              placeholder="EAAB..."
-              style={{ flex: 1, paddingRight: '2.5rem' }}
-            />
-            <button
-              type="button"
-              onClick={() => setShowToken(v => !v)}
-              style={{ position: 'absolute', right: '0.6rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted, #aaa)', fontSize: '1rem', padding: '0.2rem' }}
-              title={showToken ? 'Ocultar token' : 'Mostrar token'}
-            >
-              {showToken ? '🙈' : '👁️'}
-            </button>
-          </div>
-        </label>
-        <label>
-          Ad Account ID
-          <input name="adAccountId" value={draft.adAccountId || ''} onChange={handleChange} placeholder="act_123456789 o vacío para detectar" />
-        </label>
-        {connection?.ok && (
-          <div className="connection-details">
-            <span>Graph API: {connection.graphVersion}</span>
-            <span>Cuenta activa: {connection.adAccountId}</span>
-            <span>Campañas legibles: {connection.readableCampaigns}</span>
+      <div className="card narrow-panel token-panel">
+        <h2>Conexión a Meta Ads</h2>
+        <p className="muted-copy">
+          Sincroniza tus cuentas y activos de Facebook en un solo clic, sin llaves técnicas complicadas.
+        </p>
+
+        {assetsLoading && (
+          <div className="status-box">
+            <Loader2 className="spin" size={18} /> Sincronizando con Meta...
           </div>
         )}
-        <div className="settings-actions">
-          <button className="primary-button" type="submit" disabled={loading || !draft.accessToken}>
-            {loading ? <FuturisticLoader small /> : <ShieldCheck size={18} />}
-            Conectar
+
+        {!assetsLoading && assets && (
+          <div className="status-box status-success" style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', color: '#34d399', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ShieldCheck size={18} /> Conectado de forma segura como <strong>{assets.connectedUser}</strong>.
+          </div>
+        )}
+
+        {!assetsLoading && !assets && (
+          <div className="status-box status-error" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <XCircle size={18} /> Aún no has conectado tu cuenta de Facebook.
+          </div>
+        )}
+
+        {assetsError && (
+          <div style={{ color: '#f87171', fontSize: '13px', padding: '10px 12px', background: 'rgba(248,113,113,0.08)', borderRadius: '8px', marginBottom: '12px' }}>
+            {assetsError}
+          </div>
+        )}
+
+        <div className="settings-actions" style={{ marginTop: '8px' }}>
+          <button className="primary-button" type="button" onClick={handleFacebookConnect} disabled={assetsLoading}>
+            <Zap size={18} />
+            {assets ? 'Reconectar con Facebook' : 'Conectar con Facebook'}
           </button>
-          <button className="secondary-button compact-button" type="button" onClick={onRefresh} disabled={loading}>
-            Validar de nuevo
+          <button className="secondary-button compact-button" type="button" onClick={onRefresh} disabled={loading || assetsLoading}>
+            Validar Conexión
           </button>
         </div>
-      </form>
+      </div>
+
+      {!assetsLoading && assets && (
+        <form className="card narrow-panel token-panel" onSubmit={handleSaveBrandConfig}>
+          <h2>Configura tu Marca o Tienda</h2>
+          <p className="muted-copy">
+            Escoge los activos con los que la inteligencia artificial creará y optimizará tus campañas de publicidad.
+          </p>
+
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', fontWeight: 600 }}>
+            1. Cuenta Publicitaria Activa
+            <select
+              value={selectedAdAccount}
+              onChange={(e) => setSelectedAdAccount(e.target.value)}
+              style={{ background: 'var(--bg-secondary, #1e293b)', color: '#fff', border: '1px solid var(--border, #334155)', borderRadius: '8px', padding: '10px', width: '100%', outline: 'none' }}
+              required
+            >
+              <option value="" disabled>Selecciona una cuenta...</option>
+              {assets.adAccounts?.map(acc => (
+                <option key={acc.id} value={acc.id}>
+                  {acc.name} ({acc.id}) {acc.currency ? `[${acc.currency}]` : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', fontWeight: 600 }}>
+            2. Fan Page de Facebook
+            <select
+              value={selectedPage}
+              onChange={(e) => handlePageChange(e.target.value)}
+              style={{ background: 'var(--bg-secondary, #1e293b)', color: '#fff', border: '1px solid var(--border, #334155)', borderRadius: '8px', padding: '10px', width: '100%', outline: 'none' }}
+              required
+            >
+              <option value="" disabled>Selecciona tu página...</option>
+              {assets.pages?.map(p => (
+                <option key={p.pageId} value={p.pageId}>
+                  {p.pageName} ({p.pageId})
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #f8fafc)' }}>3. Cuenta de Instagram (Auto-detectado)</span>
+            <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border, rgba(255,255,255,0.06))', fontSize: '13px', color: '#aaa', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '16px' }}>📸</span>
+              {detectedInstagramName ? (
+                <span>Instagram conectado: <strong style={{ color: '#c084fc' }}>{detectedInstagramName}</strong></span>
+              ) : (
+                <span>Sin cuenta de Instagram conectada. <span style={{ color: '#a78bfa' }}>Se usará tu Fan Page como respaldo automáticamente. (Bypass Activo ✓)</span></span>
+              )}
+            </div>
+          </div>
+
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', fontWeight: 600 }}>
+            4. Píxel de Conversión Activo
+            <select
+              value={selectedPixel}
+              onChange={(e) => setSelectedPixel(e.target.value)}
+              style={{ background: 'var(--bg-secondary, #1e293b)', color: '#fff', border: '1px solid var(--border, #334155)', borderRadius: '8px', padding: '10px', width: '100%', outline: 'none' }}
+            >
+              <option value="">Sin Píxel (O no usar píxel)</option>
+              {selectedAdAccount && assets.pixels?.[selectedAdAccount]?.map(pix => (
+                <option key={pix.id} value={pix.id}>
+                  {pix.name} ({pix.id})
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {saveSuccess && (
+            <div style={{ color: '#34d399', fontSize: '13px', padding: '10px 12px', background: 'rgba(52,211,153,0.08)', borderRadius: '8px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <CheckCircle2 size={16} /> ¡Configuración de marca guardada y activa con éxito!
+            </div>
+          )}
+
+          <button className="primary-button" type="submit" disabled={savingConfig || !selectedAdAccount || !selectedPage} style={{ width: '100%' }}>
+            {savingConfig ? <Loader2 className="spin" size={18} /> : <CheckCircle2 size={18} />}
+            Guardar Configuración de Marca
+          </button>
+        </form>
+      )}
 
       {accounts.length > 0 && (
         <div className="card narrow-panel token-panel">
@@ -2642,7 +2880,7 @@ function SettingsView({ connection, metaConnection, loading, onConnect, onRefres
           </div>
           <p className="muted-copy" style={{ marginBottom: '12px' }}>
             {accountLimit === 1
-              ? 'Tu plan permite 1 cuenta activa. Para cambiarla, desactiva la actual primero.'
+              ? 'Tu plan permite 1 cuenta activa. Al guardar una nueva marca, se desactivará automáticamente la anterior.'
               : `Tu plan permite hasta ${accountLimit} cuentas activas simultáneamente.`}
           </p>
 
@@ -2676,6 +2914,13 @@ function SettingsView({ connection, metaConnection, loading, onConnect, onRefres
                       {account.ad_account_id}
                       {account.currency && ` · ${account.currency}`}
                     </div>
+                    {account.facebook_page_name && (
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted, #64748b)', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span>📘 Page: {account.facebook_page_name}</span>
+                        {account.instagram_account_id && <span> · 📸 IG Activo</span>}
+                        {account.pixel_id && <span> · 🎯 Píxel</span>}
+                      </div>
+                    )}
                     {daysLeft > 0 && (
                       <div style={{ fontSize: '11px', color: '#f59e0b', marginTop: '4px' }}>
                         Cambio disponible en {daysLeft} día{daysLeft !== 1 ? 's' : ''}

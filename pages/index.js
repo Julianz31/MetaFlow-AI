@@ -1354,7 +1354,9 @@ const RULE_METRICS = [
   { value: 'cpc',         label: 'CPC' },
   { value: 'cpa',         label: 'CPA (Costo por compra)' },
   { value: 'clicks',      label: 'Clics' },
-  { value: 'impressions', label: 'Impresiones' }
+  { value: 'impressions', label: 'Impresiones' },
+  { value: 'ctr',         label: 'CTR (%)' },
+  { value: 'cpm',         label: 'CPM ($)' }
 ];
 const RULE_OPERATORS = [
   { value: '<',  label: 'Menor a' },

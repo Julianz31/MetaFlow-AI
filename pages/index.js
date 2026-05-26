@@ -29,7 +29,11 @@ import {
   Upload,
   Wand2,
   XCircle,
-  Zap
+  Zap,
+  Table,
+  Layers,
+  Video,
+  Filter
 } from 'lucide-react';
 const API_BASE_URL = '';
 
@@ -1043,6 +1047,7 @@ function App() {
             loading={campaignsLoading}
             onOpenCampaign={openCampaignDetail}
             onRefresh={fetchCampaignAnalysis}
+            metaConnection={metaConnection}
           />
         )}
         {activeTab === 'builder' && (
@@ -1545,24 +1550,125 @@ function RuleForm({ rule, onSave, onCancel }) {
   );
 }
 
-function CampaignsView({ campaigns, loading, onOpenCampaign, onRefresh }) {
+function CampaignsView({ campaigns, loading, onOpenCampaign, onRefresh, metaConnection }) {
+  const [layoutMode, setLayoutMode] = useState('table'); // 'table' or 'cards'
+  const [activeSubTab, setActiveSubTab] = useState('campaigns'); // 'campaigns', 'adsets', 'ads'
+  
+  // Selection states
+  const [selectedCampaignId, setSelectedCampaignId] = useState(null);
+  const [selectedCampaignName, setSelectedCampaignName] = useState('');
+  
+  const [adsets, setAdsets] = useState([]);
+  const [adsetsLoading, setAdsetsLoading] = useState(false);
+  
+  const [selectedAdSetId, setSelectedAdSetId] = useState(null);
+  const [selectedAdSetName, setSelectedAdSetName] = useState('');
+  
+  const [ads, setAds] = useState([]);
+  const [adsLoading, setAdsLoading] = useState(false);
+
+  // Fetch adsets when campaign is selected
+  const handleSelectCampaignRow = async (campaignId, campaignName) => {
+    setSelectedCampaignId(campaignId);
+    setSelectedCampaignName(campaignName);
+    setSelectedAdSetId(null);
+    setSelectedAdSetName('');
+    setAds([]);
+    setAdsets([]);
+    setActiveSubTab('adsets');
+    setAdsetsLoading(true);
+    try {
+      const response = await axios.get(`/api/campaigns/${campaignId}/detail`, {
+        headers: {
+          ...(metaConnection?.accessToken ? { 'x-meta-access-token': metaConnection.accessToken } : {}),
+          ...(metaConnection?.adAccountId ? { 'x-meta-ad-account-id': metaConnection.adAccountId } : {}),
+        }
+      });
+      setAdsets(response.data.adsets || []);
+    } catch (err) {
+      console.error('Error al cargar conjuntos de anuncios:', err);
+    } finally {
+      setAdsetsLoading(false);
+    }
+  };
+
+  // Fetch ads when adset is selected
+  const handleSelectAdSetRow = async (adsetId, adsetName) => {
+    setSelectedAdSetId(adsetId);
+    setSelectedAdSetName(adsetName);
+    setAds([]);
+    setActiveSubTab('ads');
+    setAdsLoading(true);
+    try {
+      const response = await axios.get(`/api/adsets/${adsetId}/detail`, {
+        headers: {
+          ...(metaConnection?.accessToken ? { 'x-meta-access-token': metaConnection.accessToken } : {}),
+          ...(metaConnection?.adAccountId ? { 'x-meta-ad-account-id': metaConnection.adAccountId } : {}),
+        }
+      });
+      setAds(response.data.ads || []);
+    } catch (err) {
+      console.error('Error al cargar anuncios:', err);
+    } finally {
+      setAdsLoading(false);
+    }
+  };
+
+  const handleClearCampaignFilter = () => {
+    setSelectedCampaignId(null);
+    setSelectedCampaignName('');
+    setSelectedAdSetId(null);
+    setSelectedAdSetName('');
+    setAdsets([]);
+    setAds([]);
+    setActiveSubTab('campaigns');
+  };
+
+  const handleClearAdSetFilter = () => {
+    setSelectedAdSetId(null);
+    setSelectedAdSetName('');
+    setAds([]);
+    setActiveSubTab('adsets');
+  };
+
   return (
     <section className="campaigns-section">
       <div className="section-toolbar">
         <div>
           <h2>Análisis por campaña</h2>
-          <p className="muted-copy">Lectura individual de los últimos 7 días desde Meta Ads.</p>
+          <p className="muted-copy">Lectura individual y Drill-down en tiempo real de tus activos desde Meta Ads.</p>
         </div>
-        <button className="secondary-button compact-button" onClick={onRefresh} disabled={loading}>
-          {loading ? <Loader2 className="spin" size={18} /> : <BarChart3 size={18} />}
-          Actualizar
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="layout-toggles">
+            <button 
+              className={`layout-toggle-btn${layoutMode === 'table' ? ' active' : ''}`}
+              onClick={() => setLayoutMode('table')}
+              title="Vista de Administrador de Anuncios (Spreadsheet)"
+            >
+              <Table size={16} />
+              Ads Manager
+            </button>
+            <button 
+              className={`layout-toggle-btn${layoutMode === 'cards' ? ' active' : ''}`}
+              onClick={() => setLayoutMode('cards')}
+              title="Vista de Tarjetas Clásica"
+            >
+              <LayoutDashboard size={16} />
+              Tarjetas
+            </button>
+          </div>
+
+          <button className="secondary-button compact-button" onClick={onRefresh} disabled={loading}>
+            {loading ? <Loader2 className="spin" size={18} /> : <BarChart3 size={18} />}
+            Actualizar
+          </button>
+        </div>
       </div>
 
       {loading && (
         <div className="card empty-state">
           <Loader2 className="spin muted-icon" />
-          Analizando campañas...
+          Analizando campañas de Meta Ads...
         </div>
       )}
 
@@ -1570,11 +1676,264 @@ function CampaignsView({ campaigns, loading, onOpenCampaign, onRefresh }) {
         <div className="card empty-state">No hay campañas disponibles para el periodo analizado.</div>
       )}
 
-      {!loading && campaigns.length > 0 && (
+      {!loading && campaigns.length > 0 && layoutMode === 'cards' && (
         <div className="campaign-grid">
           {campaigns.map((campaign) => (
             <CampaignCard key={campaign.campaign_id} campaign={campaign} onOpenCampaign={onOpenCampaign} />
           ))}
+        </div>
+      )}
+
+      {!loading && campaigns.length > 0 && layoutMode === 'table' && (
+        <div className="ads-manager-container">
+          <div className="ads-manager-subnav">
+            <div className="ads-manager-tabs">
+              <button 
+                className={`ads-manager-tab${activeSubTab === 'campaigns' ? ' active' : ''}`}
+                onClick={() => setActiveSubTab('campaigns')}
+              >
+                <Layers size={16} />
+                Campañas
+                <span className="ads-manager-tab-count">{campaigns.length}</span>
+              </button>
+              <button 
+                className={`ads-manager-tab${activeSubTab === 'adsets' ? ' active' : ''}`}
+                onClick={() => {
+                  if (selectedCampaignId) {
+                    setActiveSubTab('adsets');
+                  }
+                }}
+                disabled={!selectedCampaignId}
+                title={!selectedCampaignId ? "Selecciona una campaña para habilitar conjuntos" : ""}
+              >
+                <Layers size={16} />
+                Conjuntos de anuncios
+                {adsets.length > 0 && <span className="ads-manager-tab-count">{adsets.length}</span>}
+              </button>
+              <button 
+                className={`ads-manager-tab${activeSubTab === 'ads' ? ' active' : ''}`}
+                onClick={() => {
+                  if (selectedAdSetId) {
+                    setActiveSubTab('ads');
+                  }
+                }}
+                disabled={!selectedAdSetId}
+                title={!selectedAdSetId ? "Selecciona un conjunto para habilitar anuncios" : ""}
+              >
+                <Video size={16} />
+                Anuncios
+                {ads.length > 0 && <span className="ads-manager-tab-count">{ads.length}</span>}
+              </button>
+            </div>
+          </div>
+
+          {/* Filter Bar indicator */}
+          {(selectedCampaignId || selectedAdSetId) && (
+            <div className="ads-manager-filter-bar">
+              <Filter size={14} className="muted-copy" />
+              <span className="muted-copy">Filtros activos:</span>
+              {selectedCampaignId && (
+                <span className="filter-badge">
+                  Campaña: {selectedCampaignName}
+                  <button className="filter-badge-close" onClick={handleClearCampaignFilter}>&times;</button>
+                </span>
+              )}
+              {selectedAdSetId && (
+                <span className="filter-badge">
+                  Conjunto: {selectedAdSetName}
+                  <button className="filter-badge-close" onClick={handleClearAdSetFilter}>&times;</button>
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className="ads-manager-table-wrapper">
+            {/* ── Sub-Tab 1: CAMPAIGNS TABLE ── */}
+            {activeSubTab === 'campaigns' && (
+              <table className="ads-manager-table">
+                <thead>
+                  <tr>
+                    <th>Estado</th>
+                    <th>Nombre de la campaña</th>
+                    <th>ROAS</th>
+                    <th>Gasto</th>
+                    <th>Resultados (VCV)</th>
+                    <th>CPA</th>
+                    <th>CTR</th>
+                    <th>CPM</th>
+                    <th>CPC</th>
+                    <th>Clics</th>
+                    <th>Impresiones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {campaigns.map((c) => (
+                    <tr key={c.campaign_id} className={`ads-manager-row${selectedCampaignId === c.campaign_id ? ' selected' : ''}`}>
+                      <td>
+                        <span className={`status-pill ${c.status || ''}`}>{getStatusLabel(c.status)}</span>
+                      </td>
+                      <td className="ads-manager-cell-name">
+                        <div className="ads-manager-cell-name-container">
+                          <button 
+                            className="ads-manager-link-name"
+                            onClick={() => handleSelectCampaignRow(c.campaign_id, c.campaign_name)}
+                          >
+                            {c.campaign_name}
+                          </button>
+                          <button 
+                            className="ads-manager-action-trigger"
+                            onClick={() => onOpenCampaign(c)}
+                            title="Ver análisis de IA y sugerencias de optimización"
+                          >
+                            ✨ Sugerencias IA
+                          </button>
+                        </div>
+                        <div className="ads-manager-subtext">ID: {c.campaign_id}</div>
+                      </td>
+                      <td style={{ fontWeight: 700 }} className={Number(c.roas) >= 1.5 ? "success-text" : ""}>
+                        {formatNumber(c.roas)}x
+                      </td>
+                      <td>{formatCurrency(c.spend)}</td>
+                      <td>{formatCurrency(c.vcv)}</td>
+                      <td>{c.cpa > 0 ? formatCurrency(c.cpa) : '$0.00'}</td>
+                      <td>{formatNumber(c.ctr)}%</td>
+                      <td>{formatCurrency(c.cpm)}</td>
+                      <td>{formatCurrency(c.cpc)}</td>
+                      <td>{formatInteger(c.clicks)}</td>
+                      <td>{formatInteger(c.impressions)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            {/* ── Sub-Tab 2: ADSETS TABLE ── */}
+            {activeSubTab === 'adsets' && (
+              <>
+                {adsetsLoading && <div className="empty-state"><Loader2 className="spin" size={18} /> Cargando conjuntos de anuncios...</div>}
+                {!adsetsLoading && adsets.length === 0 && (
+                  <div className="empty-state">No se encontraron conjuntos de anuncios para esta campaña.</div>
+                )}
+                {!adsetsLoading && adsets.length > 0 && (
+                  <table className="ads-manager-table">
+                    <thead>
+                      <tr>
+                        <th>Estado</th>
+                        <th>Nombre del conjunto</th>
+                        <th>Presupuesto</th>
+                        <th>ROAS</th>
+                        <th>Gasto</th>
+                        <th>Resultados (VCV)</th>
+                        <th>CPA</th>
+                        <th>CTR</th>
+                        <th>CPM</th>
+                        <th>CPC</th>
+                        <th>Clics</th>
+                        <th>Impresiones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {adsets.map((as) => (
+                        <tr key={as.adset_id} className={`ads-manager-row${selectedAdSetId === as.adset_id ? ' selected' : ''}`}>
+                          <td>
+                            <span className={`status-pill ${as.effective_status || as.status || ''}`}>{as.effective_status || as.status}</span>
+                          </td>
+                          <td className="ads-manager-cell-name">
+                            <button 
+                              className="ads-manager-link-name"
+                              onClick={() => handleSelectAdSetRow(as.adset_id, as.adset_name)}
+                            >
+                              {as.adset_name}
+                            </button>
+                            <div className="ads-manager-subtext">ID: {as.adset_id}</div>
+                          </td>
+                          <td>
+                            <div className="budget-cell-container">
+                              <strong>
+                                {as.daily_budget > 0 ? formatCurrency(as.daily_budget) : as.lifetime_budget > 0 ? formatCurrency(as.lifetime_budget) : 'CBO (Campaña)'}
+                              </strong>
+                              <span className="budget-type">
+                                {as.daily_budget > 0 ? 'Diario' : as.lifetime_budget > 0 ? 'Total' : 'Presupuesto CBO'}
+                              </span>
+                            </div>
+                          </td>
+                          <td style={{ fontWeight: 700 }} className={Number(as.roas) >= 1.5 ? "success-text" : ""}>
+                            {formatNumber(as.roas)}x
+                          </td>
+                          <td>{formatCurrency(as.spend)}</td>
+                          <td>{formatCurrency(as.vcv)}</td>
+                          <td>{as.cpa > 0 ? formatCurrency(as.cpa) : '$0.00'}</td>
+                          <td>{formatNumber(as.ctr)}%</td>
+                          <td>{formatCurrency(as.cpm)}</td>
+                          <td>{formatCurrency(as.cpc)}</td>
+                          <td>{formatInteger(as.clicks)}</td>
+                          <td>{formatInteger(as.impressions)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </>
+            )}
+
+            {/* ── Sub-Tab 3: ADS TABLE ── */}
+            {activeSubTab === 'ads' && (
+              <>
+                {adsLoading && <div className="empty-state"><Loader2 className="spin" size={18} /> Cargando creativos y anuncios...</div>}
+                {!adsLoading && ads.length === 0 && (
+                  <div className="empty-state">No se encontraron anuncios para este conjunto.</div>
+                )}
+                {!adsLoading && ads.length > 0 && (
+                  <table className="ads-manager-table">
+                    <thead>
+                      <tr>
+                        <th>Estado</th>
+                        <th>Nombre del anuncio</th>
+                        <th>ROAS</th>
+                        <th>Gasto</th>
+                        <th>CPA</th>
+                        <th>CTR</th>
+                        <th>CPM</th>
+                        <th>CPC</th>
+                        <th>Clics</th>
+                        <th>Impresiones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ads.map((ad) => (
+                        <tr key={ad.id} className="ads-manager-row">
+                          <td>
+                            <span className={`status-pill ${ad.effective_status || ad.status || ''}`}>{ad.effective_status || ad.status}</span>
+                          </td>
+                          <td className="ads-manager-cell-name">
+                            <div className="ads-manager-cell-name-container">
+                              {ad.creative?.thumbnail_url && (
+                                <img src={ad.creative.thumbnail_url} alt="thumbnail" className="ads-manager-thumbnail" />
+                              )}
+                              <div>
+                                <strong style={{ color: '#f8fafc' }}>{ad.name}</strong>
+                                <div className="ads-manager-subtext">ID: {ad.id}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ fontWeight: 700 }} className={Number(ad.roas) >= 1.5 ? "success-text" : ""}>
+                            {formatNumber(ad.roas)}x
+                          </td>
+                          <td>{formatCurrency(ad.spend)}</td>
+                          <td>{ad.cpa > 0 ? formatCurrency(ad.cpa) : '$0.00'}</td>
+                          <td>{formatNumber(ad.ctr)}%</td>
+                          <td>{formatCurrency(ad.cpm)}</td>
+                          <td>{formatCurrency(ad.cpc)}</td>
+                          <td>{formatInteger(ad.clicks)}</td>
+                          <td>{formatInteger(ad.impressions)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </>
+            )}
+          </div>
         </div>
       )}
     </section>

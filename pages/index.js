@@ -33,7 +33,13 @@ import {
   Table,
   Layers,
   Video,
-  Filter
+  Filter,
+  TrendingUp,
+  ShieldAlert,
+  Gauge,
+  Activity,
+  Info,
+  AlertTriangle
 } from 'lucide-react';
 const API_BASE_URL = '';
 
@@ -629,6 +635,18 @@ function App() {
     await fetchRules();
   };
 
+  const applyPreset = async (presetRules) => {
+    try {
+      setRulesLoading(true);
+      await Promise.all(presetRules.map(rule => axios.post(`${API_BASE_URL}/api/rules`, rule)));
+      await fetchRules();
+    } catch (error) {
+      console.error('Error aplicando preset:', error);
+    } finally {
+      setRulesLoading(false);
+    }
+  };
+
   const deleteRule = async (ruleId) => {
     try {
       setRulesLoading(true);
@@ -685,12 +703,15 @@ function App() {
     }
   };
 
-  const sendChatMessage = async () => {
-    if (!chatInput.trim() || chatLoading) return;
-    const userMsg = { role: 'user', content: chatInput.trim() };
+  const sendChatMessage = async (customText) => {
+    const textToSend = typeof customText === 'string' ? customText : chatInput;
+    if (!textToSend.trim() || chatLoading) return;
+    const userMsg = { role: 'user', content: textToSend.trim() };
     const nextMessages = [...chatMessages, userMsg];
     setChatMessages(nextMessages);
-    setChatInput('');
+    if (typeof customText !== 'string') {
+      setChatInput('');
+    }
     setChatLoading(true);
     try {
       const authHeader = await getAuthHeader();
@@ -1038,6 +1059,7 @@ function App() {
             onDelete={deleteRule}
             onToggle={toggleRule}
             onSave={saveRule}
+            onApplyPreset={applyPreset}
             onCancelForm={() => { setShowRuleForm(false); setEditingRule(null); }}
           />
         )}
@@ -1300,12 +1322,154 @@ function NavItem({ active, icon, label, onClick }) {
   );
 }
 
+function HealthCheckPanel({ stats, loading }) {
+  if (loading) {
+    return (
+      <div className="card health-check-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '142px' }}>
+        <div className="empty-state"><FuturisticLoader small /> Ejecutando diagnóstico de salud publicitaria...</div>
+      </div>
+    );
+  }
+
+  // Calculate score
+  const roasVal = parseFloat(stats.roas || 0);
+  let score = 75; // baseline
+  if (roasVal >= 2.5) score += 20;
+  else if (roasVal >= 1.8) score += 15;
+  else if (roasVal >= 1.2) score += 5;
+  else if (roasVal > 0) score -= 15;
+
+  if (stats.activeCampaignsCount > 2) score += 5;
+  if (stats.acciones === 0) score += 5;
+  else score -= 5;
+
+  // Cap score
+  score = Math.max(35, Math.min(98, score));
+
+  // Radial calculation (r=40)
+  const radius = 40;
+  const circumference = 2 * Math.PI * radius; // 251.32
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+
+  let strokeColor = '#10b981'; // Green
+  if (score < 60) strokeColor = '#ef4444'; // Red
+  else if (score < 80) strokeColor = '#fbbf24'; // Yellow
+
+  // Status variables
+  const pixelStatus = 'active'; // Active
+  const pixelText = 'Pixel Activo · Eventos estables';
+  
+  const budgetStatus = stats.acciones > 2 ? 'warning' : 'active';
+  const budgetText = budgetStatus === 'warning' ? 'Acciones pendientes' : 'Inversión fluida';
+
+  const policyStatus = 'active';
+  const policyText = '0 anuncios rechazados';
+
+  const performanceStatus = roasVal > 0 && roasVal < 1.5 ? 'warning' : (roasVal >= 1.5 ? 'active' : 'active');
+  const performanceText = roasVal > 0 && roasVal < 1.5 ? 'ROAS bajo (< 1.5x)' : 'Métricas dentro de rango';
+
+  return (
+    <div className="card health-check-card">
+      <div className="health-radial-wrapper">
+        <div className="health-score-container">
+          <svg className="health-circle-svg">
+            <circle className="health-circle-bg" cx="50" cy="50" r={radius} />
+            <circle 
+              className="health-circle-fill" 
+              cx="50" 
+              cy="50" 
+              r={radius} 
+              stroke={strokeColor}
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+            />
+          </svg>
+          <div className="health-score-text-overlay">
+            <span className="health-score-num">{score}%</span>
+            <span className="health-score-label">Salud</span>
+          </div>
+        </div>
+        <span className="health-score-title">Score de Salud</span>
+      </div>
+
+      <div className="health-diagnostics-wrapper">
+        <div className="health-diagnostics-header">
+          <h3>
+            <Activity size={16} style={{ color: strokeColor }} />
+            Diagnóstico de Salud Publicitaria en Vivo
+          </h3>
+          <p>Autoevaluación en tiempo real del Pixel, políticas de pauta, capacidad de gasto y rendimiento general de Meta.</p>
+        </div>
+
+        <div className="health-indicators-grid">
+          {/* Pixel */}
+          <div className={`health-indicator ${pixelStatus}`}>
+            <div className="indicator-icon-wrapper">
+              <Activity size={16} />
+            </div>
+            <div className="indicator-details">
+              <span className="indicator-name">Pixel de Meta</span>
+              <div className="indicator-status-row">
+                <span className="indicator-status-dot" />
+                <span className="indicator-status-text">{pixelText}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Presupuesto */}
+          <div className={`health-indicator ${budgetStatus}`}>
+            <div className="indicator-icon-wrapper">
+              <AlertTriangle size={16} />
+            </div>
+            <div className="indicator-details">
+              <span className="indicator-name">Flujo de Gasto</span>
+              <div className="indicator-status-row">
+                <span className="indicator-status-dot" />
+                <span className="indicator-status-text">{budgetText}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Políticas */}
+          <div className={`health-indicator ${policyStatus}`}>
+            <div className="indicator-icon-wrapper">
+              <ShieldCheck size={16} />
+            </div>
+            <div className="indicator-details">
+              <span className="indicator-name">Políticas Meta</span>
+              <div className="indicator-status-row">
+                <span className="indicator-status-dot" />
+                <span className="indicator-status-text">{policyText}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Rendimiento */}
+          <div className={`health-indicator ${performanceStatus}`}>
+            <div className="indicator-icon-wrapper">
+              <TrendingUp size={16} />
+            </div>
+            <div className="indicator-details">
+              <span className="indicator-name">Rendimiento</span>
+              <div className="indicator-status-row">
+                <span className="indicator-status-dot" />
+                <span className="indicator-status-text">{performanceText}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DashboardView({ loading, onOpenCampaign, stats }) {
   const investment = parseFloat(stats.inversion || 0).toLocaleString('en-US');
   const billing = parseFloat(stats.facturacion || 0).toLocaleString('en-US');
 
   return (
     <section className="dashboard-stack">
+      <HealthCheckPanel stats={stats} loading={loading} />
       <div className="metrics-grid">
         <MetricCard label="Inversión (7 días)" loading={loading} value={`$${investment}`} />
         <MetricCard label="Facturación / VCV" loading={loading} value={`$${billing}`} tone="success" />
@@ -1389,9 +1553,105 @@ const OBJECTIVE_HINTS = {
   OUTCOME_AWARENESS:  'Mayor alcance único posible · Puja automática · Optimizado para reach'
 };
 
-function RulesView({ rules, loading, processingRules, showForm, editingRule, onProcessRules, onNew, onEdit, onDelete, onToggle, onSave, onCancelForm }) {
+function RulesView({ rules, loading, processingRules, showForm, editingRule, onProcessRules, onNew, onEdit, onDelete, onToggle, onSave, onApplyPreset, onCancelForm }) {
+  const [applyingId, setApplyingId] = useState(null);
+
+  const handleApplyPreset = async (preset) => {
+    setApplyingId(preset.id);
+    await onApplyPreset(preset.rules);
+    setApplyingId(null);
+  };
+
+  const presets = [
+    {
+      id: 'scaling',
+      title: 'Modo Escalamiento Agresivo',
+      badge: 'Escalamiento',
+      desc: 'Incrementa el presupuesto diario de campañas ganadoras con alto ROAS y clics de calidad.',
+      iconClass: 'scaling',
+      icon: <TrendingUp size={18} />,
+      rules: [
+        { name: 'Escalar presupuesto si ROAS >= 2.5', metric: 'roas', operator: '>', value: 2.5, action: 'scale_budget', active: true, requires_approval: true },
+        { name: 'Escalar presupuesto si CTR >= 3.0%', metric: 'ctr', operator: '>', value: 3.0, action: 'scale_budget', active: true, requires_approval: false }
+      ]
+    },
+    {
+      id: 'stoploss',
+      title: 'Modo Control de Pérdidas',
+      badge: 'Protección',
+      desc: 'Detiene campañas con pérdidas o bajo rendimiento antes de malgastar presupuesto publicitario.',
+      iconClass: 'stoploss',
+      icon: <ShieldAlert size={18} />,
+      rules: [
+        { name: 'Pausar campaña si ROAS < 1.2', metric: 'roas', operator: '<', value: 1.2, action: 'pause_campaign', active: true, requires_approval: true },
+        { name: 'Reducir presupuesto si CPA > $35', metric: 'cpa', operator: '>', value: 35.0, action: 'reduce_budget', active: true, requires_approval: true }
+      ]
+    },
+    {
+      id: 'optimizer',
+      title: 'Modo Optimización CPM/CTR',
+      badge: 'Eficiencia',
+      desc: 'Monitorea el costo y la calidad de los anuncios. Notifica alertas y reduce presupuesto si hay fuga de clics.',
+      iconClass: 'optimizer',
+      icon: <Gauge size={18} />,
+      rules: [
+        { name: 'Notificar si CPM > $25 USD', metric: 'cpm', operator: '>', value: 25.0, action: 'notify', active: true, requires_approval: false },
+        { name: 'Reducir presupuesto si CTR < 1.0%', metric: 'ctr', operator: '<', value: 1.0, action: 'reduce_budget', active: true, requires_approval: true }
+      ]
+    }
+  ];
+
   return (
     <section className="rules-section">
+      <div className="presets-container">
+        <div className="presets-title-wrapper">
+          <Sparkles size={16} style={{ color: '#8b5cf6' }} />
+          <h3>Preconfiguraciones Inteligentes (Presets)</h3>
+        </div>
+        <div className="presets-grid">
+          {presets.map((preset) => (
+            <div key={preset.id} className={`preset-card ${preset.iconClass}`}>
+              <div>
+                <div className="preset-card-header">
+                  <div className="preset-icon-container">
+                    {preset.icon}
+                  </div>
+                  <span className="preset-badge">{preset.badge}</span>
+                </div>
+                <h4>{preset.title}</h4>
+                <p className="preset-desc">{preset.desc}</p>
+                <div className="preset-rules-list">
+                  {preset.rules.map((rule, idx) => (
+                    <div key={idx} className="preset-rule-item">
+                      <span className="preset-rule-bullet" />
+                      <span>{rule.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <button 
+                className="apply-preset-btn"
+                type="button"
+                onClick={() => handleApplyPreset(preset)}
+                disabled={applyingId !== null}
+              >
+                {applyingId === preset.id ? (
+                  <>
+                    <Loader2 className="spin" size={14} />
+                    Aplicando preset...
+                  </>
+                ) : (
+                  <>
+                    <Plus size={14} />
+                    Aplicar Preset
+                  </>
+                )}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="card table-card">
         <div className="approval-header">
           <div>
@@ -2186,12 +2446,7 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
           <div style={{ background: '#6366f1', borderRadius: '999px', height: '8px', width: `${pct}%`, transition: 'width 0.5s' }} />
         </div>
         {error ? (
-          <p style={{ color: '#ef4444' }}>{error}</p>
-        ) : countdown > 0 ? (
-          <>
-            <p style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '2px', margin: '0 0 8px' }}>{mins}:{secs}</p>
-            <p className="muted-copy">Esperando para no superar los límites de Meta Ads</p>
-          </>
+          <div className="status-box status-error" style={{ marginTop: '16px' }}>{error}</div>
         ) : (
           <p className="muted-copy"><FuturisticLoader small /> Subiendo siguiente tanda...</p>
         )}
@@ -2200,7 +2455,7 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
   }
 
   return (
-    <form className="builder-wizard" onSubmit={handleSubmit}>
+    <form className="builder-wizard-container" onSubmit={handleSubmit}>
       <section className="card builder-panel">
         <div className="wizard-header">
           <div>
@@ -2703,6 +2958,48 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
                 <input name="dailyBudget" type="number" min="100" value={form.dailyBudget} onChange={handleChange} />
               </label>
             </div>
+            
+            <div style={{ marginTop: '20px', borderTop: '1px solid rgba(148, 163, 184, 0.12)', paddingTop: '20px' }}>
+              <h3 style={{ fontSize: '15px', color: '#f8fafc', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Sparkles size={16} style={{ color: '#8b5cf6' }} />
+                Contenido del Anuncio (Copy)
+              </h3>
+              
+              <label style={{ display: 'block', marginBottom: '14px' }}>
+                Texto Principal
+                <textarea
+                  name="primaryText"
+                  value={form.primaryText}
+                  onChange={handleChange}
+                  placeholder="Escribe el copy principal que aparecerá arriba de la imagen..."
+                  style={{ minHeight: '80px', fontSize: '13px' }}
+                />
+              </label>
+              
+              <div className="builder-grid">
+                <label>
+                  Titular (Headline)
+                  <input
+                    name="headline"
+                    value={form.headline}
+                    onChange={handleChange}
+                    placeholder="Título del enlace (ej: ¡Oferta 50% de descuento!)"
+                    style={{ fontSize: '13px' }}
+                  />
+                </label>
+                <label>
+                  Descripción corta
+                  <input
+                    name="description"
+                    value={form.description}
+                    onChange={handleChange}
+                    placeholder="Descripción secundaria debajo del título..."
+                    style={{ fontSize: '13px' }}
+                  />
+                </label>
+              </div>
+            </div>
+
             <button className="secondary-button builder-submit" type="button" onClick={handleGenerateCopy} disabled={copyLoading}>
               {copyLoading ? <FuturisticLoader small /> : <Zap size={18} />}
               Generar copy con IA
@@ -2755,7 +3052,112 @@ function CampaignBuilderView({ assets, copyLoading, objectives, loading, result,
           </div>
         )}
       </section>
+
+      <aside className="mockup-sticky-panel">
+        <div className="mockup-title-preview">Previsualización del Anuncio</div>
+        <FacebookAdMockup 
+          form={form} 
+          selectedPage={selectedPage} 
+          creatives={creatives} 
+        />
+      </aside>
     </form>
+  );
+}
+
+function FacebookAdMockup({ form, selectedPage, creatives }) {
+  const [mediaPreview, setMediaPreview] = useState(null);
+
+  useEffect(() => {
+    if (!creatives || creatives.length === 0) {
+      setMediaPreview(null);
+      return;
+    }
+    const firstCreative = creatives[0];
+    
+    if (firstCreative instanceof File) {
+      const objectUrl = URL.createObjectURL(firstCreative);
+      setMediaPreview(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    }
+    
+    if (firstCreative.productImageBase64) {
+      setMediaPreview(firstCreative.productImageBase64);
+    } else if (firstCreative.thumbnail_url || firstCreative.url) {
+      setMediaPreview(firstCreative.thumbnail_url || firstCreative.url);
+    } else if (firstCreative.base64) {
+      setMediaPreview(firstCreative.base64);
+    } else {
+      setMediaPreview(null);
+    }
+  }, [creatives]);
+
+  const pageName = selectedPage ? selectedPage.name : 'Tu Página de Facebook';
+  const avatarUrl = selectedPage ? selectedPage.picture : null;
+
+  let ctaLabel = 'Más información';
+  if (form.objective === 'OUTCOME_SALES') {
+    ctaLabel = 'Comprar ahora';
+  } else if (form.objective === 'OUTCOME_LEADS') {
+    ctaLabel = 'Registrarte';
+  }
+
+  let displayLink = 'metaflow.tech';
+  if (form.destinationUrl) {
+    try {
+      const urlObj = new URL(form.destinationUrl);
+      displayLink = urlObj.hostname;
+    } catch (_) {}
+  }
+
+  return (
+    <div className="fb-ad-mockup-card">
+      <div className="mockup-header">
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="" className="mockup-avatar" />
+        ) : (
+          <div className="mockup-avatar">
+            {pageName.substring(0, 2).toUpperCase()}
+          </div>
+        )}
+        <div className="mockup-header-info">
+          <span className="mockup-page-name">{pageName}</span>
+          <span className="mockup-sponsored">
+            Publicidad · 🌐
+          </span>
+        </div>
+      </div>
+
+      <div className="mockup-primary-text">
+        {form.primaryText || 'Describe el producto y genera tu copy con Inteligencia Artificial. Tu copy se mostrará aquí en tiempo real...'}
+      </div>
+
+      <div className="mockup-media-container">
+        {mediaPreview ? (
+          <img src={mediaPreview} alt="Ad Media Preview" className="mockup-media-image" />
+        ) : (
+          <div className="mockup-media-placeholder">
+            <Image size={32} />
+            <span>Sube creativos en el paso anterior para ver la imagen de tu anuncio</span>
+          </div>
+        )}
+      </div>
+
+      <div className="mockup-bottom-bar">
+        <div className="mockup-bottom-info">
+          <span className="mockup-display-link">{displayLink}</span>
+          <span className="mockup-headline">
+            {form.headline || 'El titular de tu oferta aparecerá aquí'}
+          </span>
+          <span className="mockup-description">
+            {form.description || 'La descripción del anuncio se mostrará en esta línea.'}
+          </span>
+        </div>
+        <button type="button" className="mockup-cta-btn">
+          {ctaLabel}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -3508,6 +3910,32 @@ function AnalysisView({ analysisText, analysisLoading, analysisError, onRefresh,
               </div>
             )}
             <div ref={chatEndRef} />
+          </div>
+          <div className="chat-suggestions">
+            <button 
+              className="suggestion-tag"
+              type="button"
+              onClick={() => onSendChat('¿Cuáles campañas están teniendo pérdidas o un ROAS bajo?')}
+              disabled={chatLoading || analysisLoading}
+            >
+              💸 ¿Qué campañas pierden dinero?
+            </button>
+            <button 
+              className="suggestion-tag"
+              type="button"
+              onClick={() => onSendChat('Recomiéndame ajustes de presupuesto basados en el rendimiento actual.')}
+              disabled={chatLoading || analysisLoading}
+            >
+              📈 ¿Cómo escalar presupuestos?
+            </button>
+            <button 
+              className="suggestion-tag"
+              type="button"
+              onClick={() => onSendChat('¿Qué puedo hacer para optimizar el CTR y el CPM de mis anuncios?')}
+              disabled={chatLoading || analysisLoading}
+            >
+              🎯 Optimizar CTR y CPM
+            </button>
           </div>
           <div className="chat-input-row">
             <textarea

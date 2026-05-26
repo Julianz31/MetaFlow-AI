@@ -2096,7 +2096,9 @@ function CampaignsView({ campaigns, loading, onOpenCampaign, onRefresh, metaConn
                       {adsets.map((as) => (
                         <tr key={as.adset_id} className={`ads-manager-row${selectedAdSetId === as.adset_id ? ' selected' : ''}`}>
                           <td>
-                            <span className={`status-pill ${as.effective_status || as.status || ''}`}>{as.effective_status || as.status}</span>
+                            <span className={`status-pill ${as.status || ''}`}>
+                              {as.status === 'ACTIVE' ? 'Activo' : as.status === 'PAUSED' ? 'Pausado' : getStatusLabel(as.status || as.effective_status)}
+                            </span>
                           </td>
                           <td className="ads-manager-cell-name">
                             <button 
@@ -2163,7 +2165,9 @@ function CampaignsView({ campaigns, loading, onOpenCampaign, onRefresh, metaConn
                       {ads.map((ad) => (
                         <tr key={ad.id} className="ads-manager-row">
                           <td>
-                            <span className={`status-pill ${ad.effective_status || ad.status || ''}`}>{ad.effective_status || ad.status}</span>
+                            <span className={`status-pill ${ad.status || ''}`}>
+                              {ad.status === 'ACTIVE' ? 'Activo' : ad.status === 'PAUSED' ? 'Pausado' : getStatusLabel(ad.status || ad.effective_status)}
+                            </span>
                           </td>
                           <td className="ads-manager-cell-name">
                             <div className="ads-manager-cell-name-container">

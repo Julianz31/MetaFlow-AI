@@ -376,6 +376,93 @@ export default function Landing() {
     } catch {}
   }, []);
 
+  // Waving dotted mesh grid simulation in canvas
+  useEffect(() => {
+    const canvas = document.getElementById('landing-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationId;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = 1000);
+
+    const handleResize = () => {
+      width = canvas.width = window.innerWidth;
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    let time = 0;
+    const dotsGap = 34;
+    let columns = Math.ceil(width / dotsGap) + 2;
+    const rows = Math.ceil(height / dotsGap) + 2;
+
+    const render = () => {
+      ctx.clearRect(0, 0, width, height);
+      time += 0.35;
+      columns = Math.ceil(width / dotsGap) + 2;
+
+      for (let c = 0; c < columns; c++) {
+        for (let r = 0; r < rows; r++) {
+          const baseX = c * dotsGap - 20;
+          const baseY = r * dotsGap - 20;
+
+          // Wave algorithm for premium organic movement
+          const angleX = c * 0.14 + time * 0.015;
+          const angleY = r * 0.14 + time * 0.012;
+          const wave = Math.sin(angleX) * Math.cos(angleY);
+
+          // Displace dots for the wave mesh grid
+          const posX = baseX + wave * 9;
+          const posY = baseY + wave * 7;
+
+          // Radial fading toward edges and bottom
+          const dx = posX - width / 2;
+          const dy = posY - 380;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const maxDist = Math.max(width, 900) * 0.78;
+          let edgeAlpha = 1 - dist / maxDist;
+          if (edgeAlpha < 0) edgeAlpha = 0;
+
+          // Size and opacity modulation
+          const dotSize = 1.0 + (wave + 1) * 1.5;
+          const dotAlpha = (0.04 + (wave + 1) * 0.22) * edgeAlpha;
+
+          if (dotAlpha > 0) {
+            ctx.beginPath();
+            ctx.arc(posX, posY, dotSize, 0, Math.PI * 2);
+
+            const ratio = (wave + 1) / 2;
+            const rVal = Math.round(139 + (236 - 139) * ratio);
+            const gVal = Math.round(92 + (72 - 92) * ratio);
+            const bVal = Math.round(246 + (153 - 246) * ratio);
+
+            ctx.fillStyle = `rgba(${rVal}, ${gVal}, ${bVal}, ${dotAlpha})`;
+
+            if (dotSize > 2.4) {
+              ctx.shadowBlur = 5;
+              ctx.shadowColor = `rgba(${rVal}, ${gVal}, ${bVal}, ${dotAlpha * 0.75})`;
+            } else {
+              ctx.shadowBlur = 0;
+            }
+
+            ctx.fill();
+          }
+        }
+      }
+
+      animationId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationId);
+    };
+  }, []);
+
   // Checkout Modal states
   const [selectedPlan, setSelectedPlan] = useState(null); // 'pro', 'business', 'agency' or null
   const [modalMode, setModalMode] = useState('register'); // 'register' | 'login' | 'email-confirm'
@@ -490,6 +577,7 @@ export default function Landing() {
       </Head>
 
       <div className="landing">
+        <canvas id="landing-canvas" className="landing-bg-canvas" />
 
         {/* ── NAV ── */}
         <nav className="l-nav">

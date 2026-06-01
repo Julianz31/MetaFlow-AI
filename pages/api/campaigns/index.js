@@ -12,7 +12,12 @@ export default async function handler(req, res) {
     if (!account) return;
 
     try {
-        const campaigns = await metaAdsService.getCampaignsWithInsights(getMetaCredentials(req));
+        const credentials = getMetaCredentials(req);
+        const options = {
+            ...credentials,
+            date_preset: req.query.date_preset || 'last_7d'
+        };
+        const campaigns = await metaAdsService.getCampaignsWithInsights(options);
         res.json({ campaigns });
     } catch (error) {
         res.status(500).json({ error: 'Error al obtener campañas' });

@@ -3630,5 +3630,16 @@ td {
   text-overflow: ellipsis;
 }
 
+/* Date Preset Select Styles */
+.date-preset-select:hover {
+  background: rgba(30, 41, 59, 0.65) !important;
+  border-color: rgba(148, 163, 184, 0.28) !important;
+}
+
+.date-preset-select:focus {
+  border-color: rgba(168, 85, 247, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15) !important;
+}
+
 
 

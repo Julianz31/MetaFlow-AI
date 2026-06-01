@@ -13,7 +13,12 @@ export default async function handler(req, res) {
     if (!account) return;
 
     try {
-        const stats = await metaAdsService.getAccountStats(getMetaCredentials(req));
+        const credentials = getMetaCredentials(req);
+        const options = {
+            ...credentials,
+            date_preset: req.query.date_preset || 'last_7d'
+        };
+        const stats = await metaAdsService.getAccountStats(options);
         const { count } = await getSupabase()
             .from('action_logs')
             .select('*', { count: 'exact', head: true })

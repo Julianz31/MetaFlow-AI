@@ -55,6 +55,7 @@ function App() {
     activeCampaigns: [],
     acciones: 0
   });
+  const [datePreset, setDatePreset] = useState('last_7d');
   const [loading, setLoading] = useState(true);
   const [processingRules, setProcessingRules] = useState(false);
   const [connection, setConnection] = useState(null);
@@ -194,10 +195,10 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
-  const fetchRealData = async () => {
+  const fetchRealData = async (preset = datePreset) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/stats`, await buildConfig(metaConnection));
+      const response = await axios.get(`${API_BASE_URL}/api/stats?date_preset=${preset}`, await buildConfig(metaConnection));
       setStats({
         inversion: response.data.inversion,
         roas: response.data.roas,
@@ -209,6 +210,27 @@ function App() {
       await fetchCampaignAnalysisWithConnection(metaConnection);
     } catch (error) {
       console.error('Error conectando con el backend:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDatePresetChange = async (newPreset) => {
+    setDatePreset(newPreset);
+    if (!metaConnection) return;
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/api/stats?date_preset=${newPreset}`, await buildConfig(metaConnection));
+      setStats({
+        inversion: response.data.inversion,
+        roas: response.data.roas,
+        facturacion: response.data.facturacion,
+        activeCampaignsCount: response.data.activeCampaignsCount,
+        activeCampaigns: response.data.activeCampaigns || [],
+        acciones: response.data.acciones
+      });
+    } catch (error) {
+      console.error('Error al filtrar estadísticas por fecha:', error);
     } finally {
       setLoading(false);
     }
@@ -533,8 +555,8 @@ function App() {
     }
   };
 
-  const fetchRealDataWithConnection = async (connectionOverride) => {
-    const response = await axios.get(`${API_BASE_URL}/api/stats`, await buildConfig(connectionOverride));
+  const fetchRealDataWithConnection = async (connectionOverride, preset = datePreset) => {
+    const response = await axios.get(`${API_BASE_URL}/api/stats?date_preset=${preset}`, await buildConfig(connectionOverride));
     setStats({
       inversion: response.data.inversion,
       roas: response.data.roas,
@@ -1030,10 +1052,42 @@ function App() {
             <h1>{getTitle(activeTab)}</h1>
             <p>Bienvenido de nuevo, {user.name}</p>
           </div>
-          <button className="primary-button" onClick={processRules} disabled={processingRules}>
-            {processingRules ? <Loader2 className="spin" size={18} /> : <Plus size={18} />}
-            Analizar reglas
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {activeTab === 'dashboard' && (
+              <select
+                value={datePreset}
+                onChange={(e) => handleDatePresetChange(e.target.value)}
+                style={{
+                  background: 'rgba(30, 41, 59, 0.45)',
+                  color: '#fff',
+                  border: '1px solid rgba(148, 163, 184, 0.16)',
+                  borderRadius: '10px',
+                  padding: '9px 14px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  outline: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                  backdropFilter: 'blur(12px)',
+                  transition: 'border 180ms ease, background 180ms ease'
+                }}
+                className="date-preset-select"
+              >
+                <option value="today">Hoy</option>
+                <option value="yesterday">Ayer</option>
+                <option value="last_3d">Últimos 3 días</option>
+                <option value="last_7d">Últimos 7 días</option>
+                <option value="last_30d">Últimos 30 días</option>
+                <option value="this_month">Este mes</option>
+                <option value="last_month">Mes pasado</option>
+                <option value="lifetime">Histórico completo (Lifetime)</option>
+              </select>
+            )}
+            <button className="primary-button" onClick={processRules} disabled={processingRules}>
+              {processingRules ? <Loader2 className="spin" size={18} /> : <Plus size={18} />}
+              Analizar reglas
+            </button>
+          </div>
         </header>
 
         {activeTab === 'settings' && (

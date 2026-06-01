@@ -286,35 +286,21 @@ function ImagenScreen() {
         <div className="l-sc-imagen-left">
           <div className="l-sc-img-label">Foto del producto subida</div>
           <div className="l-sc-img-upload">
-            <div className="l-sc-img-product-mock" style={{ height: '120px', background: 'linear-gradient(135deg, #16082e, #070311)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div className="l-sc-img-glow" style={{ background: 'rgba(219, 39, 119, 0.25)' }} />
-              {/* Ultra-sharp Paw-print Dropper Bottle vector graphic */}
-              <svg width="42" height="78" viewBox="0 0 40 75" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.45))', position: 'relative', zIndex: 2 }}>
-                {/* Cap/Dropper */}
-                <rect x="18" y="2" width="4" height="10" rx="1" fill="#475569" />
-                <path d="M12 12h16v8H12z" fill="#1e293b" />
-                <rect x="15" y="8" width="10" height="4" rx="1" fill="#334155" />
-                
-                {/* Bottle Body */}
-                <rect x="8" y="20" width="24" height="50" rx="4" fill="#0f172a" stroke="#334155" strokeWidth="1" />
-                
-                {/* Glow highlight */}
-                <rect x="10" y="22" width="3" height="46" rx="1.5" fill="rgba(255,255,255,0.12)" />
-
-                {/* Label */}
-                <rect x="10" y="28" width="20" height="32" rx="2" fill="#fdf2f8" />
-                
-                {/* Label design */}
-                <rect x="12" y="32" width="16" height="4.5" rx="1.5" fill="#db2777" />
-                <rect x="13" y="39" width="14" height="2.5" rx="1" fill="#c1185b" />
-                <rect x="14" y="44" width="12" height="2" rx="1" fill="#9d174d" />
-                
-                {/* Paw print icon representation */}
-                <circle cx="20" cy="53" r="2.2" fill="#db2777" />
-                <circle cx="16.5" cy="49.8" r="0.9" fill="#db2777" />
-                <circle cx="20" cy="48.5" r="0.9" fill="#db2777" />
-                <circle cx="23.5" cy="49.8" r="0.9" fill="#db2777" />
-              </svg>
+            <div className="l-sc-img-product-mock" style={{ height: '120px', background: 'linear-gradient(135deg, #16082e, #070311)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
+              <div className="l-sc-img-glow" style={{ background: 'rgba(219, 39, 119, 0.28)', width: '90px', height: '90px', filter: 'blur(16px)' }} />
+              <img 
+                src="/pet-bottle.png" 
+                alt="Foto del Gotero Suplemento de Mascotas" 
+                style={{ 
+                  height: '100%', 
+                  maxHeight: '105px', 
+                  objectFit: 'contain', 
+                  position: 'relative', 
+                  zIndex: 2, 
+                  filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.5))',
+                  display: 'block'
+                }} 
+              />
             </div>
             <div className="l-sc-img-filename">suplemento_pelo_mascotas.jpg</div>
           </div>

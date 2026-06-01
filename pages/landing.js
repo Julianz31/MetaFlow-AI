@@ -289,13 +289,13 @@ function ImagenScreen() {
             <div className="l-sc-img-product-mock">
               <div className="l-sc-img-glow" />
               <div className="l-sc-img-bottle">
-                <div className="l-sc-bottle-cap" />
-                <div className="l-sc-bottle-body">
-                  <div className="l-sc-bottle-label">LUMIÈRE<br /><small>Sérum facial</small></div>
+                <div className="l-sc-bottle-cap" style={{ background: 'linear-gradient(180deg, #db2777, #c1185b)' }} />
+                <div className="l-sc-bottle-body" style={{ background: 'linear-gradient(160deg, #fbcfe8 0%, #f472b6 50%, #ec4899 100%)' }}>
+                  <div className="l-sc-bottle-label" style={{ color: '#831843', fontSize: '4.5px' }}>VET-GLOW<br /><small>Suplemento</small></div>
                 </div>
               </div>
             </div>
-            <div className="l-sc-img-filename">lumiere_serum_hd.jpg</div>
+            <div className="l-sc-img-filename">suplemento_pelo_mascotas.jpg</div>
           </div>
           <div className="l-sc-img-label" style={{ marginTop: 14 }}>Estilo del anuncio</div>
           <div className="l-sc-style-chips">
@@ -311,29 +311,20 @@ function ImagenScreen() {
           </div>
           <div className="l-sc-img-label" style={{ marginTop: 10 }}>Colores de marca</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: '#7c3aed', border: '2px solid rgba(255,255,255,0.15)' }} />
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: '#f5f0ff', border: '2px solid rgba(255,255,255,0.15)' }} />
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: '#db2777', border: '2px solid rgba(255,255,255,0.15)' }} />
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: '#fdf2f8', border: '2px solid rgba(255,255,255,0.15)' }} />
             <span style={{ fontSize: 10, color: '#475569' }}>Primario · Secundario</span>
           </div>
         </div>
         <div className="l-sc-imagen-right">
           <div className="l-sc-img-label">Imagen generada por IA</div>
           <div className="l-sc-img-result">
-            <div className="l-sc-img-beauty-mock">
-              <div className="l-sc-beauty-bg" />
-              <div className="l-sc-beauty-glow-1" />
-              <div className="l-sc-beauty-glow-2" />
-              <div className="l-sc-beauty-bottle">
-                <div className="l-sc-bb-cap" />
-                <div className="l-sc-bb-body">
-                  <div className="l-sc-bb-shine" />
-                  <div className="l-sc-bb-label">LUMIÈRE</div>
-                </div>
-              </div>
-              <div className="l-sc-beauty-text">
-                <div className="l-sc-beauty-headline">Skin that glows</div>
-                <div className="l-sc-beauty-sub">Sérum facial premium · 30ml</div>
-              </div>
+            <div className="l-sc-img-beauty-mock" style={{ padding: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0518' }}>
+              <img 
+                src="/pet-ad-showcase.jpg" 
+                alt="Anuncio de Suplemento para Mascotas generado por IA" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
+              />
             </div>
             <div className="l-sc-img-actions">
               <button className="l-sc-btn primary">⬇ Descargar HD</button>

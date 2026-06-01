@@ -49,6 +49,11 @@ button:disabled {
   border-right: 1px solid rgba(148, 163, 184, 0.16);
   box-shadow: 20px 0 70px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(22px);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .brand {
@@ -1305,7 +1310,10 @@ td {
   .sidebar {
     width: 100%;
     border-right: 0;
-    border-bottom: 1px solid #e7e5df;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+    height: auto;
+    position: relative;
+    overflow-y: visible;
   }
 
   .nav-list {

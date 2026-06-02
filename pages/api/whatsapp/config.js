@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const { data, error } = await supabase
       .from('whatsapp_config')
-      .select('id, phone_number_id, verify_token, agent_name, agent_prompt, is_active, meta_verified, created_at, updated_at')
+      .select('id, phone_number_id, access_token, verify_token, agent_name, agent_prompt, is_active, meta_verified, created_at, updated_at')
       .eq('user_id', user.id)
       .single();
 
@@ -19,7 +19,11 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    return res.json({ config: data || null });
+    return res.json({
+      config: data
+        ? { ...data, has_access_token: !!data.access_token }
+        : null,
+    });
   }
 
   if (req.method === 'POST') {

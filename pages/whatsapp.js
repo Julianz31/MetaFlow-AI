@@ -160,7 +160,7 @@ function ConfigModal({ config, appUrl, onSave, onClose }) {
                 type="password"
                 value={form.access_token}
                 onChange={e => setForm(f => ({ ...f, access_token: e.target.value }))}
-                placeholder={config?.access_token ? '••••••••  (dejar vacío para no cambiar)' : 'EAAxxxxxxx...'}
+                placeholder={config?.has_access_token ? '••••••••  (dejar vacío para no cambiar)' : 'EAAxxxxxxx...'}
                 style={inputStyle}
               />
             </div>
@@ -341,11 +341,14 @@ export default function WhatsAppPage() {
     setConfigLoading(true);
     try {
       const r = await fetch('/api/whatsapp/config', { headers: await authHeader() });
+      const d = await r.json();
+      console.log('[WA] loadConfig response — status:', r.status, 'body:', d);
       if (r.ok) {
-        const d = await r.json();
         setConfig(d.config);
       }
-    } catch {}
+    } catch (e) {
+      console.error('[WA] loadConfig error:', e);
+    }
     setConfigLoading(false);
   }
 
@@ -452,7 +455,7 @@ export default function WhatsAppPage() {
     return name.toLowerCase().includes(search.toLowerCase()) || phone.includes(search);
   });
 
-  const isConfigured = config?.phone_number_id && config?.access_token;
+  const isConfigured = config?.phone_number_id && config?.has_access_token;
   const isActive = config?.is_active;
 
   if (!mounted) return null;

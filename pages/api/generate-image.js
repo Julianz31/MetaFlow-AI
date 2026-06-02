@@ -106,11 +106,13 @@ ${formatHint(format)}`.trim(),
 
   comparison: (ctx, format) => `
 Photorealistic lifestyle background scene for a Facebook ad about: ${ctx}
-MOOD: Strong visual split — LEFT half dark, gloomy, desaturated (the BEFORE state without the product). RIGHT half bright, warm, vibrant (the AFTER state with the product). LEFT person looks sad/struggling, RIGHT person looks happy/thriving. Environment matches product category.
+MOOD: Clean vertical 50/50 split down the exact center (x=50%).
+- LEFT half (x 0%–50%): dark, gloomy, desaturated (the BEFORE state without the product). A sad, concerned, or struggling subject (person or pet matching product context). Generic unbranded bottles or packages can be in the foreground.
+- RIGHT half (x 50%–100%): bright, warm, vibrant (the AFTER state with the product). Same subject looking happy, smiling, and thriving.
 COMPOSITION ZONES (strictly follow):
-- CENTER STRIP (middle 14% of width): keep relatively clear and dark — VS badge and product will overlay here
-- TOP 8%: very dark vignette at top edge for text contrast
-- BOTTOM 21%: both halves should be lighter/brighter at the very bottom — white design strip overlays this zone
+- RIGHT FOREGROUND (x 58%–96%, y 44%–84%): keep completely clear of subjects, text, or clutter — a clean empty surface (marble table, clean floor, or grass) reserved for product photo overlay.
+- TOP 8%: very dark vignette at top edge for text contrast.
+- BOTTOM 21%: both halves should be lighter/brighter at the very bottom — white design strip overlays this zone.
 ${NO_TEXT_RULE}
 ${QUALITY_RULE}
 ${formatHint(format)}`.trim(),
@@ -776,32 +778,28 @@ PRODUCT: ${ctx}
 
 ${SCENE_ADAPT}
 
-LAYOUT — COMPARISON SPLIT (7 TEXT LAYERS):
-TOP BANNER (full width, y=9%–27% of canvas, h≈18%, ${hex} background):
-• "${h1}" — ultra-bold white, left half of banner, massive Impact/Anton
-• "${h2}" — ultra-bold white, right half of banner, same size
+LAYOUT — VERTICAL COMPARISON SPLIT:
+1. SPLIT PHOTO BACKGROUND (y=23%–86%, vertical split at x=50% with a clean vertical divider line):
+   • LEFT HALF (x 0%–50%): Moody, desaturated — target customer WITHOUT the product, struggling. Dark cool tones. Generic, blurry unbranded bottles on a table in the foreground.
+   • RIGHT HALF (x 50%–100%): Bright, vibrant — same customer WITH the product, smiling and thriving. Warm golden tones, cannabis leaves or clean premium backdrop elements.
+   • SAFE ZONE FOR OVERLAY (x 58%–97%, y 44%–84%): Keep this zone on the right side completely clear of text, subjects, or clutter — a clean empty surface (marble table or clean grass) reserved for our premium product overlay.
 
-BODY STRIP (full width, y=27%–34%, dark background): "${ptShort}" — white italic centered
+2. TOP HEADLINE BANNER (full width, y=9%–22%):
+   • LEFT HALF (x 0%–50%, light desaturated background): "${h1}" in bold dark text. Below it in smaller dark text: "OTROS PRODUCTOS" or "FÓRMULAS CONVENCIONALES".
+   • RIGHT HALF (x 50%–100%, solid ${hex} background): "${h2 || ptShort}" in bold white text. Below it in smaller white text: "NOSOTROS" or "FÓRMULA PREMIUM".
 
-UPPER PHOTO STRIP (y=34%–58%, split):
-LEFT PHOTO (x 0%–50%): Moody, desaturated — target customer WITHOUT the product, struggling. Dark cool tones. Specific to product context.
-RIGHT PHOTO (x 50%–100%): Bright, vibrant — same customer WITH the product, thriving. Warm golden tones. Specific to product context.
+3. COMPARATIVE BULLET CARDS (y=60%–85%):
+   • LEFT CARD (x 2%–48%, semi-transparent dark gray card):
+     - "✗ ${b1}" in clean white text
+     - "✗ ${b2}" in clean white text
+   • RIGHT CARD (x 52%–74%, semi-transparent brand-colored card):
+     - "✓ ${a1}" in clean white text
+     - "✓ ${a2}" in clean white text
+     (Note: This card is kept strictly between x=52% and x=74% to avoid overlapping the product overlay safe zone starting at x=75%).
 
-LOWER COMPARISON PANEL (y=59%–86%, split):
-LEFT (x 2%–36%, dark background #1a1a2e):
-   • "OTROS" header — bold white uppercase, large
-   • "✗ ${b1}"
-   • "✗ ${b2}"
-RIGHT (x 64%–98%, ${hex} background):
-   • "NOSOTROS" header — bold white uppercase, large
-   • "✓ ${a1}"
-   • "✓ ${a2}"
+4. BOTTOM CTA STRIP (full width, y=86%–95%, solid dark background): "${cta}" in bold white uppercase centered.
 
-CENTER COLUMN (x 45%–55%): Bold vertical white line with a "VS" circular badge rendered strictly near the bottom (y=78%–84%). Safe zone for overlay: upper-center of the divider line (x 38%–62%, y 32%–62%) — KEEP COMPLETELY CLEAR.
-
-BOTTOM STRIP (y=87%–95%, dark background): "${cta}" — bold white ${hex} pill button centered + "${sub}" small italic beside it.
-
-STYLE: Clean, professional, high-contrast split. Clear winner layout. NO prices, NO URLs.
+STYLE: Clean, professional, high-contrast vertical split. Clear winner layout. NO prices, NO URLs.
 ${fmt}
 ${productRule}
 ${IMPACT_RULE}
@@ -1054,8 +1052,13 @@ function getProductPlacement(angle, w, h, pw) {
     return { left, top };
   }
   if (angle === 'comparison') {
-    // Centered between the side cards, upper area
-    return { left: Math.max(0, Math.round((w - pw) / 2)), top: Math.round(h * 0.32) };
+    // Positioned on the right (NOSOTROS) side in the foreground
+    const rightHalfCenter = Math.round(w * 0.75);
+    const left = Math.max(
+      Math.round(w * 0.54),
+      Math.min(rightHalfCenter - Math.round(pw / 2), w - pw - 20)
+    );
+    return { left, top: Math.round(h * 0.48) };
   }
   return { left: Math.max(0, Math.round((w - pw) / 2)), top: Math.round(h * 0.41) };
 }
@@ -1111,7 +1114,7 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, icon
       objection:    (cw, ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.48) }),
       urgency:      (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
       authority:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
-      comparison:   (cw, ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.32) }),
+      comparison:   (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.75)-Math.round(p/2)), top: Math.round(ch*0.48) }),
       guarantee:    (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.19) - Math.round(p/2)), top: Math.round(ch*0.48) }),
       social_proof: (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
       curiosity:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.52), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),

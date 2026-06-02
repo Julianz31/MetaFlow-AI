@@ -41,7 +41,8 @@ import {
   Info,
   AlertTriangle,
   Globe,
-  FileCode2
+  FileCode2,
+  MessageSquare
 } from 'lucide-react';
 const API_BASE_URL = '';
 
@@ -1041,6 +1042,13 @@ function App() {
             label="Guía"
             onClick={() => setActiveTab('guide')}
           />
+          <NavItem
+            active={false}
+            icon={<MessageSquare size={20} />}
+            label="WhatsApp Agent"
+            onClick={() => window.location.href = '/whatsapp'}
+            badge="Nuevo"
+          />
         </nav>
 
         <NavItem
@@ -1383,11 +1391,19 @@ function AuthView({ onAuth, initialMode = 'login' }) {
   );
 }
 
-function NavItem({ active, icon, label, onClick }) {
+function NavItem({ active, icon, label, onClick, badge }) {
   return (
-    <button className={`nav-item ${active ? 'active' : ''}`} onClick={onClick}>
+    <button className={`nav-item ${active ? 'active' : ''}`} onClick={onClick} style={{ position: 'relative' }}>
       {icon}
       {label}
+      {badge && (
+        <span style={{
+          marginLeft: 'auto', fontSize: '10px', fontWeight: 700,
+          background: '#f59e0b', color: '#000', borderRadius: '8px', padding: '1px 6px',
+        }}>
+          {badge}
+        </span>
+      )}
     </button>
   );
 }
@@ -3899,7 +3915,8 @@ function getTitle(activeTab) {
     guide: 'Guía de Configuración',
     products: 'Vitrina de Productos',
     'ad-creator': 'Creador de Anuncios IA',
-    'landing-generator': 'Generador de Landing Page'
+    'landing-generator': 'Generador de Landing Page',
+    'whatsapp': 'WhatsApp Agent',
   };
 
   return titles[activeTab];

@@ -4987,6 +4987,7 @@ function LandingGeneratorView({ products, loading: productsLoading, user, metaCo
   const [selectedProductId, setSelectedProductId] = useState('');
   const [productName, setProductName] = useState('');
   const [productDescription, setProductDescription] = useState('');
+  const [productUrl, setProductUrl] = useState('');
   const [logoText, setLogoText] = useState('');
   const [instructions, setInstructions] = useState('');
   const [size, setSize] = useState('Móvil Landing 1080x1920');
@@ -5009,11 +5010,13 @@ function LandingGeneratorView({ products, loading: productsLoading, user, metaCo
       if (prod) {
         setProductName(prod.name || '');
         setProductDescription(prod.description || '');
+        setProductUrl(prod.product_url || '');
         setLogoText(prod.name ? prod.name.toUpperCase() : '');
       }
     } else {
       setProductName('');
       setProductDescription('');
+      setProductUrl('');
       setLogoText('');
     }
   }, [selectedProductId, products]);
@@ -5082,6 +5085,7 @@ function LandingGeneratorView({ products, loading: productsLoading, user, metaCo
       const response = await axios.post('/api/ai/generate-landing', {
         productName,
         productDescription,
+        productUrl,
         logoText,
         instructions,
         size,
@@ -5174,6 +5178,18 @@ function LandingGeneratorView({ products, loading: productsLoading, user, metaCo
             placeholder="Ej. SPETS"
             value={logoText}
             onChange={(e) => setLogoText(e.target.value)}
+          />
+        </div>
+
+        {/* PRODUCT URL */}
+        <div className="landing-gen-form-group">
+          <label className="landing-gen-label">Link del Producto (CTA URL)</label>
+          <input 
+            type="url" 
+            className="landing-gen-input" 
+            placeholder="https://tutienda.com/producto"
+            value={productUrl}
+            onChange={(e) => setProductUrl(e.target.value)}
           />
         </div>
 

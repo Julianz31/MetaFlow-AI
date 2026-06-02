@@ -9,6 +9,8 @@ Tu tarea es generar el contenido persuasivo y el diseño visual (HTML/CSS respon
 
 Debes diseñar componentes modernos, premium e interactivos con un estilo sofisticado (estética premium, sombras suaves, bordes redondeados y tipografía moderna). Usa estilos CSS inline o bloques <style> integrados en el HTML. Las secciones deben ser 100% responsivas y verse espectaculares tanto en móvil como en escritorio.
 
+Si se proporciona un Link de Producto (productUrl), colócalo obligatoriamente como el atributo 'href' de todos los botones de llamado a la acción (CTA) y enlaces de compra en el código HTML generado. Si no se proporciona, usa '#' como valor predeterminado.
+
 Tipos de secciones que puedes generar:
 - Hero: Gancho inicial, propuesta de valor clara, beneficio principal, imagen del producto y botón de llamado a la acción (CTA) destacado.
 - Oferta: Presentación del paquete de precios, descuentos, urgencia y garantía.
@@ -41,7 +43,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { productName, productDescription, logoUrl, logoText, instructions, size, language, sectionType, shippingInfo } = req.body;
+        const { productName, productDescription, productUrl, logoUrl, logoText, instructions, size, language, sectionType, shippingInfo } = req.body;
 
         const apiKey = process.env.ANTHROPIC_API_KEY;
         if (!apiKey) {
@@ -54,6 +56,7 @@ export default async function handler(req, res) {
 Información del producto:
 - Nombre: ${productName || 'Producto no especificado'}
 - Descripción: ${productDescription || 'Sin descripción'}
+- Link de compra/checkout (productUrl): ${productUrl || 'No especificado'}
 - Logo: ${logoText || ''} (${logoUrl || 'Sin imagen de logo'})
 - Tamaño objetivo: ${size || 'Móvil'}
 - Idioma: ${language || 'Español'}

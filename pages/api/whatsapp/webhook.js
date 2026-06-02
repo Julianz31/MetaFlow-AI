@@ -131,7 +131,9 @@ Reglas importantes:
 - Responde siempre en el mismo idioma en que te escribe el cliente.
 - Sé conciso: máximo 3 párrafos por respuesta.
 - Si no sabes algo o necesitas confirmación, di "Voy a consultar con el equipo y te respondo pronto".
-- No inventes precios, disponibilidad ni información que no tengas.`;
+- No inventes precios, disponibilidad ni información que no tengas.
+
+FORMATO: No uses Markdown. No uses asteriscos dobles, no uses #, no uses guiones para listas. Usa solo texto plano. Para énfasis puedes usar asteriscos simples de WhatsApp así: *palabra*. Los saltos de línea son válidos.`;
 
   console.log('[WA] Calling Claude with', historyMessages.length, 'messages');
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });

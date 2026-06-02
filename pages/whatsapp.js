@@ -35,6 +35,17 @@ function timeAgo(dateStr) {
   return `${Math.floor(h / 24)}d`;
 }
 
+function formatMessage(text) {
+  if (!text) return null;
+  const html = text
+    .replace(/^#{1,6}\s+/gm, '')           // remove # headings
+    .replace(/\*\*(.*?)\*\*/g, '$1')        // strip **bold** → plain
+    .replace(/__(.*?)__/g, '$1')            // strip __bold__ → plain
+    .replace(/^[\s]*[-–]\s+/gm, '• ')      // - list → bullet
+    .replace(/\n/g, '<br>');               // newlines → <br>
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+}
+
 function statusBadge(status) {
   const map = {
     bot: { label: 'Bot', color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
@@ -764,7 +775,7 @@ export default function WhatsAppPage() {
                           <div className={`bubble bubble-${msg.sender}`}>
                             {msg.sender === 'bot' && <span style={{ fontSize: '11px', color: '#818cf8', display: 'block', marginBottom: '4px' }}>🤖 {config?.agent_name || 'Bot'}</span>}
                             {msg.sender === 'human' && <span style={{ fontSize: '11px', color: '#34d399', display: 'block', marginBottom: '4px' }}>👤 Tú</span>}
-                            {msg.content}
+                            {msg.sender === 'bot' ? formatMessage(msg.content) : msg.content}
                           </div>
                           <span className="bubble-meta">{timeAgo(msg.created_at)}</span>
                         </div>

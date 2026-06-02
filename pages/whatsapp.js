@@ -527,6 +527,7 @@ export default function WhatsAppPage() {
         .notif-success { background: rgba(16,185,129,0.9); color: white; }
         .notif-error { background: rgba(239,68,68,0.9); color: white; }
         @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.75); } }
         ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
       `}</style>
 
@@ -737,23 +738,41 @@ export default function WhatsAppPage() {
                         </p>
                       </div>
 
-                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                        {statusBadge(selectedConv.status)}
+                      <div style={{ flexShrink: 0 }}>
                         {selectedConv.status === 'bot' ? (
                           <button
-                            className="toggle-btn"
                             onClick={() => handleTakeover('take')}
-                            style={{ borderColor: 'rgba(245,158,11,0.4)', color: '#f59e0b', background: 'rgba(245,158,11,0.08)' }}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '8px',
+                              background: 'rgba(16,185,129,0.15)',
+                              border: '1px solid rgba(16,185,129,0.3)',
+                              borderRadius: '20px', padding: '7px 14px',
+                              cursor: 'pointer', color: '#ecfdf5',
+                              fontSize: '13px', fontWeight: 600,
+                              whiteSpace: 'nowrap',
+                            }}
                           >
-                            <User size={15} /> Tomar control
+                            <span style={{
+                              width: '8px', height: '8px', borderRadius: '50%',
+                              background: '#10b981', flexShrink: 0,
+                              animation: 'pulse 1.8s ease-in-out infinite',
+                            }} />
+                            🤖 Bot activo
                           </button>
                         ) : selectedConv.status === 'human' ? (
                           <button
-                            className="toggle-btn"
                             onClick={() => handleTakeover('release')}
-                            style={{ borderColor: 'rgba(16,185,129,0.4)', color: '#10b981', background: 'rgba(16,185,129,0.08)' }}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '8px',
+                              background: 'rgba(245,158,11,0.9)',
+                              border: '1px solid rgba(245,158,11,0.6)',
+                              borderRadius: '20px', padding: '7px 14px',
+                              cursor: 'pointer', color: '#1c1009',
+                              fontSize: '13px', fontWeight: 700,
+                              whiteSpace: 'nowrap',
+                            }}
                           >
-                            <Bot size={15} /> Devolver al bot
+                            👤 Tomar control
                           </button>
                         ) : null}
                       </div>

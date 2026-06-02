@@ -83,6 +83,7 @@ function ConfigModal({ config, appUrl, onSave, onClose }) {
     agent_prompt: config?.agent_prompt || '',
     phone_number_id: config?.phone_number_id || '',
     access_token: '',
+    is_active: config?.is_active ?? false,
   });
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState('');
@@ -189,6 +190,36 @@ function ConfigModal({ config, appUrl, onSave, onClose }) {
                   </button>
                 </div>
               </div>
+            </div>
+
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '10px', padding: '14px 16px',
+            }}>
+              <div>
+                <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#f3f4f6' }}>Agente activo</p>
+                <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6b7280' }}>
+                  {form.is_active ? 'El bot responde mensajes automáticamente' : 'El bot no responderá mensajes'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, is_active: !f.is_active }))}
+                style={{
+                  width: '44px', height: '24px', borderRadius: '12px', border: 'none',
+                  background: form.is_active ? '#10b981' : '#374151',
+                  cursor: 'pointer', position: 'relative', flexShrink: 0,
+                  transition: 'background 0.2s',
+                }}
+              >
+                <span style={{
+                  position: 'absolute', top: '3px',
+                  left: form.is_active ? '23px' : '3px',
+                  width: '18px', height: '18px', borderRadius: '50%',
+                  background: 'white', transition: 'left 0.2s',
+                }} />
+              </button>
             </div>
 
             <button

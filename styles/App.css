@@ -1853,6 +1853,40 @@ td {
   gap: 16px;
 }
 
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(148, 163, 184, 0.15) !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  font-size: 13px !important;
+  outline: none !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+  border-color: rgba(168, 85, 247, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15) !important;
+}
+
+textarea.form-input {
+  min-height: 80px;
+  resize: vertical;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;

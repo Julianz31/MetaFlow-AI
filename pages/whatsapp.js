@@ -14,9 +14,10 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-function authHeader() {
+async function authHeader() {
   try {
-    const session = JSON.parse(localStorage.getItem('metaflow_session') || '{}');
+    const supabase = getSupabaseBrowser();
+    const { data: { session } } = await supabase.auth.getSession();
     return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
   } catch {
     return {};
@@ -339,7 +340,7 @@ export default function WhatsAppPage() {
   async function loadConfig() {
     setConfigLoading(true);
     try {
-      const r = await fetch('/api/whatsapp/config', { headers: authHeader() });
+      const r = await fetch('/api/whatsapp/config', { headers: await authHeader() });
       if (r.ok) {
         const d = await r.json();
         setConfig(d.config);
@@ -351,7 +352,7 @@ export default function WhatsAppPage() {
   async function loadConversations() {
     setConvsLoading(true);
     try {
-      const r = await fetch('/api/whatsapp/conversations', { headers: authHeader() });
+      const r = await fetch('/api/whatsapp/conversations', { headers: await authHeader() });
       if (r.ok) {
         const d = await r.json();
         setConversations(d.conversations || []);
@@ -365,7 +366,7 @@ export default function WhatsAppPage() {
     setMsgsLoading(true);
     setMessages([]);
     try {
-      const r = await fetch(`/api/whatsapp/messages?conversation_id=${conv.id}`, { headers: authHeader() });
+      const r = await fetch(`/api/whatsapp/messages?conversation_id=${conv.id}`, { headers: await authHeader() });
       if (r.ok) {
         const d = await r.json();
         setMessages(d.messages || []);
@@ -377,7 +378,7 @@ export default function WhatsAppPage() {
   async function saveConfig(form) {
     const r = await fetch('/api/whatsapp/config', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeader() },
+      headers: { 'Content-Type': 'application/json', ...await authHeader() },
       body: JSON.stringify(form),
     });
     if (r.ok) {
@@ -394,7 +395,7 @@ export default function WhatsAppPage() {
     if (!selectedConv) return;
     const r = await fetch('/api/whatsapp/takeover', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeader() },
+      headers: { 'Content-Type': 'application/json', ...await authHeader() },
       body: JSON.stringify({ conversation_id: selectedConv.id, action }),
     });
     if (r.ok) {
@@ -416,7 +417,7 @@ export default function WhatsAppPage() {
     try {
       const r = await fetch('/api/whatsapp/messages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeader() },
+        headers: { 'Content-Type': 'application/json', ...await authHeader() },
         body: JSON.stringify({ conversation_id: selectedConv.id, content: text }),
       });
       if (r.ok) {

@@ -39,7 +39,9 @@ import {
   Gauge,
   Activity,
   Info,
-  AlertTriangle
+  AlertTriangle,
+  Globe,
+  FileCode2
 } from 'lucide-react';
 const API_BASE_URL = '';
 
@@ -181,7 +183,7 @@ function App() {
   }, [activeTab]);
 
   useEffect(() => {
-    if (activeTab === 'products') fetchProducts();
+    if (activeTab === 'products' || activeTab === 'landing-generator') fetchProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
@@ -1022,6 +1024,12 @@ function App() {
             onClick={() => setActiveTab('ad-creator')}
           />
           <NavItem
+            active={activeTab === 'landing-generator'}
+            icon={<Globe size={20} />}
+            label="Generar Landing Page"
+            onClick={() => setActiveTab('landing-generator')}
+          />
+          <NavItem
             active={activeTab === 'library'}
             icon={<BookMarked size={20} />}
             label="Biblioteca"
@@ -1199,6 +1207,14 @@ function App() {
             onLaunchInBuilder={launchInBuilder}
             onSaveCreative={saveCreative}
             onAdjustImage={adjustImage}
+          />
+        )}
+        {activeTab === 'landing-generator' && (
+          <LandingGeneratorView
+            products={products}
+            loading={productsLoading}
+            user={user}
+            metaConnection={metaConnection}
           />
         )}
         {activeTab === 'library' && (
@@ -3882,7 +3898,8 @@ function getTitle(activeTab) {
     analysis: 'Análisis con IA',
     guide: 'Guía de Configuración',
     products: 'Vitrina de Productos',
-    'ad-creator': 'Creador de Anuncios IA'
+    'ad-creator': 'Creador de Anuncios IA',
+    'landing-generator': 'Generador de Landing Page'
   };
 
   return titles[activeTab];
@@ -4962,6 +4979,404 @@ function LibraryView({ creatives, loading, onDelete, onLaunch, onRefresh }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function LandingGeneratorView({ products, loading: productsLoading, user, metaConnection }) {
+  const [selectedProductId, setSelectedProductId] = useState('');
+  const [productName, setProductName] = useState('');
+  const [productDescription, setProductDescription] = useState('');
+  const [logoText, setLogoText] = useState('');
+  const [instructions, setInstructions] = useState('');
+  const [size, setSize] = useState('Móvil Landing 1080x1920');
+  const [language, setLanguage] = useState('Español');
+  const [sectionType, setSectionType] = useState('Hero');
+  const [shippingInfo, setShippingInfo] = useState('Envío Express (1 a 2 días hábiles), empaque de seguridad, Pago contraentrega');
+  
+  const [generating, setGenerating] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
+  const [activeResultTab, setActiveResultTab] = useState('preview');
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  const iframeRef = useRef(null);
+
+  // Auto-fill form when a product is selected from the catalog
+  useEffect(() => {
+    if (selectedProductId) {
+      const prod = products.find(p => p.id === selectedProductId);
+      if (prod) {
+        setProductName(prod.name || '');
+        setProductDescription(prod.description || '');
+        setLogoText(prod.name ? prod.name.toUpperCase() : '');
+      }
+    } else {
+      setProductName('');
+      setProductDescription('');
+      setLogoText('');
+    }
+  }, [selectedProductId, products]);
+
+  // Inject HTML & Tailwind CSS inside the preview iframe
+  useEffect(() => {
+    if (activeResultTab === 'preview' && iframeRef.current && result?.html) {
+      const doc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
+      if (doc) {
+        doc.open();
+        doc.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <script src="https://cdn.tailwindcss.com"></script>
+              <script>
+                tailwind.config = {
+                  theme: {
+                    extend: {
+                      colors: {
+                        premiumPurple: '#8b5cf6',
+                        premiumPink: '#ec4899',
+                        darkBg: '#090d16',
+                      }
+                    }
+                  }
+                }
+              </script>
+              <style>
+                body {
+                  margin: 0;
+                  padding: 24px;
+                  background: #090d16;
+                  color: #f1f5f9;
+                  font-family: system-ui, -apple-system, sans-serif;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  min-height: 100vh;
+                }
+                /* Hide scrollbar for clean preview */
+                ::-webkit-scrollbar { display: none; }
+              </style>
+            </head>
+            <body>
+              <div class="w-full max-w-4xl mx-auto">
+                ${result.html}
+              </div>
+            </body>
+          </html>
+        `);
+        doc.close();
+      }
+    }
+  }, [result, activeResultTab]);
+
+  const handleGenerate = async (e) => {
+    e.preventDefault();
+    setGenerating(true);
+    setError('');
+    setResult(null);
+
+    try {
+      const response = await axios.post('/api/ai/generate-landing', {
+        productName,
+        productDescription,
+        logoText,
+        instructions,
+        size,
+        language,
+        sectionType,
+        shippingInfo
+      });
+
+      setResult(response.data);
+      setActiveResultTab('preview');
+    } catch (err) {
+      console.error(err);
+      if (err.response?.status === 402) {
+        setError(err.response.data?.error || 'Sin créditos IA suficientes. Por favor actualiza tu membresía.');
+      } else {
+        setError('Ocurrió un error al generar esta sección. Intenta nuevamente.');
+      }
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleCopyCode = () => {
+    if (!result?.html) return;
+    navigator.clipboard.writeText(result.html);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
+
+  const handleCopyCopywrite = () => {
+    if (!result?.copy) return;
+    navigator.clipboard.writeText(result.copy);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
+
+  const sectionTypes = [
+    { id: 'Hero', label: '🚀 Hero/Gancho' },
+    { id: 'Oferta', label: '💸 Oferta irresistible' },
+    { id: 'Antes/Después', label: '🔄 Antes y Después' },
+    { id: 'Beneficios', label: '✨ Beneficios clave' },
+    { id: 'Tabla Comparativa', label: '⚖️ Tabla Comparativa' },
+    { id: 'Testimonios', label: '⭐️ Testimonios' },
+    { id: 'Prueba de Autoridad', label: '🛡️ Autoridad/Sellos' },
+    { id: 'Modo de Uso', label: '📖 Modo de Uso' },
+    { id: 'Logística', label: '📦 Envíos y Pagos' },
+    { id: 'Preguntas Frecuentes', label: '❓ Preguntas Frecuentes' }
+  ];
+
+  return (
+    <div className="landing-gen-layout">
+      
+      {/* LEFT COLUMN FORM */}
+      <form className="landing-gen-sidebar" onSubmit={handleGenerate}>
+        
+        {/* CATALOG SELECTOR */}
+        <div className="landing-gen-form-group">
+          <label className="landing-gen-label">Seleccionar Producto del Catálogo</label>
+          <select 
+            className="landing-gen-select"
+            value={selectedProductId}
+            onChange={(e) => setSelectedProductId(e.target.value)}
+          >
+            <option value="">-- Personalizado / Nuevo --</option>
+            {products.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* PRODUCT NAME */}
+        <div className="landing-gen-form-group">
+          <label className="landing-gen-label">Nombre del Producto</label>
+          <input 
+            type="text" 
+            className="landing-gen-input" 
+            placeholder="Ej. Spets Omegas Full Spectrum"
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+            required
+          />
+        </div>
+
+        {/* LOGO TEXT */}
+        <div className="landing-gen-form-group">
+          <label className="landing-gen-label">Texto o Marca del Logo</label>
+          <input 
+            type="text" 
+            className="landing-gen-input" 
+            placeholder="Ej. SPETS"
+            value={logoText}
+            onChange={(e) => setLogoText(e.target.value)}
+          />
+        </div>
+
+        {/* PRODUCT DESCRIPTION */}
+        <div className="landing-gen-form-group">
+          <label className="landing-gen-label">Descripción del Producto</label>
+          <textarea 
+            className="landing-gen-textarea" 
+            rows="3"
+            placeholder="Describe qué hace único a tu producto para que la IA genere el mejor copy..."
+            value={productDescription}
+            onChange={(e) => setProductDescription(e.target.value)}
+          />
+        </div>
+
+        {/* ADDITIONAL INSTRUCTIONS */}
+        <div className="landing-gen-form-group">
+          <label className="landing-gen-label">Instrucciones Adicionales</label>
+          <textarea 
+            className="landing-gen-textarea" 
+            rows="3"
+            placeholder="Ej. sujeto y acción: Un perro feliz corriendo libre. Tono emocional y cercano..."
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+          />
+        </div>
+
+        {/* SIZE AND LANGUAGE */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }} className="landing-gen-form-group">
+          <div>
+            <label className="landing-gen-label">Tamaño</label>
+            <select 
+              className="landing-gen-select"
+              value={size}
+              onChange={(e) => setSize(e.target.value)}
+            >
+              <option value="Móvil Landing 1080x1920">Móvil Landing</option>
+              <option value="Desktop Landing 1920x1080">Desktop Landing</option>
+            </select>
+          </div>
+          <div>
+            <label className="landing-gen-label">Idioma</label>
+            <select 
+              className="landing-gen-select"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+            >
+              <option value="Español">Español</option>
+              <option value="Inglés">Inglés</option>
+            </select>
+          </div>
+        </div>
+
+        {/* SECTION CHIPS */}
+        <div className="landing-gen-form-group">
+          <label className="landing-gen-label">Sección a Generar</label>
+          <div className="landing-gen-chips">
+            {sectionTypes.map(type => (
+              <button
+                key={type.id}
+                type="button"
+                className={`landing-gen-chip ${sectionType === type.id ? 'active' : ''}`}
+                onClick={() => setSectionType(type.id)}
+              >
+                {type.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* SHIPPING AND PAYMENT DETAILS */}
+        <div className="landing-gen-form-group">
+          <label className="landing-gen-label">Información de Envío y Pago</label>
+          <textarea 
+            className="landing-gen-textarea" 
+            rows="2"
+            placeholder="Envío express, Pago contraentrega..."
+            value={shippingInfo}
+            onChange={(e) => setShippingInfo(e.target.value)}
+          />
+        </div>
+
+        {/* GENERATE BUTTON */}
+        <button 
+          className="primary-button" 
+          type="submit" 
+          disabled={generating || !productName.trim()}
+          style={{ width: '100%', marginTop: '10px' }}
+        >
+          {generating ? <Loader2 className="spin" size={18} /> : <Sparkles size={18} />}
+          {generating ? 'Diseñando Sección...' : 'GENERAR SECCIÓN'}
+        </button>
+
+      </form>
+
+      {/* RIGHT COLUMN RESULTS */}
+      <div className="landing-gen-content">
+        <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600, color: '#f8fafc' }}>Resultados</h3>
+
+        {error && (
+          <div style={{ color: '#f87171', padding: '12px', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: '10px', marginBottom: '20px', fontSize: '13px' }}>
+            {error}
+          </div>
+        )}
+
+        {/* EMPTY STATE */}
+        {!generating && !result && (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '350px', border: '2px dashed rgba(255,255,255,0.05)', borderRadius: '12px', padding: '40px', textAlign: 'center' }}>
+            <Globe size={48} style={{ color: 'rgba(255,255,255,0.15)', marginBottom: '16px', animation: 'pulse 3s infinite' }} />
+            <h4 style={{ color: '#94a3b8', margin: '0 0 8px 0', fontSize: '15px', fontWeight: 600 }}>La sección aparecerá aquí</h4>
+            <p style={{ color: '#64748b', margin: 0, fontSize: '13px', maxWidth: '320px' }}>Potencia tu landing page de alta conversión con diseños visuales y persuasivos únicos.</p>
+          </div>
+        )}
+
+        {/* LOADING ANIMATION */}
+        {generating && (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '350px' }}>
+            <div className="ai-pulse" style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'linear-gradient(135deg, #8b5cf6, #ec4899)', filter: 'blur(10px)', animation: 'ping 2s infinite', opacity: 0.7 }} />
+            <h4 style={{ color: '#f8fafc', margin: '24px 0 8px 0', fontSize: '16px', fontWeight: 600 }}>Diseñando sección con IA...</h4>
+            <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px', textAlign: 'center', maxWidth: '360px' }}>Escribiendo titulares de alta conversión, estructurando beneficios y estilizando el código responsivo.</p>
+          </div>
+        )}
+
+        {/* RESULT AREA */}
+        {!generating && result && (
+          <div className="result-content-area">
+            
+            {/* TABS */}
+            <div className="result-tabs">
+              <button 
+                type="button" 
+                className={`result-tab ${activeResultTab === 'preview' ? 'active' : ''}`}
+                onClick={() => setActiveResultTab('preview')}
+              >
+                👁️ Vista Previa
+              </button>
+              <button 
+                type="button" 
+                className={`result-tab ${activeResultTab === 'code' ? 'active' : ''}`}
+                onClick={() => setActiveResultTab('code')}
+              >
+                💻 Código HTML
+              </button>
+              <button 
+                type="button" 
+                className={`result-tab ${activeResultTab === 'copy' ? 'active' : ''}`}
+                onClick={() => setActiveResultTab('copy')}
+              >
+                📝 Copywriting
+              </button>
+            </div>
+
+            {/* TAB CONTENT */}
+            {activeResultTab === 'preview' && (
+              <div className="preview-frame-container">
+                <iframe 
+                  ref={iframeRef} 
+                  title="Section Preview" 
+                  className="preview-frame"
+                />
+              </div>
+            )}
+
+            {activeResultTab === 'code' && (
+              <div style={{ position: 'relative', flex: 1 }}>
+                <button 
+                  type="button" 
+                  onClick={handleCopyCode}
+                  style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, padding: '6px 12px', fontSize: '12px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#fff', cursor: 'pointer' }}
+                >
+                  {copySuccess ? '¡Copiado!' : 'Copiar Código'}
+                </button>
+                <textarea 
+                  className="code-display" 
+                  readOnly 
+                  value={result.html || ''}
+                />
+              </div>
+            )}
+
+            {activeResultTab === 'copy' && (
+              <div style={{ position: 'relative', flex: 1 }}>
+                <button 
+                  type="button" 
+                  onClick={handleCopyCopywrite}
+                  style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, padding: '6px 12px', fontSize: '12px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#fff', cursor: 'pointer' }}
+                >
+                  {copySuccess ? '¡Copiado!' : 'Copiar Copy'}
+                </button>
+                <textarea 
+                  className="code-display" 
+                  style={{ color: '#e2e8f0', fontFamily: 'inherit', fontSize: '14px', lineHeight: '1.6' }}
+                  readOnly 
+                  value={result.copy || ''}
+                />
+              </div>
+            )}
+
+          </div>
+        )}
+
+      </div>
+
     </div>
   );
 }

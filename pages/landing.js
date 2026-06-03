@@ -639,9 +639,8 @@ export default function Landing() {
                   {/* Left: config panel */}
                   <div className="img-ai-panel">
                     <div className="img-ai-panel-title">🎨 Configurar creativos</div>
-
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 6 }}>
-                      Imagen del producto <span style={{ color: 'var(--muted)', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>PNG · JPG · WEBP</span>
+                      Imagen del producto <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>PNG · JPG · WEBP</span>
                     </div>
                     <div className="img-upload-box">
                       <div className="img-upload-thumb">🐾</div>
@@ -650,103 +649,141 @@ export default function Landing() {
                         <div className="img-upload-hint">Gemini analiza la imagen para generar creativos fieles al producto.</div>
                       </div>
                     </div>
-
                     <div className="img-field-label">Nombre del producto</div>
                     <div className="img-field-input">Omega Spets</div>
-
                     <div className="img-field-label">Descripción <span>opcional pero recomendada</span></div>
-                    <div className="img-field-textarea" style={{ display: 'block', padding: '9px 12px', background: 'var(--dark4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 12, color: 'var(--muted)', lineHeight: 1.55, marginBottom: 8 }}>
-                      Suplemento nutricional con omegas, minerales y aceites funcionales. Ayuda a mantener piel sana y pelaje brillante en perros y gatos.
+                    <div style={{ background: 'var(--dark4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '9px 12px', fontSize: 12, color: 'var(--muted)', lineHeight: 1.55, marginBottom: 8 }}>
+                      Suplemento nutricional con omegas, minerales y aceites funcionales. Piel sana y pelaje brillante en perros y gatos.
                     </div>
                     <div className="img-tip">
                       Para mejores resultados incluye: <strong>qué es · qué problema resuelve · a quién va dirigido · resultado principal.</strong>
                     </div>
                   </div>
 
-                  {/* Right: result panel */}
-                  <div className="img-ai-panel">
-                    <div className="img-ai-panel-title" style={{ justifyContent: 'space-between' }}>
-                      <span>🖼️ Creativos generados</span>
+                  {/* Right: creativos generados en grid */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div className="img-ai-panel-title" style={{ margin: 0 }}>🖼️ Creativos generados</div>
                       <div className="img-action-btn img-action-primary" style={{ fontSize: 11, padding: '5px 10px' }}>✦ Nueva generación</div>
                     </div>
 
-                    {/* Ad creative mock — ANTES/DESPUÉS style */}
-                    <div style={{ borderRadius: 10, overflow: 'hidden', marginBottom: 12, border: '1px solid rgba(255,255,255,0.08)' }}>
-                      {/* Outer warm dark background */}
-                      <div style={{ background: 'linear-gradient(180deg, #3a1a08 0%, #2a1006 100%)', padding: '10px 10px 0' }}>
-                        {/* Headline */}
-                        <div style={{ textAlign: 'center', marginBottom: 8 }}>
-                          <div style={{ fontSize: 11, fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: 0.3, lineHeight: 1.2 }}>TRANSFORMA LA VIDA DE</div>
-                          <div style={{ fontSize: 13, fontWeight: 900, color: '#e91e8c', textTransform: 'uppercase', letterSpacing: 0.3, lineHeight: 1.2 }}>TU MASCOTA CON OMEGAS</div>
-                        </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
 
-                        {/* Two panels */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, position: 'relative' }}>
-                          {/* ANTES */}
-                          <div style={{ borderRadius: '8px 8px 0 0', overflow: 'hidden', border: '2px solid #888', position: 'relative' }}>
-                            <div style={{ background: 'linear-gradient(160deg,#c8b89a 0%,#a89070 50%,#8a7055 100%)', minHeight: 110, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '6px 6px 0', filter: 'saturate(0.55) brightness(0.85)' }}>
-                              <div style={{ background: 'rgba(0,0,0,0.55)', color: 'white', fontSize: 10, fontWeight: 900, padding: '2px 8px', borderRadius: 3, marginBottom: 6, textTransform: 'uppercase' }}>ANTES</div>
-                              {/* Person + dog silhouettes */}
-                              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, marginTop: 'auto' }}>
-                                <div style={{ fontSize: 14, opacity: 0.8 }}>😔</div>
-                                <div style={{ fontSize: 28 }}>🐕</div>
+                      {/* ── Creativo 1: Comparativa ── */}
+                      <div style={{ background: 'var(--dark3)', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border)' }}>
+                        {/* Ad mock */}
+                        <div style={{ background: '#fff', overflow: 'hidden' }}>
+                          {/* Header split */}
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+                            <div style={{ background: '#e8e8e8', padding: '7px 8px' }}>
+                              <div style={{ fontSize: 9, fontWeight: 900, color: '#111', textTransform: 'uppercase', lineHeight: 1.2 }}>PIEL SANA:</div>
+                              <div style={{ fontSize: 7, color: '#888', textTransform: 'uppercase' }}>OTROS PRODUCTOS</div>
+                            </div>
+                            <div style={{ background: '#e91e8c', padding: '7px 8px', display: 'flex', alignItems: 'center' }}>
+                              <div style={{ fontSize: 12, fontWeight: 900, color: 'white', textTransform: 'uppercase', lineHeight: 1.1 }}>¡15 DÍAS!</div>
+                            </div>
+                          </div>
+                          {/* Photo panels */}
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: 80 }}>
+                            <div style={{ background: 'linear-gradient(160deg,#b8a898,#9a8878)', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'saturate(0.4) brightness(0.8)', padding: 6 }}>
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: 26 }}>🐕</div>
+                                <div style={{ fontSize: 22, marginTop: -8 }}>😔</div>
                               </div>
-                              {/* Hair loss effect */}
-                              <div style={{ fontSize: 8, color: 'rgba(80,50,30,0.9)', textAlign: 'center', paddingBottom: 4 }}>· · · · ·</div>
                             </div>
-                          </div>
-
-                          {/* Arrow overlay */}
-                          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -55%)', zIndex: 10, textAlign: 'center' }}>
-                            <div style={{ background: 'linear-gradient(135deg,#c87830,#e09040)', borderRadius: 20, padding: '3px 7px', fontSize: 7, fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: 0.5, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
-                              TRANSFORMACIÓN →
-                            </div>
-                          </div>
-
-                          {/* DESPUÉS */}
-                          <div style={{ borderRadius: '8px 8px 0 0', overflow: 'hidden', border: '2px solid #e91e8c', boxShadow: '0 0 12px rgba(233,30,140,0.4)', position: 'relative' }}>
-                            <div style={{ background: 'linear-gradient(160deg,#e8c878 0%,#d4a840 50%,#c09030 100%)', minHeight: 110, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '6px 6px 0' }}>
-                              <div style={{ background: '#e91e8c', color: 'white', fontSize: 10, fontWeight: 900, padding: '2px 8px', borderRadius: 3, marginBottom: 6, textTransform: 'uppercase' }}>DESPUÉS</div>
-                              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, marginTop: 'auto' }}>
-                                <div style={{ fontSize: 14 }}>😄</div>
-                                <div style={{ fontSize: 28 }}>🐕‍🦺</div>
-                                <div style={{ fontSize: 16 }}>💊</div>
+                            <div style={{ background: 'linear-gradient(160deg,#f0d090,#d4a840)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 6, position: 'relative' }}>
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: 26 }}>🐕‍🦺</div>
+                                <div style={{ fontSize: 22, marginTop: -8 }}>😄</div>
                               </div>
-                              {/* Sparkles */}
-                              <div style={{ fontSize: 8, color: '#e91e8c', textAlign: 'center', paddingBottom: 4 }}>✦ ✦ ✦</div>
+                              <div style={{ position: 'absolute', bottom: 4, right: 4, fontSize: 18 }}>💊</div>
                             </div>
                           </div>
-                        </div>
-
-                        {/* Bottom CTA bar */}
-                        <div style={{ background: '#e91e8c', margin: '0 -0px', padding: '7px 10px', textAlign: 'center' }}>
-                          <div style={{ fontSize: 9, fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: 0.5, lineHeight: 1.3 }}>
-                            OMEGAS PARA PERROS Y GATOS: EL CAMBIO QUE MERECEN.
+                          {/* Bullets */}
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#f8f8f8', borderTop: '1px solid #eee' }}>
+                            <div style={{ padding: '5px 8px', borderRight: '1px solid #eee' }}>
+                              {['Resultados lentos','Pelaje opaco y áspero'].map(t => <div key={t} style={{ fontSize: 7, color: '#ef4444', marginBottom: 2 }}>✕ {t}</div>)}
+                            </div>
+                            <div style={{ padding: '5px 8px' }}>
+                              {['Brillo y suavidad en 15 días','Nutrición integral diaria'].map(t => <div key={t} style={{ fontSize: 7, color: '#16a34a', marginBottom: 2 }}>✓ {t}</div>)}
+                            </div>
                           </div>
-                          <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.85)', marginTop: 1 }}>¡Diles adiós a la caída excesiva! · <strong>¡PRUÉBALO HOY!</strong></div>
+                          {/* CTA */}
+                          <div style={{ background: '#e91e8c', padding: '6px', textAlign: 'center', fontSize: 9, fontWeight: 900, color: 'white', letterSpacing: 1, textTransform: 'uppercase' }}>COMPRAR AHORA</div>
+                        </div>
+                        {/* Actions below */}
+                        <div style={{ padding: '10px 10px 8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                            <span style={{ fontSize: 11, color: 'var(--purple-light)', fontWeight: 700 }}>⚖️ Comparativa</span>
+                            <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600 }}>↓ Descargar</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+                            <div style={{ background: 'linear-gradient(135deg,#8b5cf6,#6366f1)', color: 'white', borderRadius: 6, padding: '5px 8px', fontSize: 10, fontWeight: 700 }}>🚀 Lanzar en Meta</div>
+                            <div style={{ background: 'var(--dark4)', border: '1px solid var(--border)', color: 'var(--muted)', borderRadius: 6, padding: '5px 7px', fontSize: 10, fontWeight: 600 }}>💾 Guardar</div>
+                            <div style={{ background: 'var(--dark4)', border: '1px solid var(--border)', color: 'var(--muted)', borderRadius: 6, padding: '5px 7px', fontSize: 10, fontWeight: 600 }}>✏️</div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: 'var(--muted)' }}>Titular</span>
+                            <span style={{ fontSize: 10, color: 'var(--purple-light)', fontWeight: 600 }}>📋 Copiar</span>
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--text)', fontWeight: 600, marginBottom: 8 }}>Piel sana: ¡15 días!</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: 'var(--muted)' }}>Texto principal</span>
+                            <span style={{ fontSize: 10, color: 'var(--purple-light)', fontWeight: 600 }}>📋 Copiar</span>
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4 }}>Transforma el pelaje de tu mascota con Omegas Full Spectrum. Resultados visibles en 15 días.</div>
                         </div>
                       </div>
-                    </div>
 
-                    <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 10, fontWeight: 600 }}>Comparativa · Ángulo transformación</div>
-
-                    {/* Action buttons */}
-                    <div className="img-action-row" style={{ marginBottom: 8 }}>
-                      <div className="img-action-btn img-action-ghost">⚖️ Comparativa</div>
-                      <div className="img-action-btn img-action-ghost">↓ Descargar</div>
-                      <div className="img-action-btn img-action-ghost">✏️ Ajustar</div>
-                    </div>
-                    <div className="img-action-row">
-                      <div className="img-action-btn img-action-primary">🚀 Lanzar en Meta</div>
-                      <div className="img-action-btn img-action-ghost">💾 Guardar</div>
-                    </div>
-
-                    <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--muted)' }}>Titular</span>
-                        <span style={{ fontSize: 11, color: 'var(--purple-light)', fontWeight: 600, cursor: 'default' }}>📋 Copiar</span>
+                      {/* ── Creativo 2: Urgencia ── */}
+                      <div style={{ background: 'var(--dark3)', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border)' }}>
+                        {/* Ad mock */}
+                        <div style={{ background: 'linear-gradient(160deg,#2a1a10 0%,#1a1020 60%,#0d0818 100%)', position: 'relative', minHeight: 165, padding: '10px 10px 8px', overflow: 'hidden' }}>
+                          {/* Warm photo overlay */}
+                          <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '55%', background: 'linear-gradient(160deg,#d4a040 0%,#c08030 60%,#8a5020 100%)', opacity: 0.55 }} />
+                          {/* Badge */}
+                          <div style={{ position: 'absolute', top: 8, right: 8, background: '#e53935', color: 'white', fontSize: 7, fontWeight: 800, padding: '2px 6px', borderRadius: 3, textTransform: 'uppercase', letterSpacing: 0.5, zIndex: 2 }}>OFERTA LIMITADA – SOLO HOY</div>
+                          {/* Product */}
+                          <div style={{ position: 'absolute', right: 8, bottom: 28, fontSize: 28, zIndex: 2 }}>💊</div>
+                          {/* Dog */}
+                          <div style={{ position: 'absolute', right: 28, bottom: 8, fontSize: 22, zIndex: 2 }}>🐕‍🦺</div>
+                          {/* Main copy */}
+                          <div style={{ position: 'relative', zIndex: 2 }}>
+                            <div style={{ fontSize: 13, fontWeight: 900, color: 'white', textTransform: 'uppercase', lineHeight: 1.15, marginTop: 10 }}>PIEL OPACA?<br /><span style={{ color: '#e91e8c' }}>¡SE ACABA!</span></div>
+                            <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.8)', marginTop: 4, marginBottom: 8 }}>Piel sana y pelaje brillante.</div>
+                            {['Stock limitado ahora','Oferta termina hoy','Brillo visible en 15 días','¡Actúa ya!'].map(t => (
+                              <div key={t} style={{ fontSize: 8, color: 'white', fontWeight: 700, marginBottom: 3, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <span style={{ color: '#e91e8c', fontSize: 10 }}>▶</span> {t}
+                              </div>
+                            ))}
+                          </div>
+                          {/* CTA button */}
+                          <div style={{ position: 'relative', zIndex: 2, marginTop: 8, display: 'inline-block', background: '#e91e8c', color: 'white', fontSize: 9, fontWeight: 900, padding: '5px 12px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: 0.5 }}>Aprovechar oferta</div>
+                        </div>
+                        {/* Actions below */}
+                        <div style={{ padding: '10px 10px 8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                            <span style={{ fontSize: 11, color: '#f59e0b', fontWeight: 700 }}>⚡ Urgencia</span>
+                            <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600 }}>↓ Descargar</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+                            <div style={{ background: 'linear-gradient(135deg,#8b5cf6,#6366f1)', color: 'white', borderRadius: 6, padding: '5px 8px', fontSize: 10, fontWeight: 700 }}>🚀 Lanzar en Meta</div>
+                            <div style={{ background: 'var(--dark4)', border: '1px solid var(--border)', color: 'var(--muted)', borderRadius: 6, padding: '5px 7px', fontSize: 10, fontWeight: 600 }}>💾 Guardar</div>
+                            <div style={{ background: 'var(--dark4)', border: '1px solid var(--border)', color: 'var(--muted)', borderRadius: 6, padding: '5px 7px', fontSize: 10, fontWeight: 600 }}>✏️</div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: 'var(--muted)' }}>Titular</span>
+                            <span style={{ fontSize: 10, color: 'var(--purple-light)', fontWeight: 600 }}>📋 Copiar</span>
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--text)', fontWeight: 600, marginBottom: 8 }}>Piel opaca? ¡Se acaba!</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: 'var(--muted)' }}>Texto principal</span>
+                            <span style={{ fontSize: 10, color: 'var(--purple-light)', fontWeight: 600 }}>📋 Copiar</span>
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4 }}>Oferta limitada: Omegas Full Spectrum con descuento especial. Stock limitado. ¡Pide hoy!</div>
+                        </div>
                       </div>
-                      <div style={{ fontSize: 13, color: 'var(--text)', fontWeight: 600 }}>Transforma la vida de tu mascota con Omegas</div>
+
                     </div>
                   </div>
                 </div>

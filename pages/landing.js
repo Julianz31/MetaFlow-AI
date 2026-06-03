@@ -670,40 +670,60 @@ export default function Landing() {
                       <div className="img-action-btn img-action-primary" style={{ fontSize: 11, padding: '5px 10px' }}>✦ Nueva generación</div>
                     </div>
 
-                    <div className="img-result-box">
-                      {/* Ad creative mock */}
-                      <div style={{ background: 'white', borderRadius: 8, overflow: 'hidden' }}>
-                        {/* Two-panel ad */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: 180 }}>
-                          {/* Before */}
-                          <div style={{ background: '#f3f3f3', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 12, gap: 6 }}>
-                            <div style={{ fontSize: 9, fontWeight: 800, color: '#888', textTransform: 'uppercase', letterSpacing: 1 }}>Pelaje opaco?</div>
-                            <div style={{ fontSize: 9, color: '#aaa', textTransform: 'uppercase', letterSpacing: 0.5 }}>Otros productos</div>
-                            <div style={{ fontSize: 40 }}>🐕</div>
+                    {/* Ad creative mock — ANTES/DESPUÉS style */}
+                    <div style={{ borderRadius: 10, overflow: 'hidden', marginBottom: 12, border: '1px solid rgba(255,255,255,0.08)' }}>
+                      {/* Outer warm dark background */}
+                      <div style={{ background: 'linear-gradient(180deg, #3a1a08 0%, #2a1006 100%)', padding: '10px 10px 0' }}>
+                        {/* Headline */}
+                        <div style={{ textAlign: 'center', marginBottom: 8 }}>
+                          <div style={{ fontSize: 11, fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: 0.3, lineHeight: 1.2 }}>TRANSFORMA LA VIDA DE</div>
+                          <div style={{ fontSize: 13, fontWeight: 900, color: '#e91e8c', textTransform: 'uppercase', letterSpacing: 0.3, lineHeight: 1.2 }}>TU MASCOTA CON OMEGAS</div>
+                        </div>
+
+                        {/* Two panels */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, position: 'relative' }}>
+                          {/* ANTES */}
+                          <div style={{ borderRadius: '8px 8px 0 0', overflow: 'hidden', border: '2px solid #888', position: 'relative' }}>
+                            <div style={{ background: 'linear-gradient(160deg,#c8b89a 0%,#a89070 50%,#8a7055 100%)', minHeight: 110, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '6px 6px 0', filter: 'saturate(0.55) brightness(0.85)' }}>
+                              <div style={{ background: 'rgba(0,0,0,0.55)', color: 'white', fontSize: 10, fontWeight: 900, padding: '2px 8px', borderRadius: 3, marginBottom: 6, textTransform: 'uppercase' }}>ANTES</div>
+                              {/* Person + dog silhouettes */}
+                              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, marginTop: 'auto' }}>
+                                <div style={{ fontSize: 14, opacity: 0.8 }}>😔</div>
+                                <div style={{ fontSize: 28 }}>🐕</div>
+                              </div>
+                              {/* Hair loss effect */}
+                              <div style={{ fontSize: 8, color: 'rgba(80,50,30,0.9)', textAlign: 'center', paddingBottom: 4 }}>· · · · ·</div>
+                            </div>
                           </div>
-                          {/* After */}
-                          <div style={{ background: '#1a0a2e', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 12, gap: 6 }}>
-                            <div style={{ background: '#e91e8c', color: 'white', fontSize: 8, fontWeight: 800, padding: '3px 8px', borderRadius: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>¡Transformación 15 días!</div>
-                            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Fórmula Premium</div>
-                            <div style={{ fontSize: 40 }}>🐕‍🦺</div>
+
+                          {/* Arrow overlay */}
+                          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -55%)', zIndex: 10, textAlign: 'center' }}>
+                            <div style={{ background: 'linear-gradient(135deg,#c87830,#e09040)', borderRadius: 20, padding: '3px 7px', fontSize: 7, fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: 0.5, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+                              TRANSFORMACIÓN →
+                            </div>
+                          </div>
+
+                          {/* DESPUÉS */}
+                          <div style={{ borderRadius: '8px 8px 0 0', overflow: 'hidden', border: '2px solid #e91e8c', boxShadow: '0 0 12px rgba(233,30,140,0.4)', position: 'relative' }}>
+                            <div style={{ background: 'linear-gradient(160deg,#e8c878 0%,#d4a840 50%,#c09030 100%)', minHeight: 110, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '6px 6px 0' }}>
+                              <div style={{ background: '#e91e8c', color: 'white', fontSize: 10, fontWeight: 900, padding: '2px 8px', borderRadius: 3, marginBottom: 6, textTransform: 'uppercase' }}>DESPUÉS</div>
+                              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, marginTop: 'auto' }}>
+                                <div style={{ fontSize: 14 }}>😄</div>
+                                <div style={{ fontSize: 28 }}>🐕‍🦺</div>
+                                <div style={{ fontSize: 16 }}>💊</div>
+                              </div>
+                              {/* Sparkles */}
+                              <div style={{ fontSize: 8, color: '#e91e8c', textAlign: 'center', paddingBottom: 4 }}>✦ ✦ ✦</div>
+                            </div>
                           </div>
                         </div>
-                        {/* Feature bullets */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#f8f8f8', borderTop: '1px solid #eee' }}>
-                          <div style={{ padding: '6px 10px', borderRight: '1px solid #eee' }}>
-                            {['Pelaje sin brillo','Piel seca y sin vitalidad'].map(t => (
-                              <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 8, color: '#ef4444', marginBottom: 2 }}>✕ {t}</div>
-                            ))}
+
+                        {/* Bottom CTA bar */}
+                        <div style={{ background: '#e91e8c', margin: '0 -0px', padding: '7px 10px', textAlign: 'center' }}>
+                          <div style={{ fontSize: 9, fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: 0.5, lineHeight: 1.3 }}>
+                            OMEGAS PARA PERROS Y GATOS: EL CAMBIO QUE MERECEN.
                           </div>
-                          <div style={{ padding: '6px 10px' }}>
-                            {['Pelaje suave brillante','Piel sana y nutrida'].map(t => (
-                              <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 8, color: '#22c55e', marginBottom: 2 }}>✓ {t}</div>
-                            ))}
-                          </div>
-                        </div>
-                        {/* CTA */}
-                        <div style={{ background: '#e91e8c', padding: '8px', textAlign: 'center', fontSize: 9, fontWeight: 800, color: 'white', letterSpacing: 1.5, textTransform: 'uppercase' }}>
-                          Comprar ahora
+                          <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.85)', marginTop: 1 }}>¡Diles adiós a la caída excesiva! · <strong>¡PRUÉBALO HOY!</strong></div>
                         </div>
                       </div>
                     </div>
@@ -711,7 +731,7 @@ export default function Landing() {
                     <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 10, fontWeight: 600 }}>Comparativa · Ángulo transformación</div>
 
                     {/* Action buttons */}
-                    <div className="img-action-row" style={{ marginBottom: 14 }}>
+                    <div className="img-action-row" style={{ marginBottom: 8 }}>
                       <div className="img-action-btn img-action-ghost">⚖️ Comparativa</div>
                       <div className="img-action-btn img-action-ghost">↓ Descargar</div>
                       <div className="img-action-btn img-action-ghost">✏️ Ajustar</div>
@@ -726,7 +746,7 @@ export default function Landing() {
                         <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--muted)' }}>Titular</span>
                         <span style={{ fontSize: 11, color: 'var(--purple-light)', fontWeight: 600, cursor: 'default' }}>📋 Copiar</span>
                       </div>
-                      <div style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>Pelaje opaco? ¡Transformación en 15 días!</div>
+                      <div style={{ fontSize: 13, color: 'var(--text)', fontWeight: 600 }}>Transforma la vida de tu mascota con Omegas</div>
                     </div>
                   </div>
                 </div>

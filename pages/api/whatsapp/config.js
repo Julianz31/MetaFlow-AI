@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const { data, error } = await supabase
       .from('whatsapp_config')
-      .select('id, phone_number_id, access_token, verify_token, agent_name, agent_prompt, is_active, meta_verified, created_at, updated_at')
+      .select('id, phone_number_id, access_token, verify_token, agent_name, agent_prompt, is_active, meta_verified, welcome_message, welcome_audio_url, created_at, updated_at')
       .eq('user_id', user.id)
       .single();
 
@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { agent_name, agent_prompt, phone_number_id, access_token, is_active } = req.body;
+    const { agent_name, agent_prompt, phone_number_id, access_token, is_active, welcome_message, welcome_audio_url } = req.body;
 
     const updates = {
       user_id: user.id,
@@ -38,6 +38,8 @@ export default async function handler(req, res) {
     if (agent_prompt !== undefined) updates.agent_prompt = agent_prompt;
     if (phone_number_id !== undefined) updates.phone_number_id = phone_number_id;
     if (is_active !== undefined) updates.is_active = is_active;
+    if (welcome_message !== undefined) updates.welcome_message = welcome_message || null;
+    if ('welcome_audio_url' in req.body) updates.welcome_audio_url = welcome_audio_url || null;
     if (access_token && access_token !== '••••••••') {
       updates.access_token = encrypt(access_token);
     }
@@ -45,7 +47,7 @@ export default async function handler(req, res) {
     const { data, error } = await supabase
       .from('whatsapp_config')
       .upsert(updates, { onConflict: 'user_id' })
-      .select('id, phone_number_id, verify_token, agent_name, agent_prompt, is_active, meta_verified, updated_at')
+      .select('id, phone_number_id, verify_token, agent_name, agent_prompt, is_active, meta_verified, welcome_message, welcome_audio_url, updated_at')
       .single();
 
     if (error) return res.status(500).json({ error: error.message });

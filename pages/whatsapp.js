@@ -96,9 +96,13 @@ function ConfigModal({ config, appUrl, onSave, onClose }) {
     phone_number_id: config?.phone_number_id || '',
     access_token: '',
     is_active: config?.is_active ?? false,
+    welcome_message: config?.welcome_message || '',
   });
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState('');
+  const [audioUrl, setAudioUrl] = useState(config?.welcome_audio_url || '');
+  const [audioFile, setAudioFile] = useState(null);
+  const [audioUploading, setAudioUploading] = useState(false);
 
   const webhookUrl = `${appUrl}/api/whatsapp/webhook`;
   const verifyToken = config?.verify_token || '(guarda primero para generar)';
@@ -106,8 +110,38 @@ function ConfigModal({ config, appUrl, onSave, onClose }) {
   async function handleSave(e) {
     e.preventDefault();
     setSaving(true);
-    await onSave(form);
+    await onSave({ ...form, welcome_message: form.welcome_message });
     setSaving(false);
+  }
+
+  async function handleAudioUpload() {
+    if (!audioFile) return;
+    setAudioUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioFile);
+      const r = await fetch('/api/whatsapp/upload-audio', {
+        method: 'POST',
+        headers: await authHeader(),
+        body: formData,
+      });
+      const d = await r.json();
+      if (r.ok) {
+        setAudioUrl(d.audio_url);
+        setAudioFile(null);
+      } else {
+        alert(d.error || 'Error al subir el audio');
+      }
+    } catch {
+      alert('Error de conexión al subir el audio');
+    }
+    setAudioUploading(false);
+  }
+
+  async function handleRemoveAudio() {
+    setAudioUrl('');
+    setAudioFile(null);
+    await onSave({ welcome_audio_url: '' });
   }
 
   function copyText(text, key) {
@@ -174,6 +208,96 @@ function ConfigModal({ config, appUrl, onSave, onClose }) {
                 placeholder={config?.has_access_token ? '••••••••  (dejar vacío para no cambiar)' : 'EAAxxxxxxx...'}
                 style={inputStyle}
               />
+            </div>
+
+            {/* Welcome message section */}
+            <div style={{ background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '12px', padding: '16px' }}>
+              <p style={{ margin: '0 0 12px', fontSize: '13px', fontWeight: 600, color: '#34d399' }}>
+                Mensaje de bienvenida
+              </p>
+              <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#6b7280' }}>
+                Se envía automáticamente cuando un contacto escribe por primera vez.
+              </p>
+
+              <div style={{ marginBottom: '12px' }}>
+                <label style={labelStyle}>Texto de bienvenida</label>
+                <textarea
+                  value={form.welcome_message}
+                  onChange={e => setForm(f => ({ ...f, welcome_message: e.target.value }))}
+                  rows={3}
+                  placeholder="Ej: ¡Hola! Gracias por escribirnos. En un momento te atendemos 🐾"
+                  style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
+                />
+              </div>
+
+              <div>
+                <label style={labelStyle}>Audio de bienvenida</label>
+                {audioUrl ? (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '8px', padding: '10px 14px',
+                  }}>
+                    <span style={{ fontSize: '18px' }}>🎵</span>
+                    <span style={{ flex: 1, fontSize: '13px', color: '#d1d5db', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      Audio configurado
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleRemoveAudio}
+                      style={{
+                        background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+                        color: '#f87171', borderRadius: '6px', padding: '4px 10px',
+                        cursor: 'pointer', fontSize: '12px', fontWeight: 600, flexShrink: 0,
+                      }}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <label style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      gap: '6px', padding: '20px', cursor: 'pointer',
+                      background: 'rgba(255,255,255,0.02)', border: '2px dashed rgba(255,255,255,0.1)',
+                      borderRadius: '8px', transition: 'border-color 0.2s',
+                    }}>
+                      <input
+                        type="file"
+                        accept="audio/mpeg,audio/ogg,audio/aac,audio/mp4,audio/x-m4a,.mp3,.ogg,.aac,.m4a"
+                        style={{ display: 'none' }}
+                        onChange={e => setAudioFile(e.target.files?.[0] || null)}
+                      />
+                      <span style={{ fontSize: '22px' }}>🎵</span>
+                      {audioFile ? (
+                        <span style={{ fontSize: '13px', color: '#d1d5db', textAlign: 'center' }}>{audioFile.name}</span>
+                      ) : (
+                        <span style={{ fontSize: '13px', color: '#6b7280', textAlign: 'center' }}>
+                          Arrastra o selecciona un audio<br />
+                          <span style={{ fontSize: '11px' }}>mp3, ogg, aac, m4a · máx 16 MB</span>
+                        </span>
+                      )}
+                    </label>
+                    {audioFile && (
+                      <button
+                        type="button"
+                        onClick={handleAudioUpload}
+                        disabled={audioUploading}
+                        style={{
+                          marginTop: '8px', width: '100%',
+                          background: audioUploading ? 'rgba(16,185,129,0.3)' : 'rgba(16,185,129,0.15)',
+                          border: '1px solid rgba(16,185,129,0.4)',
+                          color: '#34d399', borderRadius: '8px', padding: '9px',
+                          cursor: audioUploading ? 'not-allowed' : 'pointer',
+                          fontSize: '13px', fontWeight: 600,
+                        }}
+                      >
+                        {audioUploading ? 'Subiendo...' : 'Subir audio'}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '12px', padding: '16px' }}>

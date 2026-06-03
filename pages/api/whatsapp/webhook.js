@@ -29,6 +29,26 @@ async function sendWhatsAppMessage(phoneNumberId, accessToken, to, text) {
   return result;
 }
 
+async function sendWhatsAppAudio(phoneNumberId, accessToken, to, audioUrl) {
+  const url = `https://graph.facebook.com/${WA_API_VERSION}/${phoneNumberId}/messages`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'audio',
+      audio: { link: audioUrl },
+    }),
+  });
+  const result = await res.json();
+  console.log('[WA] sendWhatsAppAudio result:', JSON.stringify(result));
+  return result;
+}
+
 async function processIncomingMessage(supabase, config, waId, contactName, messageText, waMessageId) {
   const userId = config.user_id;
   console.log(`[WA] Processing message from ${waId}: "${messageText}"`);
@@ -51,6 +71,7 @@ async function processIncomingMessage(supabase, config, waId, contactName, messa
 
   // Find or create conversation
   let conversation;
+  let isNewContact = false;
   const { data: existingConv, error: convErr } = await supabase
     .from('whatsapp_conversations')
     .select()
@@ -77,6 +98,7 @@ async function processIncomingMessage(supabase, config, waId, contactName, messa
       return;
     }
     conversation = newConv;
+    isNewContact = true;
   } else {
     await supabase
       .from('whatsapp_conversations')
@@ -105,6 +127,39 @@ async function processIncomingMessage(supabase, config, waId, contactName, messa
   if (conversation.status !== 'bot') {
     console.log('[WA] Conversation is in human/closed mode — skipping bot reply');
     return;
+  }
+
+  const rawToken = decrypt(config.access_token);
+
+  // Send welcome audio + message to new contacts before AI reply
+  if (isNewContact) {
+    if (config.welcome_audio_url) {
+      console.log('[WA] Sending welcome audio to new contact:', waId);
+      await sendWhatsAppAudio(config.phone_number_id, rawToken, waId, config.welcome_audio_url);
+      await supabase.from('whatsapp_messages').insert({
+        conversation_id: conversation.id,
+        user_id: userId,
+        direction: 'outbound',
+        sender: 'bot',
+        content: '[Audio de bienvenida]',
+      });
+    }
+
+    if (config.welcome_message?.trim()) {
+      console.log('[WA] Sending welcome message to new contact:', waId);
+      await sendWhatsAppMessage(config.phone_number_id, rawToken, waId, config.welcome_message.trim());
+      await supabase.from('whatsapp_messages').insert({
+        conversation_id: conversation.id,
+        user_id: userId,
+        direction: 'outbound',
+        sender: 'bot',
+        content: config.welcome_message.trim(),
+      });
+      await supabase
+        .from('whatsapp_conversations')
+        .update({ last_message: config.welcome_message.trim(), last_message_at: new Date().toISOString() })
+        .eq('id', conversation.id);
+    }
   }
 
   // Get last 10 messages for Claude history
@@ -163,7 +218,6 @@ FORMATO: No uses Markdown. No uses asteriscos dobles, no uses #, no uses guiones
     .eq('id', conversation.id);
 
   // Send via Meta Graph API
-  const rawToken = decrypt(config.access_token);
   await sendWhatsAppMessage(config.phone_number_id, rawToken, waId, botReply);
 
   // Deduct credits (non-blocking — don't fail if this errors)
@@ -245,7 +299,7 @@ export default async function handler(req, res) {
       // Look up config by phone_number_id
       const { data: cfg, error: cfgErr } = await supabase
         .from('whatsapp_config')
-        .select('id, user_id, phone_number_id, access_token, agent_name, agent_prompt, is_active')
+        .select('id, user_id, phone_number_id, access_token, agent_name, agent_prompt, is_active, welcome_message, welcome_audio_url')
         .eq('phone_number_id', phoneNumberId)
         .single();
 

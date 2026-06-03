@@ -1,985 +1,756 @@
-import Head from 'next/head';
-import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import axios from 'axios';
-import { getSupabaseBrowser } from '../lib/supabase-browser';
+// New MetaFlow Landing Page — pages/landing.js
+// Replace the entire content of pages/landing.js with this file
 
-const features = [
+import Head from 'next/head'
+import { useState, useEffect, useRef } from 'react'
+
+const PLANS = [
   {
-    icon: '⚡',
+    name: 'Pro',
+    price: '$99.900',
+    period: 'COP / mes',
+    highlight: false,
+    badge: null,
+    meta: '1 cuenta Meta',
+    credits: '700 créditos IA',
+    images: '60 imágenes',
+    whatsapp: '1 agente WhatsApp',
+    features: [
+      '1 cuenta publicitaria',
+      '700 créditos IA al mes',
+      '60 imágenes generadas',
+      'Los 11 ángulos publicitarios',
+      'Dashboard en tiempo real',
+      'Análisis y recomendaciones IA',
+      'Reglas automáticas',
+      'Agente WhatsApp incluido',
+      'Generador de landing pages',
+    ],
+  },
+  {
+    name: 'Business',
+    price: '$209.900',
+    period: 'COP / mes',
+    highlight: true,
+    badge: 'Más popular',
+    meta: '3 cuentas Meta',
+    credits: '1.800 créditos IA',
+    images: '150 imágenes',
+    whatsapp: '3 agentes WhatsApp',
+    features: [
+      '3 cuentas publicitarias',
+      '1.800 créditos IA al mes',
+      '150 imágenes generadas',
+      'Los 11 ángulos publicitarios',
+      'Dashboard en tiempo real',
+      'Análisis y recomendaciones IA',
+      'Reglas automáticas',
+      '3 agentes WhatsApp',
+      'Generador de landing pages',
+      'Soporte prioritario',
+    ],
+  },
+  {
+    name: 'Agency',
+    price: '$359.900',
+    period: 'COP / mes',
+    highlight: false,
+    badge: null,
+    meta: '10 cuentas Meta',
+    credits: '4.000 créditos IA',
+    images: '350 imágenes',
+    whatsapp: '10 agentes WhatsApp',
+    features: [
+      '10 cuentas publicitarias',
+      '4.000 créditos IA al mes',
+      '350 imágenes generadas',
+      'Los 11 ángulos publicitarios',
+      'Dashboard en tiempo real',
+      'Análisis y recomendaciones IA',
+      'Reglas automáticas',
+      '10 agentes WhatsApp',
+      'Generador de landing pages',
+      'Soporte prioritario',
+      'Acceso anticipado a nuevas funciones',
+    ],
+  },
+]
+
+const FEATURES = [
+  {
+    icon: '📊',
     title: 'Dashboard en tiempo real',
-    desc: 'ROAS, inversión y facturación de tus últimos 7 días en una sola pantalla. Sin abrir el Administrador de Meta.'
+    desc: 'ROAS, inversión y facturación de los últimos 7 días en una sola pantalla. Sin abrir el Administrador de Meta.',
+    color: '#FF6B2B',
   },
   {
     icon: '🤖',
     title: 'Análisis experto con IA',
-    desc: 'Un experto en Meta Ads analiza tus campañas automáticamente y te dice exactamente qué pausar, escalar o cambiar.'
+    desc: 'Un experto en Meta Ads analiza tus campañas y te dice exactamente qué pausar, escalar o cambiar.',
+    color: '#7C3AED',
   },
   {
     icon: '🎨',
-    title: 'Generador de imágenes de la mejor calidad',
-    desc: 'Sube la foto de tu producto, elige el estilo y nuestro generador crea creativos de alto nivel listos para publicar.'
+    title: 'Generador de imágenes IA',
+    desc: 'Sube la foto de tu producto y obtén creativos de alto nivel listos para publicar en segundos.',
+    color: '#0EA5E9',
+  },
+  {
+    icon: '💬',
+    title: 'Agente WhatsApp 24/7',
+    desc: 'Tu bot responde, califica y cierra ventas mientras duermes. Conectado directamente a tus campañas.',
+    color: '#22C55E',
   },
   {
     icon: '🛍️',
     title: 'Vitrina de productos',
-    desc: 'Tu catálogo siempre disponible. Agrega precio, link y descripción para crear anuncios en segundos.'
+    desc: 'Tu catálogo siempre disponible. Agrega precio, link y descripción para crear anuncios en segundos.',
+    color: '#F59E0B',
   },
   {
-    icon: '📋',
+    icon: '⚙️',
     title: 'Reglas automáticas',
-    desc: 'Configura condiciones: si el ROAS baja de X, pausa la campaña. Si el CPA sube, ajusta el presupuesto. Sin trabajo manual.'
+    desc: 'Si el ROAS baja de X, pausa la campaña. Si el CPA sube, ajusta el presupuesto. Sin trabajo manual.',
+    color: '#EF4444',
   },
   {
     icon: '🚀',
     title: 'Constructor de campañas',
-    desc: 'Crea campañas completas directamente desde la app con copy generado por IA y múltiples creativos.'
-  }
-];
-
-const steps = [
-  {
-    number: '01',
-    title: 'Conecta tu cuenta de Meta Ads',
-    desc: 'Solo necesitas tu System User Access Token y tu Ad Account ID. Se configura una vez.'
+    desc: 'Crea campañas completas con copy generado por IA y múltiples creativos desde la misma plataforma.',
+    color: '#8B5CF6',
   },
   {
-    number: '02',
-    title: 'Agrega tus productos y configura reglas',
-    desc: 'Sube tu catálogo y define cuándo la IA debe actuar sobre tus campañas.'
+    icon: '🌐',
+    title: 'Generador de landing pages',
+    desc: 'Genera páginas de venta optimizadas para conversión en segundos, listas para conectar a tus anuncios.',
+    color: '#06B6D4',
   },
-  {
-    number: '03',
-    title: 'Deja que MetaFlow.AI trabaje por ti',
-    desc: 'Analiza, genera imágenes de la mejor calidad, optimiza y toma decisiones con inteligencia artificial.'
-  }
-];
+]
 
-const testimonials = [
+const TESTIMONIALS = [
   {
     name: 'Carolina Restrepo',
     role: 'Fundadora · Tienda de moda online',
-    avatar: 'CR',
-    text: 'Antes perdía horas revisando campañas manualmente. Con MetaFlow.AI mi ROAS subió de 2.1x a 4.8x en el primer mes. El análisis automático me dice exactamente qué hacer sin que yo tenga que adivinar.'
+    text: 'Antes perdía horas revisando campañas. Con MetaFlow mi ROAS subió de 2.1x a 4.8x en el primer mes. El análisis automático me dice exactamente qué hacer.',
+    stars: 5,
+    initials: 'CR',
   },
   {
     name: 'Andrés Mejía',
-    role: 'Director de Marketing · E-commerce de electrónica',
-    avatar: 'AM',
-    text: 'El generador de imágenes es increíble. En minutos tengo creativos de calidad profesional para mis anuncios. Antes pagaba a un diseñador $500 USD al mes — ahora lo hago en segundos.'
+    role: 'Director de Marketing · E-commerce',
+    text: 'El generador de imágenes es increíble. En minutos tengo creativos profesionales. Antes pagaba $500 USD al mes a un diseñador — ahora lo hago en segundos.',
+    stars: 5,
+    initials: 'AM',
   },
   {
     name: 'Valentina Torres',
     role: 'CEO · Marca de cosméticos',
-    avatar: 'VT',
-    text: 'Las reglas automáticas me salvaron el presupuesto. Una campaña se estaba comiendo la plata sin conversiones y MetaFlow.AI la pausó sola. Ya no me preocupa que algo salga mal de noche o en fin de semana.'
+    text: 'Las reglas automáticas me salvaron el presupuesto. Una campaña se estaba comiendo la plata sin conversiones y MetaFlow la pausó sola.',
+    stars: 5,
+    initials: 'VT',
   },
   {
     name: 'Felipe Gómez',
     role: 'Growth Manager · SaaS B2B',
-    avatar: 'FG',
-    text: 'La vitrina de productos conectada al creador de anuncios es un game changer. Selecciono el producto, genero la imagen y lanzo el anuncio en menos de 5 minutos. Antes eso me tomaba medio día.'
-  }
-];
-
-const plans = [
-  {
-    key: 'pro',
-    name: 'Pro',
-    price: '$99.900',
-    period: 'COP / mes',
-    badge: null,
-    highlighted: false,
-    accounts: 1,
-    aiCredits: '700',
-    images: '60',
-    features: [
-      '1 cuenta publicitaria conectada',
-      '700 créditos IA al mes',
-      '60 imágenes generadas al mes',
-      'Los 11 ángulos publicitarios',
-      'Dashboard de campañas en tiempo real',
-      'Análisis y recomendaciones con IA',
-      'Optimización automática de reglas',
-    ],
-    cta: 'Comenzar ahora',
+    text: 'El agente de WhatsApp es un game changer. Mis leads llegan del anuncio y el bot los cierra automáticamente. Ya no necesito estar pegado al celular.',
+    stars: 5,
+    initials: 'FG',
   },
-  {
-    key: 'business',
-    name: 'Business',
-    price: '$209.900',
-    period: 'COP / mes',
-    badge: 'Más popular',
-    highlighted: true,
-    accounts: 3,
-    aiCredits: '1.800',
-    images: '150',
-    features: [
-      '3 cuentas publicitarias conectadas',
-      '1.800 créditos IA al mes',
-      '150 imágenes generadas al mes',
-      'Los 11 ángulos publicitarios',
-      'Dashboard de campañas en tiempo real',
-      'Análisis y recomendaciones con IA',
-      'Optimización automática de reglas',
-      'Soporte prioritario',
-    ],
-    cta: 'Comenzar ahora',
-  },
-  {
-    key: 'agency',
-    name: 'Agency',
-    price: '$359.900',
-    period: 'COP / mes',
-    badge: null,
-    highlighted: false,
-    accounts: 10,
-    aiCredits: '4.000',
-    images: '350',
-    features: [
-      '10 cuentas publicitarias conectadas',
-      '4.000 créditos IA al mes',
-      '350 imágenes generadas al mes',
-      'Los 11 ángulos publicitarios',
-      'Dashboard de campañas en tiempo real',
-      'Análisis y recomendaciones con IA',
-      'Optimización automática de reglas',
-      'Soporte prioritario',
-      'Acceso anticipado a nuevas funciones',
-    ],
-    cta: 'Comenzar ahora',
-  },
-];
+]
 
-function CampañasScreen() {
-  const campaigns = [
-    { name: 'Colección Verano 2026', status: 'active', budget: '$25.000', spend: '$18.430', roas: 5.2, cpa: '$4.80' },
-    { name: 'Retargeting Web', status: 'active', budget: '$15.000', spend: '$12.100', roas: 3.8, cpa: '$7.20' },
-    { name: 'Lookalike Compradores', status: 'paused', budget: '$20.000', spend: '$8.940', roas: 1.9, cpa: '$14.50' },
-    { name: 'Brand Awareness Q2', status: 'active', budget: '$10.000', spend: '$9.870', roas: 4.1, cpa: '$5.90' },
-    { name: 'Black Friday Remarketing', status: 'paused', budget: '$30.000', spend: '$22.100', roas: 2.1, cpa: '$11.30' },
-  ];
-  return (
-    <div className="l-sc-campaigns">
-      <div className="l-sc-topbar">
-        <span className="l-sc-title">Campañas · Meta Ads</span>
-        <span className="l-sc-pill">Últimos 7 días</span>
-      </div>
-      <div className="l-sc-table-wrap">
-        <table className="l-sc-table">
-          <thead>
-            <tr>
-              <th>Campaña</th>
-              <th>Estado</th>
-              <th>Presupuesto/día</th>
-              <th>Gasto</th>
-              <th>ROAS</th>
-              <th>CPA</th>
-            </tr>
-          </thead>
-          <tbody>
-            {campaigns.map(c => (
-              <tr key={c.name}>
-                <td className="l-sc-campname">{c.name}</td>
-                <td><span className={`l-sc-status ${c.status}`}>{c.status === 'active' ? '● Activa' : '● Pausada'}</span></td>
-                <td>{c.budget}</td>
-                <td>{c.spend}</td>
-                <td><span className={`l-sc-roas ${c.roas >= 3 ? 'good' : c.roas >= 2 ? 'warn' : 'bad'}`}>{c.roas}x</span></td>
-                <td>{c.cpa}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function AnalisisScreen() {
-  return (
-    <div className="l-sc-analysis">
-      <div className="l-sc-topbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 18 }}>🤖</span>
-          <span className="l-sc-title">Análisis experto — Últimos 7 días</span>
-        </div>
-        <span className="l-sc-pill purple">Generado hace 2 horas</span>
-      </div>
-      <div className="l-sc-ai-body">
-        <div className="l-sc-ai-block">
-          <div className="l-sc-ai-label">📊 Resumen ejecutivo</div>
-          <p className="l-sc-ai-text">Tu ROAS promedio esta semana fue <strong>4.43x</strong>, por encima del benchmark del sector (3.2x). Invertiste <strong>$4.820</strong> generando <strong>$21.390</strong> en ventas. Tu campaña más rentable tiene un ROAS de 5.2x con un CPA de solo $4.80.</p>
-        </div>
-        <div className="l-sc-ai-block">
-          <div className="l-sc-ai-label">✅ Recomendaciones de acción</div>
-          <div className="l-sc-ai-rec">
-            <span className="l-sc-ai-rec-tag scale">Escalar</span>
-            <p>"Colección Verano 2026" — ROAS 5.2x con CPA de $4.80. Aumenta el presupuesto un 30% esta semana para maximizar retorno.</p>
-          </div>
-          <div className="l-sc-ai-rec">
-            <span className="l-sc-ai-rec-tag pause">Pausar</span>
-            <p>"Lookalike Compradores" — ROAS de 1.9x por debajo del umbral mínimo. CPA de $14.50 es 3x el valor óptimo.</p>
-          </div>
-          <div className="l-sc-ai-rec">
-            <span className="l-sc-ai-rec-tag creative">Creativos</span>
-            <p>"Retargeting Web" lleva 14 días con los mismos creativos y el CTR bajó 18%. Renueva las imágenes esta semana.</p>
-          </div>
-        </div>
-        <div className="l-sc-ai-block warn">
-          <div className="l-sc-ai-label">⚠️ Alerta de frecuencia</div>
-          <p className="l-sc-ai-text">La frecuencia en "Brand Awareness Q2" llegó a <strong>4.2</strong>. La audiencia está saturada — renueva los creativos antes del lunes para evitar caída del ROAS.</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ReglasScreen() {
-  const rules = [
-    { status: 'active', condition: 'ROAS < 2.0 por 2 días consecutivos', action: 'Pausar campaña automáticamente', scope: 'Todas las campañas', freq: 'Verificación diaria', color: 'red' },
-    { status: 'active', condition: 'CPA > $12 USD por 3 días seguidos', action: 'Reducir presupuesto un 20%', scope: 'Campañas de conversión', freq: 'Verificación diaria', color: 'orange' },
-    { status: 'active', condition: 'ROAS > 5.0 y gasto > $10.000/día', action: 'Aumentar presupuesto un 25%', scope: 'Todas las campañas', freq: 'Verificación diaria', color: 'green' },
-    { status: 'paused', condition: 'Frecuencia > 4.5 en los últimos 7 días', action: 'Notificar por email', scope: 'Campañas de awareness', freq: 'Cada 6 horas', color: 'purple' },
-  ];
-  return (
-    <div className="l-sc-rules">
-      <div className="l-sc-topbar">
-        <span className="l-sc-title">Reglas automáticas</span>
-        <button className="l-sc-btn">+ Nueva regla</button>
-      </div>
-      <div className="l-sc-rules-list">
-        {rules.map((r, i) => (
-          <div key={i} className={`l-sc-rule-card ${r.status}`}>
-            <div className="l-sc-rule-left">
-              <div className={`l-sc-rule-dot ${r.color}`} />
-            </div>
-            <div className="l-sc-rule-body">
-              <div className="l-sc-rule-row">
-                <span className="l-sc-rule-kw if">SI</span>
-                <span className="l-sc-rule-cond">{r.condition}</span>
-              </div>
-              <div className="l-sc-rule-row">
-                <span className="l-sc-rule-kw then">ENTONCES</span>
-                <span className="l-sc-rule-action">{r.action}</span>
-              </div>
-              <div className="l-sc-rule-meta">{r.scope} · {r.freq}</div>
-            </div>
-            <div className="l-sc-rule-right">
-              <span className={`l-sc-status ${r.status}`}>{r.status === 'active' ? '● Activa' : '● Pausada'}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ImagenScreen() {
-  return (
-    <div className="l-sc-imagen">
-      <div className="l-sc-topbar">
-        <span className="l-sc-title">Generador de imagen IA</span>
-        <span className="l-sc-pill purple">✨ Lista para publicar</span>
-      </div>
-      <div className="l-sc-imagen-body">
-        <div className="l-sc-imagen-left">
-          <div className="l-sc-img-label">Foto del producto subida</div>
-          <div className="l-sc-img-upload">
-            <div className="l-sc-img-product-mock" style={{ height: '120px', background: 'linear-gradient(135deg, #16082e, #070311)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
-              <div className="l-sc-img-glow" style={{ background: 'rgba(219, 39, 119, 0.28)', width: '90px', height: '90px', filter: 'blur(16px)' }} />
-              <img 
-                src="/pet-bottle.png" 
-                alt="Foto del Gotero Suplemento de Mascotas" 
-                style={{ 
-                  height: '100%', 
-                  maxHeight: '105px', 
-                  objectFit: 'contain', 
-                  position: 'relative', 
-                  zIndex: 2, 
-                  filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.5))',
-                  display: 'block'
-                }} 
-              />
-            </div>
-            <div className="l-sc-img-filename">suplemento_pelo_mascotas.jpg</div>
-          </div>
-          <div className="l-sc-img-label" style={{ marginTop: 14 }}>Estilo del anuncio</div>
-          <div className="l-sc-style-chips">
-            {['Editorial premium', 'Lifestyle', 'Minimalista'].map((s, i) => (
-              <span key={s} className={`l-sc-chip ${i === 0 ? 'selected' : ''}`}>{s}</span>
-            ))}
-          </div>
-          <div className="l-sc-img-label" style={{ marginTop: 10 }}>Formato</div>
-          <div className="l-sc-style-chips">
-            {['1:1 Feed', '9:16 Story', '1.91:1 Banner'].map((s, i) => (
-              <span key={s} className={`l-sc-chip ${i === 0 ? 'selected' : ''}`}>{s}</span>
-            ))}
-          </div>
-          <div className="l-sc-img-label" style={{ marginTop: 10 }}>Colores de marca</div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: '#db2777', border: '2px solid rgba(255,255,255,0.15)' }} />
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: '#fdf2f8', border: '2px solid rgba(255,255,255,0.15)' }} />
-            <span style={{ fontSize: 10, color: '#475569' }}>Primario · Secundario</span>
-          </div>
-        </div>
-        <div className="l-sc-imagen-right">
-          <div className="l-sc-img-label">Imagen generada por IA</div>
-          <div className="l-sc-img-result">
-            <div className="l-sc-img-beauty-mock" style={{ padding: '8px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at center, #110624 0%, #06020c 100%)', minHeight: '345px', border: '1px solid rgba(255,255,255,0.03)' }}>
-              <img 
-                src="/pet-ad-showcase.jpg" 
-                alt="Anuncio de Suplemento para Mascotas generado por IA" 
-                style={{ 
-                  maxHeight: '100%', 
-                  maxWidth: '100%', 
-                  aspectRatio: '1/1', 
-                  objectFit: 'contain', 
-                  borderRadius: '10px', 
-                  boxShadow: '0 12px 36px rgba(0,0,0,0.65)',
-                  border: '1px solid rgba(255,255,255,0.09)',
-                  display: 'block' 
-                }} 
-              />
-            </div>
-            <div className="l-sc-img-actions">
-              <button className="l-sc-btn primary">⬇ Descargar HD</button>
-              <button className="l-sc-btn">🚀 Publicar anuncio</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const SCREEN_TABS = [
-  { id: 'Campañas', icon: '📊', label: 'Campañas' },
-  { id: 'Análisis IA', icon: '🤖', label: 'Análisis IA' },
-  { id: 'Reglas', icon: '⚙️', label: 'Reglas automáticas' },
-  { id: 'Imagen IA', icon: '🎨', label: 'Crear imagen IA' },
-];
-
-const SIDEBAR_ITEMS = [
-  { screen: null, label: 'Dashboard' },
-  { screen: 'Campañas', label: 'Campañas' },
-  { screen: 'Análisis IA', label: 'Análisis IA' },
-  { screen: 'Reglas', label: 'Reglas' },
-  { screen: null, label: 'Productos' },
-  { screen: 'Imagen IA', label: 'Crear Imagen' },
-];
+const PAINS = [
+  { emoji: '😩', text: '¿Inviertes en anuncios pero no sabes si están funcionando?' },
+  { emoji: '⏰', text: '¿Pasas horas revisando campañas que deberían gestionarse solas?' },
+  { emoji: '💸', text: '¿Se te va el presupuesto en campañas malas mientras duermes?' },
+  { emoji: '📱', text: '¿Recibes mensajes de clientes y no tienes tiempo de responder?' },
+  { emoji: '🎨', text: '¿Gastas fortunas en diseñadores para creativos de anuncios?' },
+  { emoji: '📉', text: '¿Tu ROAS cae y no entiendes por qué ni qué hacer?' },
+]
 
 export default function Landing() {
-  const router = useRouter();
-  const [activeScreen, setActiveScreen] = useState('Campañas');
-  const [user, setUser] = useState(null);
-  const [loadingPlan, setLoadingPlan] = useState(null);
-  const [payError, setPayError] = useState('');
+  const [activeTab, setActiveTab] = useState(0)
+  const [visibleSections, setVisibleSections] = useState({})
+  const sectionRefs = useRef({})
 
   useEffect(() => {
-    try {
-      const u = JSON.parse(localStorage.getItem('metaflow_user'));
-      if (u) setUser(u);
-    } catch {}
-  }, []);
-
-  // Waving dotted mesh grid simulation in canvas
-  useEffect(() => {
-    const canvas = document.getElementById('landing-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationId;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = 1000);
-
-    const handleResize = () => {
-      width = canvas.width = window.innerWidth;
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    let time = 0;
-    const dotsGap = 34;
-    let columns = Math.ceil(width / dotsGap) + 2;
-    const rows = Math.ceil(height / dotsGap) + 2;
-
-    const render = () => {
-      ctx.clearRect(0, 0, width, height);
-      time += 0.35;
-      columns = Math.ceil(width / dotsGap) + 2;
-
-      for (let c = 0; c < columns; c++) {
-        for (let r = 0; r < rows; r++) {
-          const baseX = c * dotsGap - 20;
-          const baseY = r * dotsGap - 20;
-
-          // Wave algorithm for premium organic movement
-          const angleX = c * 0.14 + time * 0.015;
-          const angleY = r * 0.14 + time * 0.012;
-          const wave = Math.sin(angleX) * Math.cos(angleY);
-
-          // Displace dots for the wave mesh grid
-          const posX = baseX + wave * 9;
-          const posY = baseY + wave * 7;
-
-          // Radial fading toward edges and bottom
-          const dx = posX - width / 2;
-          const dy = posY - 380;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const maxDist = Math.max(width, 900) * 0.78;
-          let edgeAlpha = 1 - dist / maxDist;
-          if (edgeAlpha < 0) edgeAlpha = 0;
-
-          // Size and opacity modulation
-          const dotSize = 1.0 + (wave + 1) * 1.5;
-          const dotAlpha = (0.04 + (wave + 1) * 0.22) * edgeAlpha;
-
-          if (dotAlpha > 0) {
-            ctx.beginPath();
-            ctx.arc(posX, posY, dotSize, 0, Math.PI * 2);
-
-            const ratio = (wave + 1) / 2;
-            const rVal = Math.round(139 + (236 - 139) * ratio);
-            const gVal = Math.round(92 + (72 - 92) * ratio);
-            const bVal = Math.round(246 + (153 - 246) * ratio);
-
-            ctx.fillStyle = `rgba(${rVal}, ${gVal}, ${bVal}, ${dotAlpha})`;
-
-            if (dotSize > 2.4) {
-              ctx.shadowBlur = 5;
-              ctx.shadowColor = `rgba(${rVal}, ${gVal}, ${bVal}, ${dotAlpha * 0.75})`;
-            } else {
-              ctx.shadowBlur = 0;
-            }
-
-            ctx.fill();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisibleSections((prev) => ({ ...prev, [entry.target.id]: true }))
           }
-        }
-      }
+        })
+      },
+      { threshold: 0.1 }
+    )
+    Object.values(sectionRefs.current).forEach((ref) => {
+      if (ref) observer.observe(ref)
+    })
+    return () => observer.disconnect()
+  }, [])
 
-      animationId = requestAnimationFrame(render);
-    };
+  const setRef = (id) => (el) => {
+    sectionRefs.current[id] = el
+  }
 
-    render();
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationId);
-    };
-  }, []);
-
-  // Checkout Modal states
-  const [selectedPlan, setSelectedPlan] = useState(null); // 'pro', 'business', 'agency' or null
-  const [modalMode, setModalMode] = useState('register'); // 'register' | 'login' | 'email-confirm'
-  const [modalName, setModalName] = useState('');
-  const [modalEmail, setModalEmail] = useState('');
-  const [modalPassword, setModalPassword] = useState('');
-  const [modalError, setModalError] = useState('');
-  const [modalLoading, setModalLoading] = useState(false);
-
-  const triggerWompiCheckout = async (planKey, currentUser) => {
-    setLoadingPlan(planKey);
-    setPayError('');
-    try {
-      const { data } = await axios.post('/api/payments/create-transaction', {
-        userId: currentUser.id,
-        userEmail: currentUser.email,
-        plan: planKey,
-      });
-      const script = document.createElement('script');
-      script.src = 'https://checkout.wompi.co/widget.js';
-      script.setAttribute('data-render', 'button');
-      script.setAttribute('data-public-key', data.publicKey);
-      script.setAttribute('data-currency', data.currency);
-      script.setAttribute('data-amount-in-cents', String(data.amountInCents));
-      script.setAttribute('data-reference', data.reference);
-      script.setAttribute('data-signature:integrity', data.signature);
-      script.setAttribute('data-customer-data:email', data.userEmail);
-      script.setAttribute('data-redirect-url', data.redirectUrl);
-      const container = document.getElementById(`landing-wompi-${planKey}`);
-      if (container) {
-        container.innerHTML = '';
-        container.appendChild(script);
-        script.onload = () => {
-          const btn = container.querySelector('button, [data-wompi]');
-          if (btn) btn.click();
-        };
-      }
-    } catch (err) {
-      console.error(err);
-      setPayError('Error iniciando el pago. Intenta de nuevo.');
-    } finally {
-      setLoadingPlan(null);
-    }
-  };
-
-  const handleSubscribe = async (planKey) => {
-    if (!user) {
-      setSelectedPlan(planKey);
-      setModalMode('register');
-      setModalError('');
-      return;
-    }
-    await triggerWompiCheckout(planKey, user);
-  };
-
-  const handleModalSubmit = async (e) => {
-    e.preventDefault();
-    setModalError('');
-    setModalLoading(true);
-    const supabase = getSupabaseBrowser();
-
-    try {
-      if (modalMode === 'register') {
-        const { data, error: err } = await supabase.auth.signUp({
-          email: modalEmail,
-          password: modalPassword,
-          options: { data: { name: modalName || modalEmail.split('@')[0] } }
-        });
-        if (err) { setModalError(err.message); return; }
-
-        if (!data.session) {
-          setModalMode('email-confirm');
-          return;
-        }
-
-        const u = data.user;
-        const nextUser = { id: u.id, name: u.user_metadata?.name || modalEmail.split('@')[0], email: u.email };
-        localStorage.setItem('metaflow_user', JSON.stringify(nextUser));
-        setUser(nextUser);
-        setSelectedPlan(null);
-        await triggerWompiCheckout(selectedPlan, nextUser);
-      } else {
-        const { data, error: err } = await supabase.auth.signInWithPassword({ email: modalEmail, password: modalPassword });
-        if (err) {
-          if (err.message === 'Invalid login credentials') setModalError('Email o contraseña incorrectos');
-          else if (err.message.includes('Email not confirmed')) setModalError('Debes confirmar tu email antes de ingresar. Revisa tu bandeja de entrada.');
-          else setModalError(err.message);
-          return;
-        }
-        const u = data.user;
-        const nextUser = { id: u.id, name: u.user_metadata?.name || u.email.split('@')[0], email: u.email };
-        localStorage.setItem('metaflow_user', JSON.stringify(nextUser));
-        setUser(nextUser);
-        setSelectedPlan(null);
-        await triggerWompiCheckout(selectedPlan, nextUser);
-      }
-    } catch (err) {
-      setModalError('Error en la autenticación. Revisa los datos.');
-    } finally {
-      setModalLoading(false);
-    }
-  };
+  const tabs = ['📊 Campañas', '🤖 Análisis IA', '⚙️ Reglas', '🎨 Imagen IA', '💬 WhatsApp']
 
   return (
     <>
       <Head>
-        <title>MetaFlow.AI — El copiloto de IA para tus Meta Ads</title>
-        <meta name="description" content="Automatiza, analiza y crea anuncios de alto nivel para Meta Ads con inteligencia artificial. Gestiona campañas, genera creativos y optimiza tu ROAS." />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta property="og:title" content="MetaFlow.AI — El copiloto de IA para tus Meta Ads" />
-        <meta property="og:description" content="Automatiza, analiza y crea anuncios de alto nivel para Facebook e Instagram Ads con IA." />
+        <title>MetaFlow.AI — Automatiza tu negocio online con IA</title>
+        <meta name="description" content="Gestiona campañas, crea creativos, responde clientes 24/7 y genera landing pages con inteligencia artificial. La plataforma todo-en-uno para vender más online." />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
       </Head>
 
-      <div className="landing">
-        <canvas id="landing-canvas" className="landing-bg-canvas" />
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+          --orange: #FF6B2B;
+          --orange-dim: #FF6B2B22;
+          --dark: #080B14;
+          --dark2: #0E1220;
+          --dark3: #151A2B;
+          --dark4: #1C2236;
+          --border: rgba(255,255,255,0.08);
+          --text: #F0F2F8;
+          --muted: rgba(240,242,248,0.55);
+          --font-display: 'Syne', sans-serif;
+          --font-body: 'DM Sans', sans-serif;
+        }
+        html { scroll-behavior: smooth; }
+        body { background: var(--dark); color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+        .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
 
-        {/* ── NAV ── */}
-        <nav className="l-nav">
-          <div className="l-nav-inner">
-            <div className="l-logo">
-              <div className="l-logo-mark">⚡</div>
-              <span>MetaFlow.AI</span>
-            </div>
-            <div className="l-nav-actions">
-              <a href="#precios" className="l-btn-ghost">Precios</a>
-              <Link href="/?mode=login" className="l-btn-ghost">Iniciar sesión</Link>
-              <Link href="/?signup=1" className="l-btn-primary">Comenzar ahora</Link>
+        /* NAV */
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 16px 0; background: rgba(8,11,20,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+        .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+        .nav-logo span { color: var(--orange); }
+        .nav-links { display: flex; align-items: center; gap: 32px; }
+        .nav-links a { color: var(--muted); text-decoration: none; font-size: 15px; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        .btn-nav { background: var(--orange); color: white; border: none; padding: 10px 24px; border-radius: 8px; font-family: var(--font-body); font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; transition: opacity 0.2s, transform 0.2s; }
+        .btn-nav:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* HERO */
+        .hero { padding: 160px 0 100px; position: relative; overflow: hidden; }
+        .hero-bg { position: absolute; inset: 0; z-index: 0; }
+        .hero-bg-circle { position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(255,107,43,0.15) 0%, transparent 70%); top: -100px; left: 50%; transform: translateX(-50%); }
+        .hero-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 60px 60px; }
+        .hero-content { position: relative; z-index: 1; text-align: center; }
+        .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,107,43,0.12); border: 1px solid rgba(255,107,43,0.3); border-radius: 100px; padding: 6px 16px; font-size: 13px; color: var(--orange); margin-bottom: 32px; font-weight: 500; }
+        .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.5)} }
+        h1 { font-family: var(--font-display); font-size: clamp(42px, 6vw, 80px); font-weight: 800; line-height: 1.05; letter-spacing: -2px; margin-bottom: 24px; }
+        h1 em { font-style: normal; color: var(--orange); }
+        .hero-sub { font-size: clamp(17px, 2vw, 20px); color: var(--muted); max-width: 620px; margin: 0 auto 48px; line-height: 1.6; }
+        .hero-ctas { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .btn-primary { background: var(--orange); color: white; border: none; padding: 16px 36px; border-radius: 10px; font-family: var(--font-body); font-size: 16px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(255,107,43,0.35); }
+        .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 16px 36px; border-radius: 10px; font-family: var(--font-body); font-size: 16px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .btn-ghost:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.04); }
+        .hero-meta { margin-top: 20px; font-size: 13px; color: var(--muted); }
+
+        /* PAIN */
+        .pain-section { padding: 80px 0; }
+        .section-label { font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--orange); margin-bottom: 16px; }
+        .section-title { font-family: var(--font-display); font-size: clamp(30px, 4vw, 48px); font-weight: 800; line-height: 1.1; letter-spacing: -1px; margin-bottom: 16px; }
+        .section-sub { color: var(--muted); font-size: 18px; max-width: 560px; }
+        .pain-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 48px; }
+        .pain-card { background: var(--dark2); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; display: flex; align-items: center; gap: 16px; transition: border-color 0.2s, transform 0.2s; }
+        .pain-card:hover { border-color: rgba(255,107,43,0.3); transform: translateY(-2px); }
+        .pain-emoji { font-size: 28px; flex-shrink: 0; }
+        .pain-text { font-size: 15px; color: var(--muted); line-height: 1.5; }
+
+        /* SOLUTION BANNER */
+        .solution-banner { background: linear-gradient(135deg, var(--orange) 0%, #FF3D00 100%); border-radius: 20px; padding: 48px; text-align: center; margin: 0 0 80px; position: relative; overflow: hidden; }
+        .solution-banner::before { content: ''; position: absolute; top: -40%; right: -10%; width: 400px; height: 400px; border-radius: 50%; background: rgba(255,255,255,0.08); }
+        .solution-banner h2 { font-family: var(--font-display); font-size: clamp(26px, 4vw, 42px); font-weight: 800; color: white; margin-bottom: 16px; position: relative; z-index: 1; }
+        .solution-banner p { color: rgba(255,255,255,0.85); font-size: 18px; position: relative; z-index: 1; }
+
+        /* FEATURES */
+        .features-section { padding: 80px 0; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 56px; }
+        .feature-card { background: var(--dark2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; transition: all 0.3s; position: relative; overflow: hidden; }
+        .feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--card-color, var(--orange)); opacity: 0; transition: opacity 0.3s; }
+        .feature-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-4px); }
+        .feature-card:hover::before { opacity: 1; }
+        .feature-icon { font-size: 32px; margin-bottom: 16px; display: block; }
+        .feature-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+        .feature-desc { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+        /* DEMO TABS */
+        .demo-section { padding: 80px 0; }
+        .tab-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
+        .tab-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 10px 20px; border-radius: 8px; font-family: var(--font-body); font-size: 14px; cursor: pointer; transition: all 0.2s; }
+        .tab-btn.active { background: var(--orange); border-color: var(--orange); color: white; }
+        .tab-btn:not(.active):hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+        .demo-screen { background: var(--dark2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+        .demo-topbar { background: var(--dark3); padding: 12px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+        .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .demo-url { background: var(--dark4); border-radius: 6px; padding: 4px 16px; font-size: 12px; color: var(--muted); flex: 1; max-width: 300px; }
+        .demo-content { padding: 32px; min-height: 320px; }
+        .demo-stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+        .demo-stat { background: var(--dark3); border-radius: 10px; padding: 16px; text-align: center; }
+        .demo-stat-val { font-family: var(--font-display); font-size: 24px; font-weight: 800; color: var(--orange); }
+        .demo-stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+        .demo-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .demo-table th { text-align: left; padding: 10px 12px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+        .demo-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; }
+        .status-active { background: #22C55E; }
+        .status-paused { background: #6B7280; }
+        .ai-card { background: var(--dark3); border-radius: 12px; padding: 20px; margin-bottom: 16px; border-left: 3px solid var(--orange); }
+        .ai-label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; color: var(--orange); text-transform: uppercase; margin-bottom: 8px; }
+        .ai-text { font-size: 14px; color: var(--muted); line-height: 1.6; }
+        .rule-row { display: flex; align-items: center; gap: 12px; background: var(--dark3); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px; }
+        .rule-icon { font-size: 18px; }
+        .rule-text { font-size: 14px; color: var(--muted); flex: 1; }
+        .rule-badge { font-size: 11px; padding: 3px 10px; border-radius: 100px; font-weight: 600; }
+        .badge-active { background: rgba(34,197,94,0.15); color: #22C55E; }
+        .badge-paused { background: rgba(107,114,128,0.15); color: #9CA3AF; }
+        .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .img-placeholder { background: var(--dark3); border-radius: 10px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 1px dashed var(--border); }
+        .img-placeholder-icon { font-size: 32px; }
+        .img-placeholder-label { font-size: 12px; color: var(--muted); }
+        .wa-chat { display: flex; flex-direction: column; gap: 12px; }
+        .wa-msg { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.5; }
+        .wa-msg.incoming { background: var(--dark3); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; }
+        .wa-msg.outgoing { background: rgba(255,107,43,0.2); color: var(--text); align-self: flex-end; border-bottom-right-radius: 4px; border: 1px solid rgba(255,107,43,0.3); }
+        .wa-sender { font-size: 11px; color: var(--orange); font-weight: 600; margin-bottom: 4px; }
+        .wa-time { font-size: 11px; color: var(--muted); margin-top: 4px; text-align: right; }
+
+        /* STATS */
+        .stats-section { padding: 80px 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; }
+        .stat-item { text-align: center; }
+        .stat-number { font-family: var(--font-display); font-size: clamp(40px, 5vw, 64px); font-weight: 800; color: var(--orange); line-height: 1; }
+        .stat-label { color: var(--muted); font-size: 16px; margin-top: 8px; }
+
+        /* HOW */
+        .how-section { padding: 80px 0; }
+        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px; margin-top: 56px; position: relative; }
+        .step { text-align: center; padding: 0 16px; }
+        .step-num { width: 52px; height: 52px; border-radius: 50%; background: var(--orange-dim); border: 1px solid rgba(255,107,43,0.4); color: var(--orange); font-family: var(--font-display); font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+        .step-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+        .step-desc { color: var(--muted); font-size: 15px; line-height: 1.6; }
+
+        /* TESTIMONIALS */
+        .testimonials-section { padding: 80px 0; }
+        .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 56px; }
+        .testimonial-card { background: var(--dark2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
+        .stars { color: var(--orange); font-size: 16px; letter-spacing: 2px; margin-bottom: 16px; }
+        .testimonial-text { color: var(--muted); font-size: 15px; line-height: 1.7; margin-bottom: 20px; }
+        .testimonial-author { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--orange-dim); border: 1px solid rgba(255,107,43,0.3); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--orange); flex-shrink: 0; }
+        .author-name { font-size: 14px; font-weight: 600; }
+        .author-role { font-size: 13px; color: var(--muted); }
+
+        /* PRICING */
+        .pricing-section { padding: 80px 0; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 56px; align-items: start; }
+        .pricing-card { background: var(--dark2); border: 1px solid var(--border); border-radius: 20px; padding: 32px; position: relative; transition: transform 0.2s; }
+        .pricing-card:hover { transform: translateY(-4px); }
+        .pricing-card.featured { border-color: var(--orange); background: linear-gradient(160deg, rgba(255,107,43,0.08) 0%, var(--dark2) 60%); }
+        .pricing-badge { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: var(--orange); color: white; font-size: 12px; font-weight: 700; padding: 4px 20px; border-radius: 100px; white-space: nowrap; }
+        .pricing-name { font-family: var(--font-display); font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+        .pricing-price { font-family: var(--font-display); font-size: 36px; font-weight: 800; color: var(--orange); line-height: 1; }
+        .pricing-period { font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+        .pricing-highlights { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0; }
+        .pricing-hl { background: var(--dark3); border-radius: 6px; padding: 4px 12px; font-size: 12px; color: var(--muted); }
+        .pricing-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+        .pricing-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+        .pricing-features li { font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+        .pricing-features li::before { content: '✓'; color: var(--orange); font-weight: 700; font-size: 14px; flex-shrink: 0; }
+        .btn-plan { width: 100%; padding: 14px; border-radius: 10px; font-family: var(--font-body); font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; display: block; text-align: center; transition: all 0.2s; }
+        .btn-plan-primary { background: var(--orange); color: white; border: none; }
+        .btn-plan-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-plan-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+        .btn-plan-ghost:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.04); }
+
+        /* CTA FINAL */
+        .cta-section { padding: 100px 0; text-align: center; }
+        .cta-box { background: var(--dark2); border: 1px solid var(--border); border-radius: 24px; padding: 72px 48px; position: relative; overflow: hidden; }
+        .cta-box::before { content: ''; position: absolute; bottom: -100px; left: 50%; transform: translateX(-50%); width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(255,107,43,0.12) 0%, transparent 70%); }
+        .cta-box h2 { font-family: var(--font-display); font-size: clamp(28px, 5vw, 52px); font-weight: 800; margin-bottom: 20px; letter-spacing: -1px; position: relative; z-index: 1; }
+        .cta-box p { color: var(--muted); font-size: 18px; margin-bottom: 40px; position: relative; z-index: 1; }
+        .cta-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+
+        /* FOOTER */
+        footer { border-top: 1px solid var(--border); padding: 40px 0; }
+        .footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+        .footer-copy { font-size: 14px; color: var(--muted); }
+        .footer-links { display: flex; gap: 24px; }
+        .footer-links a { font-size: 14px; color: var(--muted); text-decoration: none; }
+        .footer-links a:hover { color: var(--text); }
+
+        /* ANIMATIONS */
+        .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        .fade-up.delay-1 { transition-delay: 0.1s; }
+        .fade-up.delay-2 { transition-delay: 0.2s; }
+        .fade-up.delay-3 { transition-delay: 0.3s; }
+
+        @media (max-width: 768px) {
+          .nav-links { display: none; }
+          .demo-stat-row { grid-template-columns: repeat(2, 1fr); }
+          .img-grid { grid-template-columns: repeat(2, 1fr); }
+          .cta-box { padding: 48px 24px; }
+          .solution-banner { padding: 36px 24px; }
+        }
+      `}</style>
+
+      {/* NAV */}
+      <nav>
+        <div className="container">
+          <div className="nav-inner">
+            <a href="/" className="nav-logo">⚡ Meta<span>Flow</span>.AI</a>
+            <div className="nav-links">
+              <a href="#features">Funciones</a>
+              <a href="#how">Cómo funciona</a>
+              <a href="#precios">Precios</a>
+              <a href="https://metaflow.tech/?mode=login">Iniciar sesión</a>
+              <a href="https://metaflow.tech/?signup=1" className="btn-nav">Comenzar gratis →</a>
             </div>
           </div>
-        </nav>
+        </div>
+      </nav>
 
-        {/* ── HERO ── */}
-        <section className="l-hero">
-          <div className="l-hero-glow l-hero-glow--1" />
-          <div className="l-hero-glow l-hero-glow--2" />
-          <div className="l-hero-inner">
-            <div className="l-badge">
-              <span className="l-badge-dot" />
-              Desde $99.900 COP/mes · Cancela cuando quieras
+      {/* HERO */}
+      <section className="hero">
+        <div className="hero-bg">
+          <div className="hero-grid" />
+          <div className="hero-bg-circle" />
+        </div>
+        <div className="container">
+          <div className="hero-content">
+            <div className="hero-badge">
+              <span className="hero-badge-dot" />
+              Plataforma todo-en-uno para vender online
             </div>
-            <h1 className="l-hero-title">
-              El copiloto de IA
-              <br />
-              <span className="l-gradient-text">para tus Meta Ads</span>
+            <h1>
+              Tu negocio online<br />
+              funcionando <em>solo</em>
             </h1>
-            <p className="l-hero-sub">
-              Conecta tu cuenta de Meta Ads y deja que la inteligencia artificial analice tus campañas, genere creativos de la mejor calidad y optimice tu ROAS automáticamente.
+            <p className="hero-sub">
+              Gestiona campañas, responde clientes 24/7, crea creativos y genera landing pages — todo con inteligencia artificial. Tú te enfocas en crecer.
             </p>
-            <div className="l-hero-actions">
-              <Link href="/?signup=1" className="l-cta-main">
-                <span>⚡</span> Comenzar ahora
-              </Link>
-              <a href="#precios" className="l-cta-secondary">
-                Ver planes →
-              </a>
+            <div className="hero-ctas">
+              <a href="https://metaflow.tech/?signup=1" className="btn-primary">⚡ Comenzar ahora</a>
+              <a href="#features" className="btn-ghost">Ver funciones →</a>
             </div>
-            <p className="l-hero-hint">Configuración en minutos · Sin contrato de permanencia</p>
+            <p className="hero-meta">Desde $99.900 COP/mes · Sin contrato de permanencia</p>
           </div>
+        </div>
+      </section>
 
-          {/* App mockup */}
-          <div className="l-hero-mockup">
-            <div className="l-mockup-bar">
-              <span className="l-dot l-dot--red" />
-              <span className="l-dot l-dot--yellow" />
-              <span className="l-dot l-dot--green" />
-              <span className="l-mockup-url">app.metaflow.ai</span>
-            </div>
-            <div className="l-mockup-body">
-              <div className="l-mockup-sidebar">
-                {['Dashboard', 'Campañas', 'Análisis IA', 'Reglas', 'Productos', 'Crear Imagen'].map((item, i) => (
-                  <div key={item} className={`l-mockup-nav-item ${i === 0 ? 'active' : ''}`}>{item}</div>
-                ))}
+      {/* PAIN */}
+      <section className="pain-section">
+        <div className="container">
+          <div
+            id="pain"
+            ref={setRef('pain')}
+            className={`fade-up ${visibleSections.pain ? 'visible' : ''}`}
+          >
+            <p className="section-label">¿Te suena familiar?</p>
+            <h2 className="section-title">Los problemas que<br />te frenan cada día</h2>
+          </div>
+          <div className="pain-grid">
+            {PAINS.map((p, i) => (
+              <div
+                key={i}
+                id={`pain-${i}`}
+                ref={setRef(`pain-${i}`)}
+                className={`pain-card fade-up ${visibleSections[`pain-${i}`] ? 'visible' : ''}`}
+                style={{ transitionDelay: `${i * 0.07}s` }}
+              >
+                <span className="pain-emoji">{p.emoji}</span>
+                <p className="pain-text">{p.text}</p>
               </div>
-              <div className="l-mockup-main">
-                <div className="l-mockup-metrics">
-                  {[
-                    { label: 'Inversión', value: '$4.820' },
-                    { label: 'Facturación', value: '$21.390' },
-                    { label: 'ROAS', value: '4.43x' },
-                    { label: 'Campañas activas', value: '6' }
-                  ].map(m => (
-                    <div key={m.label} className="l-mockup-metric">
-                      <span className="l-mockup-metric-val">{m.value}</span>
-                      <span className="l-mockup-metric-lbl">{m.label}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="l-mockup-ai-card">
-                  <div className="l-mockup-ai-icon">🤖</div>
-                  <div className="l-mockup-ai-text">
-                    <div className="l-mockup-ai-title">Análisis IA — últimos 7 días</div>
-                    <div className="l-mockup-ai-line" />
-                    <div className="l-mockup-ai-line l-mockup-ai-line--short" />
-                  </div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── SCREEN SHOWCASE ── */}
-        <section className="l-section l-screens-section">
-          <div className="l-section-inner">
-            <div className="l-section-header">
-              <p className="l-section-label">La plataforma</p>
-              <h2 className="l-section-title">Ve cómo funciona en tiempo real</h2>
-              <p className="l-section-sub">Explora cada módulo de MetaFlow.AI y descubre cómo transforma la gestión de tus campañas.</p>
-            </div>
-            <div className="l-screens-tabs">
-              {SCREEN_TABS.map(tab => (
-                <button
-                  key={tab.id}
-                  className={`l-screen-tab ${activeScreen === tab.id ? 'active' : ''}`}
-                  onClick={() => setActiveScreen(tab.id)}
-                >
-                  {tab.icon} {tab.label}
-                </button>
-              ))}
-            </div>
-            <div className="l-screen-mockup">
-              <div className="l-mockup-bar">
-                <span className="l-dot l-dot--red" />
-                <span className="l-dot l-dot--yellow" />
-                <span className="l-dot l-dot--green" />
-                <span className="l-mockup-url">app.metaflow.ai</span>
-              </div>
-              <div className="l-screen-body">
-                <div className="l-screen-sidebar">
-                  {SIDEBAR_ITEMS.map((item, i) => (
-                    <div key={i} className={`l-mockup-nav-item ${activeScreen === item.screen ? 'active' : ''}`}>
-                      {item.label}
-                    </div>
-                  ))}
-                </div>
-                <div className="l-screen-content">
-                  {activeScreen === 'Campañas' && <CampañasScreen />}
-                  {activeScreen === 'Análisis IA' && <AnalisisScreen />}
-                  {activeScreen === 'Reglas' && <ReglasScreen />}
-                  {activeScreen === 'Imagen IA' && <ImagenScreen />}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── FEATURES ── */}
-        <section className="l-section l-features-section">
-          <div className="l-section-inner">
-            <div className="l-section-header">
-              <p className="l-section-label">Funcionalidades</p>
-              <h2 className="l-section-title">Todo lo que necesitas para escalar tus anuncios</h2>
-              <p className="l-section-sub">Una plataforma completa que reemplaza horas de trabajo manual con automatización inteligente.</p>
-            </div>
-            <div className="l-features-grid">
-              {features.map(f => (
-                <div key={f.title} className="l-feature-card">
-                  <div className="l-feature-icon">{f.icon}</div>
-                  <h3 className="l-feature-title">{f.title}</h3>
-                  <p className="l-feature-desc">{f.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── HOW IT WORKS ── */}
-        <section className="l-section l-steps-section">
-          <div className="l-section-inner">
-            <div className="l-section-header">
-              <p className="l-section-label">Cómo funciona</p>
-              <h2 className="l-section-title">De cero a resultados en minutos</h2>
-            </div>
-            <div className="l-steps">
-              {steps.map((s, i) => (
-                <div key={s.number} className="l-step">
-                  <div className="l-step-number">{s.number}</div>
-                  <div className="l-step-content">
-                    <h3>{s.title}</h3>
-                    <p>{s.desc}</p>
-                  </div>
-                  {i < steps.length - 1 && <div className="l-step-connector" />}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── TESTIMONIALS ── */}
-        <section className="l-section l-testimonials-section">
-          <div className="l-section-inner">
-            <div className="l-section-header">
-              <p className="l-section-label">Testimonios</p>
-              <h2 className="l-section-title">Lo que dicen quienes ya lo usan</h2>
-              <p className="l-section-sub">Negocios reales que mejoraron sus resultados con MetaFlow.AI.</p>
-            </div>
-            <div className="l-testimonials-grid">
-              {testimonials.map(t => (
-                <div key={t.name} className="l-testimonial-card">
-                  <div className="l-testimonial-stars">★★★★★</div>
-                  <p className="l-testimonial-text">"{t.text}"</p>
-                  <div className="l-testimonial-author">
-                    <div className="l-testimonial-avatar">{t.avatar}</div>
-                    <div>
-                      <div className="l-testimonial-name">{t.name}</div>
-                      <div className="l-testimonial-role">{t.role}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── PRICING ── */}
-        <section className="l-section l-pricing-section" id="precios">
-          <div className="l-section-inner">
-            <div className="l-section-header">
-              <p className="l-section-label">Precios</p>
-              <h2 className="l-section-title">Simple, transparente, sin sorpresas</h2>
-              <p className="l-section-sub">Elige el plan que mejor se adapte a ti. Cancela cuando quieras.</p>
-            </div>
-            <div className="l-pricing-grid">
-              {plans.map(plan => (
-                <div key={plan.name} className={`l-pricing-card ${plan.highlighted ? 'highlighted' : ''}`}>
-                  {plan.badge && <div className="l-pricing-badge">{plan.badge}</div>}
-                  <div className="l-pricing-name">{plan.name}</div>
-                  <div className="l-pricing-price-row">
-                    <span className="l-pricing-price">{plan.price}</span>
-                    <span className="l-pricing-period">{plan.period}</span>
-                  </div>
-                  <div className="l-pricing-quotas">
-                    <div className="l-quota-item">
-                      <span className="l-quota-num">{plan.accounts}</span>
-                      <span className="l-quota-label">cuenta{plan.accounts > 1 ? 's' : ''} Meta</span>
-                    </div>
-                    <div className="l-quota-divider" />
-                    <div className="l-quota-item">
-                      <span className="l-quota-num">{plan.aiCredits}</span>
-                      <span className="l-quota-label">créditos IA</span>
-                    </div>
-                    <div className="l-quota-divider" />
-                    <div className="l-quota-item">
-                      <span className="l-quota-num">{plan.images}</span>
-                      <span className="l-quota-label">imágenes</span>
-                    </div>
-                  </div>
-                  <ul className="l-pricing-features">
-                    {plan.features.map(f => (
-                      <li key={f}>
-                        <span className="l-pricing-check">✓</span> {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <div id={`landing-wompi-${plan.key}`}>
-                    <button
-                      className={`l-pricing-cta ${plan.highlighted ? 'primary' : 'secondary'}`}
-                      onClick={() => handleSubscribe(plan.key)}
-                      disabled={loadingPlan === plan.key}
-                    >
-                      {loadingPlan === plan.key ? 'Preparando pago…' : plan.cta}
-                    </button>
-                  </div>
-                  <p style={{ textAlign: 'center', color: '#64748b', fontSize: 12, marginTop: 12, marginBottom: 0 }}>
-                    🔒 Pago 100% seguro · Cancela cuando quieras
-                  </p>
-                </div>
-              ))}
-            </div>
-            {payError && <p style={{ color: '#f87171', fontSize: 13, textAlign: 'center', marginTop: 16 }}>{payError}</p>}
-          </div>
-        </section>
-
-        {/* ── STATS ── */}
-        <section className="l-section l-stats-section">
-          <div className="l-section-inner">
-            <div className="l-stats-grid">
-              {[
-                { value: 'IA', label: 'Generador de imágenes de la mejor calidad', sub: 'Creativos en segundos' },
-                { value: 'IA', label: 'Análisis experto de campañas', sub: 'Optimización inteligente' },
-                { value: '100%', label: 'Tus datos son solo tuyos', sub: 'Privado y seguro' },
-                { value: '24/7', label: 'Tus reglas actúan siempre', sub: 'Automatización total' }
-              ].map((s, i) => (
-                <div key={i} className="l-stat-card">
-                  <div className="l-stat-value">{s.value}</div>
-                  <div className="l-stat-label">{s.label}</div>
-                  <div className="l-stat-sub">{s.sub}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── CTA FINAL ── */}
-        <section className="l-section l-cta-section">
-          <div className="l-cta-glow" />
-          <div className="l-section-inner l-cta-inner">
-            <h2 className="l-cta-title">¿Listo para llevar tus anuncios<br />al siguiente nivel?</h2>
-            <p className="l-cta-sub">Únete y empieza a gestionar tus Meta Ads con inteligencia artificial hoy mismo.</p>
-            <Link href="/?signup=1" className="l-cta-main l-cta-main--large">
-              <span>⚡</span> Comenzar ahora
-            </Link>
-            <p className="l-hero-hint">Desde $99.900 COP/mes · Sin contrato de permanencia</p>
-          </div>
-        </section>
-
-        {/* ── FOOTER ── */}
-        <footer className="l-footer">
-          <div className="l-footer-inner">
-            <div className="l-logo">
-              <div className="l-logo-mark">⚡</div>
-              <span>MetaFlow.AI</span>
-            </div>
-            <p className="l-footer-copy">© 2026 MetaFlow.AI — El copiloto de IA para tus Meta Ads.</p>
-          </div>
-        </footer>
-
-        {selectedPlan && (
-          <div className="checkout-modal-overlay" onClick={() => setSelectedPlan(null)}>
-            <div className="checkout-modal-card" onClick={(e) => e.stopPropagation()}>
-              <button className="checkout-modal-close" onClick={() => setSelectedPlan(null)}>×</button>
-              <div className="checkout-modal-header">
-                <div className="checkout-brand">
-                  <span className="checkout-logo-mark">⚡</span>
-                  <span>MetaFlow.AI</span>
-                </div>
-                <h2>
-                  {modalMode === 'email-confirm'
-                    ? '📬 Revisa tu correo'
-                    : modalMode === 'register'
-                    ? `Suscribirse a plan ${plans.find(p => p.key === selectedPlan)?.name}`
-                    : 'Iniciar sesión y pagar'}
-                </h2>
-                <p>
-                  {modalMode === 'email-confirm'
-                    ? 'Te hemos enviado un correo de confirmación.'
-                    : modalMode === 'register'
-                    ? 'Crea tu cuenta en 10 segundos para continuar con el pago.'
-                    : 'Ingresa a tu cuenta para continuar con el pago.'}
-                </p>
-              </div>
-
-              {modalMode === 'email-confirm' ? (
-                <div className="checkout-confirm-body">
-                  <p>Te enviamos un enlace de confirmación a: <strong style={{ color: '#a78bfa' }}>{modalEmail}</strong></p>
-                  <p className="checkout-confirm-hint">Haz clic en el enlace para activar tu cuenta. Una vez activa, inicia sesión aquí para completar tu pago.</p>
-                  <button
-                    type="button"
-                    className="checkout-submit-btn"
-                    onClick={() => { setModalMode('login'); setModalError(''); }}
-                  >
-                    Ir a iniciar sesión
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleModalSubmit} className="checkout-form">
-                  {modalMode === 'register' && (
-                    <div className="checkout-form-group">
-                      <label>Nombre completo</label>
-                      <input
-                        type="text"
-                        placeholder="Tu nombre completo"
-                        value={modalName}
-                        onChange={(e) => setModalName(e.target.value)}
-                        required
-                      />
-                    </div>
-                  )}
-                  <div className="checkout-form-group">
-                    <label>Email</label>
-                    <input
-                      type="email"
-                      placeholder="tu@correo.com"
-                      value={modalEmail}
-                      onChange={(e) => setModalEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="checkout-form-group">
-                    <label>Contraseña</label>
-                    <input
-                      type="password"
-                      placeholder="Mínimo 6 caracteres"
-                      value={modalPassword}
-                      onChange={(e) => setModalPassword(e.target.value)}
-                      required
-                      minLength={6}
-                    />
-                  </div>
-
-                  {modalError && <div className="checkout-error-msg">⚠️ {modalError}</div>}
-
-                  <button type="submit" className="checkout-submit-btn" disabled={modalLoading}>
-                    {modalLoading ? 'Procesando...' : modalMode === 'register' ? 'Crear cuenta y pagar' : 'Iniciar sesión y pagar'}
-                  </button>
-
-                  <div className="checkout-toggle-mode">
-                    {modalMode === 'register' ? (
-                      <p>¿Ya tienes una cuenta? <span onClick={() => { setModalMode('login'); setModalError(''); }}>Inicia sesión aquí</span></p>
-                    ) : (
-                      <p>¿No tienes cuenta? <span onClick={() => { setModalMode('register'); setModalError(''); }}>Regístrate aquí</span></p>
-                    )}
-                  </div>
-                </form>
-              )}
-              <p className="checkout-guarantee">🔒 Transacción 100% segura procesada por Wompi</p>
-            </div>
-          </div>
-        )}
-
+      {/* SOLUTION BANNER */}
+      <div className="container">
+        <div
+          id="sol"
+          ref={setRef('sol')}
+          className={`solution-banner fade-up ${visibleSections.sol ? 'visible' : ''}`}
+        >
+          <h2>MetaFlow resuelve todo eso.</h2>
+          <p>Una sola plataforma con IA que trabaja por ti las 24 horas, los 7 días de la semana.</p>
+        </div>
       </div>
+
+      {/* FEATURES */}
+      <section className="features-section" id="features">
+        <div className="container">
+          <div
+            id="feat-head"
+            ref={setRef('feat-head')}
+            className={`fade-up ${visibleSections['feat-head'] ? 'visible' : ''}`}
+          >
+            <p className="section-label">Funcionalidades</p>
+            <h2 className="section-title">Todo lo que necesitas<br />para escalar</h2>
+            <p className="section-sub">Ocho módulos conectados entre sí para que tu negocio venda en piloto automático.</p>
+          </div>
+          <div className="features-grid">
+            {FEATURES.map((f, i) => (
+              <div
+                key={i}
+                id={`feat-${i}`}
+                ref={setRef(`feat-${i}`)}
+                className={`feature-card fade-up ${visibleSections[`feat-${i}`] ? 'visible' : ''}`}
+                style={{ '--card-color': f.color, transitionDelay: `${(i % 4) * 0.08}s` }}
+              >
+                <span className="feature-icon">{f.icon}</span>
+                <h3 className="feature-title">{f.title}</h3>
+                <p className="feature-desc">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* DEMO TABS */}
+      <section className="demo-section">
+        <div className="container">
+          <div
+            id="demo-head"
+            ref={setRef('demo-head')}
+            className={`fade-up ${visibleSections['demo-head'] ? 'visible' : ''}`}
+          >
+            <p className="section-label">La plataforma</p>
+            <h2 className="section-title">Ve cómo funciona<br />en tiempo real</h2>
+          </div>
+          <div className="tab-bar" style={{ marginTop: 40 }}>
+            {tabs.map((t, i) => (
+              <button key={i} className={`tab-btn ${activeTab === i ? 'active' : ''}`} onClick={() => setActiveTab(i)}>{t}</button>
+            ))}
+          </div>
+          <div className="demo-screen">
+            <div className="demo-topbar">
+              <div className="demo-dot" style={{ background: '#FF5F57' }} />
+              <div className="demo-dot" style={{ background: '#FFBD2E' }} />
+              <div className="demo-dot" style={{ background: '#28CA41' }} />
+              <div className="demo-url">app.metaflow.ai</div>
+            </div>
+            <div className="demo-content">
+              {activeTab === 0 && (
+                <>
+                  <div className="demo-stat-row">
+                    {[['$4.820', 'Inversión'], ['$21.390', 'Facturación'], ['4.43x', 'ROAS'], ['6', 'Campañas activas']].map(([v, l]) => (
+                      <div key={l} className="demo-stat"><div className="demo-stat-val">{v}</div><div className="demo-stat-label">{l}</div></div>
+                    ))}
+                  </div>
+                  <table className="demo-table">
+                    <thead><tr><th>Campaña</th><th>Estado</th><th>Gasto</th><th>ROAS</th><th>CPA</th></tr></thead>
+                    <tbody>
+                      {[['Colección Verano 2026','active','$18.430','5.2x','$4.80'],['Retargeting Web','active','$12.100','3.8x','$7.20'],['Lookalike Compradores','paused','$8.940','1.9x','$14.50'],['Brand Awareness Q2','active','$9.870','4.1x','$5.90']].map(([n,s,g,r,c]) => (
+                        <tr key={n}><td>{n}</td><td><span className={`status-dot status-${s}`}/>{s === 'active' ? 'Activa' : 'Pausada'}</td><td>{g}</td><td style={{color:'var(--orange)',fontWeight:600}}>{r}</td><td>{c}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
+              )}
+              {activeTab === 1 && (
+                <>
+                  <div className="ai-card"><div className="ai-label">🤖 Análisis IA — últimos 7 días</div><div className="ai-text">Tu campaña <strong style={{color:'var(--text)'}}>Colección Verano 2026</strong> tiene el mejor rendimiento con ROAS de 5.2x. Recomiendo aumentar el presupuesto diario un 30% para maximizar resultados mientras el algoritmo está optimizado.</div></div>
+                  <div className="ai-card"><div className="ai-label">⚠️ Alerta de optimización</div><div className="ai-text"><strong style={{color:'var(--text)'}}>Lookalike Compradores</strong> tiene ROAS de 1.9x y CPA de $14.50 — por debajo del umbral rentable. Considera pausarla y redirigir el presupuesto a Retargeting Web.</div></div>
+                  <div className="ai-card"><div className="ai-label">💡 Oportunidad detectada</div><div className="ai-text">El horario entre 7pm y 10pm genera 40% más conversiones. Configura una regla para aumentar presupuesto automáticamente en ese rango horario.</div></div>
+                </>
+              )}
+              {activeTab === 2 && (
+                <>
+                  {[['Si ROAS < 1.5 por 2 días', '→ Pausar campaña automáticamente', 'active'],['Si CPA > $15 por 24h', '→ Reducir presupuesto 20%', 'active'],['Si gasto diario > $50.000', '→ Notificar al administrador', 'active'],['Si ROAS > 5.0 por 3 días', '→ Aumentar presupuesto 25%', 'paused']].map(([cond, action, s]) => (
+                    <div key={cond} className="rule-row">
+                      <span className="rule-icon">⚙️</span>
+                      <div className="rule-text"><span style={{color:'var(--text)'}}>{cond}</span><br /><span style={{fontSize:13}}>{action}</span></div>
+                      <span className={`rule-badge ${s === 'active' ? 'badge-active' : 'badge-paused'}`}>{s === 'active' ? 'Activa' : 'Pausada'}</span>
+                    </div>
+                  ))}
+                </>
+              )}
+              {activeTab === 3 && (
+                <div className="img-grid">
+                  {[['🎨','Estilo moderno'],['🌟','Lifestyle'],['📸','Producto puro'],['🔥','Oferta'],['💎','Premium'],['🌿','Natural']].map(([icon, label]) => (
+                    <div key={label} className="img-placeholder">
+                      <span className="img-placeholder-icon">{icon}</span>
+                      <span className="img-placeholder-label">{label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {activeTab === 4 && (
+                <div className="wa-chat">
+                  <div className="wa-msg incoming"><div className="wa-sender">Cliente</div>Hola, quiero información sobre los productos 👋<div className="wa-time">10:23 am</div></div>
+                  <div className="wa-msg outgoing"><div className="wa-sender">🤖 Agente MetaFlow</div>¡Hola! Bienvenido. Te cuento que nuestros productos son 100% naturales y ayudan a mejorar la calidad de vida de tu mascota. ¿Qué tipo de mascota tienes y qué condición presenta?<div className="wa-time">10:23 am</div></div>
+                  <div className="wa-msg incoming"><div className="wa-sender">Cliente</div>Tengo un perro golden de 5 años con dolor articular<div className="wa-time">10:25 am</div></div>
+                  <div className="wa-msg outgoing"><div className="wa-sender">🤖 Agente MetaFlow</div>Perfecto, para eso tenemos Plant PWR Full-Spectrum Oil especialmente para dolor articular. Reduce el dolor hasta un 95% sin efectos secundarios. El plan recomendado es 1 gotero x $104.900. ¿Te lo envío hoy?<div className="wa-time">10:25 am</div></div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* STATS */}
+      <section className="stats-section">
+        <div className="container">
+          <div
+            id="stats"
+            ref={setRef('stats')}
+            className={`stats-grid fade-up ${visibleSections.stats ? 'visible' : ''}`}
+          >
+            {[['4.8x', 'ROAS promedio de usuarios'], ['24/7', 'Tu agente siempre activo'], ['70%', 'Menos tiempo en gestión'], ['5 min', 'Para crear una campaña completa']].map(([n, l]) => (
+              <div key={l} className="stat-item">
+                <div className="stat-number">{n}</div>
+                <div className="stat-label">{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* HOW */}
+      <section className="how-section" id="how">
+        <div className="container">
+          <div
+            id="how-head"
+            ref={setRef('how-head')}
+            className={`fade-up ${visibleSections['how-head'] ? 'visible' : ''}`}
+          >
+            <p className="section-label">Cómo funciona</p>
+            <h2 className="section-title">De cero a resultados<br />en minutos</h2>
+          </div>
+          <div className="steps">
+            {[['01','Conecta tu cuenta','Conecta Meta Ads con tu token y Ad Account. Configuración única, en menos de 5 minutos.'],['02','Configura tu negocio','Agrega tus productos, define reglas automáticas y personaliza tu agente de WhatsApp.'],['03','Lanza y olvídate','MetaFlow analiza, optimiza, responde clientes y genera creativos. Tú solo ves los resultados.']].map(([n, t, d]) => (
+              <div key={n} className="step">
+                <div className="step-num">{n}</div>
+                <h3 className="step-title">{t}</h3>
+                <p className="step-desc">{d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section className="testimonials-section">
+        <div className="container">
+          <div
+            id="test-head"
+            ref={setRef('test-head')}
+            className={`fade-up ${visibleSections['test-head'] ? 'visible' : ''}`}
+          >
+            <p className="section-label">Testimonios</p>
+            <h2 className="section-title">Lo que dicen quienes<br />ya lo usan</h2>
+          </div>
+          <div className="testimonials-grid">
+            {TESTIMONIALS.map((t, i) => (
+              <div
+                key={i}
+                id={`test-${i}`}
+                ref={setRef(`test-${i}`)}
+                className={`testimonial-card fade-up ${visibleSections[`test-${i}`] ? 'visible' : ''}`}
+                style={{ transitionDelay: `${i * 0.1}s` }}
+              >
+                <div className="stars">{'★'.repeat(t.stars)}</div>
+                <p className="testimonial-text">"{t.text}"</p>
+                <div className="testimonial-author">
+                  <div className="avatar">{t.initials}</div>
+                  <div>
+                    <div className="author-name">{t.name}</div>
+                    <div className="author-role">{t.role}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING */}
+      <section className="pricing-section" id="precios">
+        <div className="container">
+          <div
+            id="price-head"
+            ref={setRef('price-head')}
+            className={`fade-up ${visibleSections['price-head'] ? 'visible' : ''}`}
+            style={{ textAlign: 'center' }}
+          >
+            <p className="section-label">Precios</p>
+            <h2 className="section-title">Simple, transparente,<br />sin sorpresas</h2>
+            <p className="section-sub" style={{ margin: '0 auto' }}>Todas las funciones incluidas en cada plan. Sin upgrades ocultos.</p>
+          </div>
+          <div className="pricing-grid">
+            {PLANS.map((plan, i) => (
+              <div
+                key={plan.name}
+                id={`plan-${i}`}
+                ref={setRef(`plan-${i}`)}
+                className={`pricing-card fade-up ${plan.highlight ? 'featured' : ''} ${visibleSections[`plan-${i}`] ? 'visible' : ''}`}
+                style={{ transitionDelay: `${i * 0.1}s` }}
+              >
+                {plan.badge && <div className="pricing-badge">{plan.badge}</div>}
+                <div className="pricing-name">{plan.name}</div>
+                <div className="pricing-price">{plan.price}</div>
+                <div className="pricing-period">{plan.period}</div>
+                <div className="pricing-highlights">
+                  {[plan.meta, plan.credits, plan.images, plan.whatsapp].map((h) => (
+                    <span key={h} className="pricing-hl">{h}</span>
+                  ))}
+                </div>
+                <hr className="pricing-divider" />
+                <ul className="pricing-features">
+                  {plan.features.map((f) => <li key={f}>{f}</li>)}
+                </ul>
+                <a
+                  href="https://metaflow.tech/?signup=1"
+                  className={`btn-plan ${plan.highlight ? 'btn-plan-primary' : 'btn-plan-ghost'}`}
+                >
+                  Comenzar ahora
+                </a>
+              </div>
+            ))}
+          </div>
+          <p style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 14, marginTop: 24 }}>
+            🔒 Pago 100% seguro · Cancela cuando quieras
+          </p>
+        </div>
+      </section>
+
+      {/* CTA FINAL */}
+      <section className="cta-section">
+        <div className="container">
+          <div className="cta-box">
+            <h2>¿Listo para que tu negocio<br />trabaje solo?</h2>
+            <p>Únete y empieza a automatizar tus ventas con inteligencia artificial hoy mismo.</p>
+            <div className="cta-btns">
+              <a href="https://metaflow.tech/?signup=1" className="btn-primary">⚡ Comenzar ahora — desde $99.900/mes</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer>
+        <div className="container">
+          <div className="footer-inner">
+            <span className="footer-copy">© 2026 MetaFlow.AI — Todos los derechos reservados.</span>
+            <div className="footer-links">
+              <a href="/terms">Términos</a>
+              <a href="/privacy">Privacidad</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </>
-  );
+  )
 }

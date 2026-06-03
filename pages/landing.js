@@ -348,9 +348,40 @@ export default function Landing() {
         .badge-active { background: rgba(16,185,129,0.12); color: #10b981; }
         .badge-paused { background: rgba(75,85,99,0.2); color: #9CA3AF; }
         .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .img-placeholder { background: var(--dark3); border-radius: 10px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 1px dashed rgba(139,92,246,0.2); }
-        .img-placeholder-icon { font-size: 30px; }
-        .img-placeholder-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+        /* IMG AI DEMO */
+        .img-ai-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .img-ai-panel { background: var(--dark3); border-radius: 12px; padding: 18px; }
+        .img-ai-panel-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--purple-light); text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+        .img-upload-box { border: 1px dashed rgba(139,92,246,0.3); border-radius: 10px; padding: 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; background: rgba(139,92,246,0.04); }
+        .img-upload-thumb { width: 56px; height: 56px; background: var(--dark4); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+        .img-upload-meta { font-size: 12px; }
+        .img-upload-name { color: var(--text); font-weight: 600; }
+        .img-upload-hint { color: var(--muted); margin-top: 2px; }
+        .img-field-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+        .img-field-label span { color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 4px; }
+        .img-field-input { background: var(--dark4); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 9px 12px; font-size: 13px; color: var(--text); font-family: var(--font); font-weight: 500; width: 100%; margin-bottom: 10px; }
+        .img-field-textarea { background: var(--dark4); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 9px 12px; font-size: 12px; color: var(--muted); font-family: var(--font); width: 100%; resize: none; line-height: 1.55; margin-bottom: 8px; }
+        .img-tip { font-size: 11px; color: rgba(167,139,250,0.7); line-height: 1.55; }
+        .img-tip strong { color: var(--purple-light); }
+        .img-result-box { border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; margin-bottom: 12px; position: relative; }
+        .img-result-inner { background: white; padding: 0; aspect-ratio: 4/5; display: flex; flex-direction: column; align-items: stretch; }
+        .img-ad-top { display: grid; grid-template-columns: 1fr 1fr; flex: 1; }
+        .img-ad-left { background: #f0f0f0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; position: relative; }
+        .img-ad-right { background: #1a0a2e; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; }
+        .img-ad-badge-before { font-size: 8px; font-weight: 800; color: #666; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .img-ad-badge-after { background: #e91e8c; color: white; font-size: 8px; font-weight: 800; text-align: center; padding: 3px 6px; border-radius: 4px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .img-ad-dog { font-size: 36px; }
+        .img-ad-features { background: #2d1b5e; width: 100%; }
+        .img-ad-feature-row { display: flex; align-items: center; gap: 4px; padding: 2px 6px; font-size: 8px; color: rgba(255,255,255,0.7); }
+        .img-ad-feature-row.bad { color: #ef4444; }
+        .img-ad-feature-row.good { color: #22c55e; }
+        .img-ad-cta { background: #e91e8c; padding: 7px; text-align: center; font-size: 9px; font-weight: 800; color: white; letter-spacing: 1px; text-transform: uppercase; }
+        .img-result-label { font-size: 11px; font-weight: 600; color: var(--muted); padding: 4px 0; }
+        .img-action-row { display: flex; gap: 6px; flex-wrap: wrap; }
+        .img-action-btn { display: flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: default; }
+        .img-action-primary { background: linear-gradient(135deg,#8b5cf6,#6366f1); color: white; }
+        .img-action-ghost { background: var(--dark4); border: 1px solid rgba(255,255,255,0.08); color: var(--muted); }
+        @media (max-width: 600px) { .img-ai-layout { grid-template-columns: 1fr; } }
         .wa-chat { display: flex; flex-direction: column; gap: 12px; }
         .wa-msg { max-width: 72%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.55; }
         .wa-msg.incoming { background: var(--dark3); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; }
@@ -604,13 +635,100 @@ export default function Landing() {
                 </>
               )}
               {activeTab === 3 && (
-                <div className="img-grid">
-                  {[['🎨','Estilo moderno'],['🌟','Lifestyle'],['📸','Producto puro'],['🔥','Oferta'],['💎','Premium'],['🌿','Natural']].map(([icon, label]) => (
-                    <div key={label} className="img-placeholder">
-                      <span className="img-placeholder-icon">{icon}</span>
-                      <span className="img-placeholder-label">{label}</span>
+                <div className="img-ai-layout">
+                  {/* Left: config panel */}
+                  <div className="img-ai-panel">
+                    <div className="img-ai-panel-title">🎨 Configurar creativos</div>
+
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 6 }}>
+                      Imagen del producto <span style={{ color: 'var(--muted)', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>PNG · JPG · WEBP</span>
                     </div>
-                  ))}
+                    <div className="img-upload-box">
+                      <div className="img-upload-thumb">🐾</div>
+                      <div className="img-upload-meta">
+                        <div className="img-upload-name">Gotero Spets.png</div>
+                        <div className="img-upload-hint">Gemini analiza la imagen para generar creativos fieles al producto.</div>
+                      </div>
+                    </div>
+
+                    <div className="img-field-label">Nombre del producto</div>
+                    <div className="img-field-input">Omega Spets</div>
+
+                    <div className="img-field-label">Descripción <span>opcional pero recomendada</span></div>
+                    <div className="img-field-textarea" style={{ display: 'block', padding: '9px 12px', background: 'var(--dark4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 12, color: 'var(--muted)', lineHeight: 1.55, marginBottom: 8 }}>
+                      Suplemento nutricional con omegas, minerales y aceites funcionales. Ayuda a mantener piel sana y pelaje brillante en perros y gatos.
+                    </div>
+                    <div className="img-tip">
+                      Para mejores resultados incluye: <strong>qué es · qué problema resuelve · a quién va dirigido · resultado principal.</strong>
+                    </div>
+                  </div>
+
+                  {/* Right: result panel */}
+                  <div className="img-ai-panel">
+                    <div className="img-ai-panel-title" style={{ justifyContent: 'space-between' }}>
+                      <span>🖼️ Creativos generados</span>
+                      <div className="img-action-btn img-action-primary" style={{ fontSize: 11, padding: '5px 10px' }}>✦ Nueva generación</div>
+                    </div>
+
+                    <div className="img-result-box">
+                      {/* Ad creative mock */}
+                      <div style={{ background: 'white', borderRadius: 8, overflow: 'hidden' }}>
+                        {/* Two-panel ad */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: 180 }}>
+                          {/* Before */}
+                          <div style={{ background: '#f3f3f3', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 12, gap: 6 }}>
+                            <div style={{ fontSize: 9, fontWeight: 800, color: '#888', textTransform: 'uppercase', letterSpacing: 1 }}>Pelaje opaco?</div>
+                            <div style={{ fontSize: 9, color: '#aaa', textTransform: 'uppercase', letterSpacing: 0.5 }}>Otros productos</div>
+                            <div style={{ fontSize: 40 }}>🐕</div>
+                          </div>
+                          {/* After */}
+                          <div style={{ background: '#1a0a2e', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 12, gap: 6 }}>
+                            <div style={{ background: '#e91e8c', color: 'white', fontSize: 8, fontWeight: 800, padding: '3px 8px', borderRadius: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>¡Transformación 15 días!</div>
+                            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Fórmula Premium</div>
+                            <div style={{ fontSize: 40 }}>🐕‍🦺</div>
+                          </div>
+                        </div>
+                        {/* Feature bullets */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#f8f8f8', borderTop: '1px solid #eee' }}>
+                          <div style={{ padding: '6px 10px', borderRight: '1px solid #eee' }}>
+                            {['Pelaje sin brillo','Piel seca y sin vitalidad'].map(t => (
+                              <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 8, color: '#ef4444', marginBottom: 2 }}>✕ {t}</div>
+                            ))}
+                          </div>
+                          <div style={{ padding: '6px 10px' }}>
+                            {['Pelaje suave brillante','Piel sana y nutrida'].map(t => (
+                              <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 8, color: '#22c55e', marginBottom: 2 }}>✓ {t}</div>
+                            ))}
+                          </div>
+                        </div>
+                        {/* CTA */}
+                        <div style={{ background: '#e91e8c', padding: '8px', textAlign: 'center', fontSize: 9, fontWeight: 800, color: 'white', letterSpacing: 1.5, textTransform: 'uppercase' }}>
+                          Comprar ahora
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 10, fontWeight: 600 }}>Comparativa · Ángulo transformación</div>
+
+                    {/* Action buttons */}
+                    <div className="img-action-row" style={{ marginBottom: 14 }}>
+                      <div className="img-action-btn img-action-ghost">⚖️ Comparativa</div>
+                      <div className="img-action-btn img-action-ghost">↓ Descargar</div>
+                      <div className="img-action-btn img-action-ghost">✏️ Ajustar</div>
+                    </div>
+                    <div className="img-action-row">
+                      <div className="img-action-btn img-action-primary">🚀 Lanzar en Meta</div>
+                      <div className="img-action-btn img-action-ghost">💾 Guardar</div>
+                    </div>
+
+                    <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--muted)' }}>Titular</span>
+                        <span style={{ fontSize: 11, color: 'var(--purple-light)', fontWeight: 600, cursor: 'default' }}>📋 Copiar</span>
+                      </div>
+                      <div style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>Pelaje opaco? ¡Transformación en 15 días!</div>
+                    </div>
+                  </div>
                 </div>
               )}
               {activeTab === 4 && (

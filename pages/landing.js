@@ -1,6 +1,3 @@
-// New MetaFlow Landing Page — pages/landing.js
-// Replace the entire content of pages/landing.js with this file
-
 import Head from 'next/head'
 import { useState, useEffect, useRef } from 'react'
 
@@ -77,85 +74,21 @@ const PLANS = [
 ]
 
 const FEATURES = [
-  {
-    icon: '📊',
-    title: 'Dashboard en tiempo real',
-    desc: 'ROAS, inversión y facturación de los últimos 7 días en una sola pantalla. Sin abrir el Administrador de Meta.',
-    color: '#FF6B2B',
-  },
-  {
-    icon: '🤖',
-    title: 'Análisis experto con IA',
-    desc: 'Un experto en Meta Ads analiza tus campañas y te dice exactamente qué pausar, escalar o cambiar.',
-    color: '#7C3AED',
-  },
-  {
-    icon: '🎨',
-    title: 'Generador de imágenes IA',
-    desc: 'Sube la foto de tu producto y obtén creativos de alto nivel listos para publicar en segundos.',
-    color: '#0EA5E9',
-  },
-  {
-    icon: '💬',
-    title: 'Agente WhatsApp 24/7',
-    desc: 'Tu bot responde, califica y cierra ventas mientras duermes. Conectado directamente a tus campañas.',
-    color: '#22C55E',
-  },
-  {
-    icon: '🛍️',
-    title: 'Vitrina de productos',
-    desc: 'Tu catálogo siempre disponible. Agrega precio, link y descripción para crear anuncios en segundos.',
-    color: '#F59E0B',
-  },
-  {
-    icon: '⚙️',
-    title: 'Reglas automáticas',
-    desc: 'Si el ROAS baja de X, pausa la campaña. Si el CPA sube, ajusta el presupuesto. Sin trabajo manual.',
-    color: '#EF4444',
-  },
-  {
-    icon: '🚀',
-    title: 'Constructor de campañas',
-    desc: 'Crea campañas completas con copy generado por IA y múltiples creativos desde la misma plataforma.',
-    color: '#8B5CF6',
-  },
-  {
-    icon: '🌐',
-    title: 'Generador de landing pages',
-    desc: 'Genera páginas de venta optimizadas para conversión en segundos, listas para conectar a tus anuncios.',
-    color: '#06B6D4',
-  },
+  { icon: '📊', title: 'Dashboard en tiempo real', desc: 'ROAS, inversión y facturación de los últimos 7 días en una sola pantalla. Sin abrir el Administrador de Meta.', color: '#8b5cf6' },
+  { icon: '🤖', title: 'Análisis experto con IA', desc: 'Un experto en Meta Ads analiza tus campañas y te dice exactamente qué pausar, escalar o cambiar.', color: '#6366f1' },
+  { icon: '🎨', title: 'Generador de imágenes IA', desc: 'Sube la foto de tu producto y obtén creativos de alto nivel listos para publicar en segundos.', color: '#0EA5E9' },
+  { icon: '💬', title: 'Agente WhatsApp 24/7', desc: 'Tu bot responde, califica y cierra ventas mientras duermes. Conectado directamente a tus campañas.', color: '#10b981' },
+  { icon: '🛍️', title: 'Vitrina de productos', desc: 'Tu catálogo siempre disponible. Agrega precio, link y descripción para crear anuncios en segundos.', color: '#a78bfa' },
+  { icon: '⚙️', title: 'Reglas automáticas', desc: 'Si el ROAS baja de X, pausa la campaña. Si el CPA sube, ajusta el presupuesto. Sin trabajo manual.', color: '#f59e0b' },
+  { icon: '🚀', title: 'Constructor de campañas', desc: 'Crea campañas completas con copy generado por IA y múltiples creativos desde la misma plataforma.', color: '#8b5cf6' },
+  { icon: '🌐', title: 'Generador de landing pages', desc: 'Genera páginas de venta optimizadas para conversión en segundos, listas para conectar a tus anuncios.', color: '#6366f1' },
 ]
 
 const TESTIMONIALS = [
-  {
-    name: 'Carolina Restrepo',
-    role: 'Fundadora · Tienda de moda online',
-    text: 'Antes perdía horas revisando campañas. Con MetaFlow mi ROAS subió de 2.1x a 4.8x en el primer mes. El análisis automático me dice exactamente qué hacer.',
-    stars: 5,
-    initials: 'CR',
-  },
-  {
-    name: 'Andrés Mejía',
-    role: 'Director de Marketing · E-commerce',
-    text: 'El generador de imágenes es increíble. En minutos tengo creativos profesionales. Antes pagaba $500 USD al mes a un diseñador — ahora lo hago en segundos.',
-    stars: 5,
-    initials: 'AM',
-  },
-  {
-    name: 'Valentina Torres',
-    role: 'CEO · Marca de cosméticos',
-    text: 'Las reglas automáticas me salvaron el presupuesto. Una campaña se estaba comiendo la plata sin conversiones y MetaFlow la pausó sola.',
-    stars: 5,
-    initials: 'VT',
-  },
-  {
-    name: 'Felipe Gómez',
-    role: 'Growth Manager · SaaS B2B',
-    text: 'El agente de WhatsApp es un game changer. Mis leads llegan del anuncio y el bot los cierra automáticamente. Ya no necesito estar pegado al celular.',
-    stars: 5,
-    initials: 'FG',
-  },
+  { name: 'Carolina Restrepo', role: 'Fundadora · Tienda de moda online', text: 'Antes perdía horas revisando campañas. Con MetaFlow mi ROAS subió de 2.1x a 4.8x en el primer mes. El análisis automático me dice exactamente qué hacer.', stars: 5, initials: 'CR' },
+  { name: 'Andrés Mejía', role: 'Director de Marketing · E-commerce', text: 'El generador de imágenes es increíble. En minutos tengo creativos profesionales. Antes pagaba $500 USD al mes a un diseñador — ahora lo hago en segundos.', stars: 5, initials: 'AM' },
+  { name: 'Valentina Torres', role: 'CEO · Marca de cosméticos', text: 'Las reglas automáticas me salvaron el presupuesto. Una campaña se estaba comiendo la plata sin conversiones y MetaFlow la pausó sola.', stars: 5, initials: 'VT' },
+  { name: 'Felipe Gómez', role: 'Growth Manager · SaaS B2B', text: 'El agente de WhatsApp es un game changer. Mis leads llegan del anuncio y el bot los cierra automáticamente. Ya no necesito estar pegado al celular.', stars: 5, initials: 'FG' },
 ]
 
 const PAINS = [
@@ -171,7 +104,102 @@ export default function Landing() {
   const [activeTab, setActiveTab] = useState(0)
   const [visibleSections, setVisibleSections] = useState({})
   const sectionRefs = useRef({})
+  const canvasRef = useRef(null)
+  const animRef = useRef(null)
 
+  // Particle network animation
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    let w, h, particles
+
+    function resize() {
+      w = canvas.width = canvas.offsetWidth
+      h = canvas.height = canvas.offsetHeight
+    }
+
+    function initParticles() {
+      particles = Array.from({ length: 65 }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        r: Math.random() * 1.5 + 0.8,
+        pulse: Math.random() * Math.PI * 2,
+      }))
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, w, h)
+
+      // Draw connections
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x
+          const dy = particles[i].y - particles[j].y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          if (dist < 140) {
+            const alpha = (1 - dist / 140) * 0.25
+            const grad = ctx.createLinearGradient(particles[i].x, particles[i].y, particles[j].x, particles[j].y)
+            grad.addColorStop(0, `rgba(139,92,246,${alpha})`)
+            grad.addColorStop(1, `rgba(99,102,241,${alpha})`)
+            ctx.beginPath()
+            ctx.strokeStyle = grad
+            ctx.lineWidth = 0.8
+            ctx.moveTo(particles[i].x, particles[i].y)
+            ctx.lineTo(particles[j].x, particles[j].y)
+            ctx.stroke()
+          }
+        }
+      }
+
+      // Draw particles
+      particles.forEach(p => {
+        p.pulse += 0.03
+        const pAlpha = 0.5 + Math.sin(p.pulse) * 0.2
+
+        // Glow
+        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4)
+        grd.addColorStop(0, `rgba(139,92,246,${pAlpha * 0.4})`)
+        grd.addColorStop(1, 'transparent')
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2)
+        ctx.fillStyle = grd
+        ctx.fill()
+
+        // Core dot
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(167,139,250,${pAlpha})`
+        ctx.fill()
+
+        p.x += p.vx
+        p.y += p.vy
+        if (p.x < 0 || p.x > w) p.vx *= -1
+        if (p.y < 0 || p.y > h) p.vy *= -1
+      })
+
+      animRef.current = requestAnimationFrame(draw)
+    }
+
+    resize()
+    initParticles()
+    draw()
+
+    const ro = new ResizeObserver(() => {
+      resize()
+      initParticles()
+    })
+    ro.observe(canvas)
+
+    return () => {
+      cancelAnimationFrame(animRef.current)
+      ro.disconnect()
+    }
+  }, [])
+
+  // Scroll animations
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -189,10 +217,7 @@ export default function Landing() {
     return () => observer.disconnect()
   }, [])
 
-  const setRef = (id) => (el) => {
-    sectionRefs.current[id] = el
-  }
-
+  const setRef = (id) => (el) => { sectionRefs.current[id] = el }
   const tabs = ['📊 Campañas', '🤖 Análisis IA', '⚙️ Reglas', '🎨 Imagen IA', '💬 WhatsApp']
 
   return (
@@ -203,204 +228,213 @@ export default function Landing() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </Head>
 
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
-          --orange: #FF6B2B;
-          --orange-dim: #FF6B2B22;
-          --dark: #080B14;
-          --dark2: #0E1220;
-          --dark3: #151A2B;
-          --dark4: #1C2236;
-          --border: rgba(255,255,255,0.08);
-          --text: #F0F2F8;
-          --muted: rgba(240,242,248,0.55);
-          --font-display: 'Syne', sans-serif;
-          --font-body: 'DM Sans', sans-serif;
+          --purple: #8b5cf6;
+          --purple-light: #a78bfa;
+          --indigo: #6366f1;
+          --purple-dim: rgba(139,92,246,0.12);
+          --purple-glow: rgba(139,92,246,0.25);
+          --dark: #0b0f19;
+          --dark2: #111827;
+          --dark3: #151d2e;
+          --dark4: #1a2236;
+          --border: rgba(255,255,255,0.07);
+          --border-purple: rgba(139,92,246,0.25);
+          --text: #f3f4f6;
+          --muted: rgba(243,244,246,0.5);
+          --font: 'Inter', system-ui, sans-serif;
         }
         html { scroll-behavior: smooth; }
-        body { background: var(--dark); color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+        body { background: var(--dark); color: var(--text); font-family: var(--font); font-size: 16px; line-height: 1.6; overflow-x: hidden; }
         .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
 
         /* NAV */
-        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 16px 0; background: rgba(8,11,20,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 14px 0; background: rgba(11,15,25,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
         .nav-inner { display: flex; align-items: center; justify-content: space-between; }
-        .nav-logo { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 8px; }
-        .nav-logo span { color: var(--orange); }
-        .nav-links { display: flex; align-items: center; gap: 32px; }
-        .nav-links a { color: var(--muted); text-decoration: none; font-size: 15px; transition: color 0.2s; }
+        .nav-logo { font-size: 20px; font-weight: 800; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
+        .nav-logo-mark { width: 30px; height: 30px; background: linear-gradient(135deg, #8b5cf6, #6366f1); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .nav-logo span { color: var(--purple-light); }
+        .nav-links { display: flex; align-items: center; gap: 28px; }
+        .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
         .nav-links a:hover { color: var(--text); }
-        .btn-nav { background: var(--orange); color: white; border: none; padding: 10px 24px; border-radius: 8px; font-family: var(--font-body); font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; transition: opacity 0.2s, transform 0.2s; }
+        .btn-nav { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; padding: 9px 22px; border-radius: 8px; font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; transition: opacity 0.2s, transform 0.2s; }
         .btn-nav:hover { opacity: 0.9; transform: translateY(-1px); }
 
         /* HERO */
-        .hero { padding: 160px 0 100px; position: relative; overflow: hidden; }
-        .hero-bg { position: absolute; inset: 0; z-index: 0; }
-        .hero-bg-circle { position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(255,107,43,0.15) 0%, transparent 70%); top: -100px; left: 50%; transform: translateX(-50%); }
-        .hero-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 60px 60px; }
-        .hero-content { position: relative; z-index: 1; text-align: center; }
-        .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,107,43,0.12); border: 1px solid rgba(255,107,43,0.3); border-radius: 100px; padding: 6px 16px; font-size: 13px; color: var(--orange); margin-bottom: 32px; font-weight: 500; }
-        .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); animation: pulse-dot 2s infinite; }
-        @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.5)} }
-        h1 { font-family: var(--font-display); font-size: clamp(42px, 6vw, 80px); font-weight: 800; line-height: 1.05; letter-spacing: -2px; margin-bottom: 24px; }
-        h1 em { font-style: normal; color: var(--orange); }
-        .hero-sub { font-size: clamp(17px, 2vw, 20px); color: var(--muted); max-width: 620px; margin: 0 auto 48px; line-height: 1.6; }
+        .hero { padding: 160px 0 110px; position: relative; overflow: hidden; min-height: 100vh; display: flex; align-items: center; }
+        .hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+        .hero-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(139,92,246,0.08) 0%, transparent 70%); z-index: 1; }
+        .hero-overlay-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 200px; background: linear-gradient(to bottom, transparent, var(--dark)); z-index: 2; }
+        .hero-content { position: relative; z-index: 3; text-align: center; width: 100%; }
+        .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); border-radius: 100px; padding: 6px 16px; font-size: 13px; color: var(--purple-light); margin-bottom: 32px; font-weight: 500; }
+        .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--purple-light); animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.6)} }
+        h1 { font-size: clamp(40px, 6vw, 76px); font-weight: 900; line-height: 1.04; letter-spacing: -2.5px; margin-bottom: 24px; }
+        h1 em { font-style: normal; background: linear-gradient(135deg, #a78bfa, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-sub { font-size: clamp(16px, 2vw, 19px); color: var(--muted); max-width: 580px; margin: 0 auto 48px; line-height: 1.65; font-weight: 400; }
         .hero-ctas { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-        .btn-primary { background: var(--orange); color: white; border: none; padding: 16px 36px; border-radius: 10px; font-family: var(--font-body); font-size: 16px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(255,107,43,0.35); }
-        .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 16px 36px; border-radius: 10px; font-family: var(--font-body); font-size: 16px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
-        .btn-ghost:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.04); }
-        .hero-meta { margin-top: 20px; font-size: 13px; color: var(--muted); }
+        .btn-primary { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; padding: 15px 34px; border-radius: 10px; font-family: var(--font); font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; letter-spacing: -0.2px; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 48px rgba(139,92,246,0.4); }
+        .btn-ghost { background: rgba(255,255,255,0.04); color: var(--text); border: 1px solid var(--border-purple); padding: 15px 34px; border-radius: 10px; font-family: var(--font); font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .btn-ghost:hover { border-color: rgba(139,92,246,0.5); background: rgba(139,92,246,0.06); }
+        .hero-meta { margin-top: 20px; font-size: 13px; color: var(--muted); font-weight: 500; }
+
+        /* SECTION COMMON */
+        .section-label { font-size: 11px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--purple-light); margin-bottom: 14px; }
+        .section-title { font-size: clamp(28px, 4vw, 46px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 16px; }
+        .section-sub { color: var(--muted); font-size: 17px; max-width: 540px; line-height: 1.65; }
 
         /* PAIN */
         .pain-section { padding: 80px 0; }
-        .section-label { font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--orange); margin-bottom: 16px; }
-        .section-title { font-family: var(--font-display); font-size: clamp(30px, 4vw, 48px); font-weight: 800; line-height: 1.1; letter-spacing: -1px; margin-bottom: 16px; }
-        .section-sub { color: var(--muted); font-size: 18px; max-width: 560px; }
-        .pain-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 48px; }
-        .pain-card { background: var(--dark2); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; display: flex; align-items: center; gap: 16px; transition: border-color 0.2s, transform 0.2s; }
-        .pain-card:hover { border-color: rgba(255,107,43,0.3); transform: translateY(-2px); }
-        .pain-emoji { font-size: 28px; flex-shrink: 0; }
-        .pain-text { font-size: 15px; color: var(--muted); line-height: 1.5; }
+        .pain-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 48px; }
+        .pain-card { background: var(--dark2); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; display: flex; align-items: center; gap: 16px; transition: border-color 0.2s, transform 0.2s; }
+        .pain-card:hover { border-color: var(--border-purple); transform: translateY(-2px); }
+        .pain-emoji { font-size: 26px; flex-shrink: 0; }
+        .pain-text { font-size: 14px; color: var(--muted); line-height: 1.55; font-weight: 500; }
 
-        /* SOLUTION BANNER */
-        .solution-banner { background: linear-gradient(135deg, var(--orange) 0%, #FF3D00 100%); border-radius: 20px; padding: 48px; text-align: center; margin: 0 0 80px; position: relative; overflow: hidden; }
-        .solution-banner::before { content: ''; position: absolute; top: -40%; right: -10%; width: 400px; height: 400px; border-radius: 50%; background: rgba(255,255,255,0.08); }
-        .solution-banner h2 { font-family: var(--font-display); font-size: clamp(26px, 4vw, 42px); font-weight: 800; color: white; margin-bottom: 16px; position: relative; z-index: 1; }
-        .solution-banner p { color: rgba(255,255,255,0.85); font-size: 18px; position: relative; z-index: 1; }
+        /* SOLUTION */
+        .solution-banner { background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); border-radius: 20px; padding: 52px 48px; text-align: center; margin: 0 0 80px; position: relative; overflow: hidden; }
+        .solution-banner::before { content: ''; position: absolute; top: -30%; right: -8%; width: 360px; height: 360px; border-radius: 50%; background: rgba(255,255,255,0.07); }
+        .solution-banner::after { content: ''; position: absolute; bottom: -20%; left: -5%; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,0.05); }
+        .solution-banner h2 { font-size: clamp(24px, 4vw, 40px); font-weight: 800; color: white; margin-bottom: 14px; position: relative; z-index: 1; letter-spacing: -1px; }
+        .solution-banner p { color: rgba(255,255,255,0.85); font-size: 17px; position: relative; z-index: 1; font-weight: 500; }
 
         /* FEATURES */
         .features-section { padding: 80px 0; }
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 56px; }
-        .feature-card { background: var(--dark2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; transition: all 0.3s; position: relative; overflow: hidden; }
-        .feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--card-color, var(--orange)); opacity: 0; transition: opacity 0.3s; }
-        .feature-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-4px); }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 18px; margin-top: 56px; }
+        .feature-card { background: var(--dark2); border: 1px solid var(--border); border-radius: 16px; padding: 26px; transition: all 0.3s; position: relative; overflow: hidden; }
+        .feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--card-color, var(--purple)); opacity: 0; transition: opacity 0.3s; }
+        .feature-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at top left, rgba(139,92,246,0.05), transparent 60%); opacity: 0; transition: opacity 0.3s; }
+        .feature-card:hover { border-color: rgba(139,92,246,0.25); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
         .feature-card:hover::before { opacity: 1; }
-        .feature-icon { font-size: 32px; margin-bottom: 16px; display: block; }
-        .feature-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 10px; }
-        .feature-desc { color: var(--muted); font-size: 14px; line-height: 1.6; }
+        .feature-card:hover::after { opacity: 1; }
+        .feature-icon { font-size: 30px; margin-bottom: 14px; display: block; }
+        .feature-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.3px; }
+        .feature-desc { color: var(--muted); font-size: 13px; line-height: 1.65; }
 
-        /* DEMO TABS */
+        /* DEMO */
         .demo-section { padding: 80px 0; }
-        .tab-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
-        .tab-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 10px 20px; border-radius: 8px; font-family: var(--font-body); font-size: 14px; cursor: pointer; transition: all 0.2s; }
-        .tab-btn.active { background: var(--orange); border-color: var(--orange); color: white; }
-        .tab-btn:not(.active):hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
-        .demo-screen { background: var(--dark2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
-        .demo-topbar { background: var(--dark3); padding: 12px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+        .tab-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+        .tab-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 9px 18px; border-radius: 8px; font-family: var(--font); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .tab-btn.active { background: var(--purple); border-color: var(--purple); color: white; font-weight: 600; }
+        .tab-btn:not(.active):hover { border-color: var(--border-purple); color: var(--text); }
+        .demo-screen { background: var(--dark2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.4); }
+        .demo-topbar { background: var(--dark3); padding: 12px 18px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
         .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
-        .demo-url { background: var(--dark4); border-radius: 6px; padding: 4px 16px; font-size: 12px; color: var(--muted); flex: 1; max-width: 300px; }
-        .demo-content { padding: 32px; min-height: 320px; }
-        .demo-stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+        .demo-url { background: var(--dark4); border-radius: 6px; padding: 4px 14px; font-size: 12px; color: var(--muted); flex: 1; max-width: 280px; }
+        .demo-content { padding: 28px; min-height: 320px; }
+        .demo-stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
         .demo-stat { background: var(--dark3); border-radius: 10px; padding: 16px; text-align: center; }
-        .demo-stat-val { font-family: var(--font-display); font-size: 24px; font-weight: 800; color: var(--orange); }
-        .demo-stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+        .demo-stat-val { font-size: 22px; font-weight: 800; color: var(--purple-light); letter-spacing: -0.5px; }
+        .demo-stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 500; }
         .demo-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .demo-table th { text-align: left; padding: 10px 12px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
-        .demo-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
-        .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; }
-        .status-active { background: #22C55E; }
-        .status-paused { background: #6B7280; }
-        .ai-card { background: var(--dark3); border-radius: 12px; padding: 20px; margin-bottom: 16px; border-left: 3px solid var(--orange); }
-        .ai-label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; color: var(--orange); text-transform: uppercase; margin-bottom: 8px; }
-        .ai-text { font-size: 14px; color: var(--muted); line-height: 1.6; }
-        .rule-row { display: flex; align-items: center; gap: 12px; background: var(--dark3); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px; }
-        .rule-icon { font-size: 18px; }
-        .rule-text { font-size: 14px; color: var(--muted); flex: 1; }
-        .rule-badge { font-size: 11px; padding: 3px 10px; border-radius: 100px; font-weight: 600; }
-        .badge-active { background: rgba(34,197,94,0.15); color: #22C55E; }
-        .badge-paused { background: rgba(107,114,128,0.15); color: #9CA3AF; }
+        .demo-table th { text-align: left; padding: 10px 12px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .demo-table td { padding: 11px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; }
+        .status-active { background: #10b981; }
+        .status-paused { background: #4b5563; }
+        .ai-card { background: var(--dark3); border-radius: 12px; padding: 18px; margin-bottom: 14px; border-left: 3px solid var(--purple); }
+        .ai-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--purple-light); text-transform: uppercase; margin-bottom: 8px; }
+        .ai-text { font-size: 14px; color: var(--muted); line-height: 1.65; }
+        .rule-row { display: flex; align-items: center; gap: 12px; background: var(--dark3); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+        .rule-icon { font-size: 17px; }
+        .rule-text { font-size: 13px; color: var(--muted); flex: 1; line-height: 1.5; }
+        .rule-badge { font-size: 11px; padding: 3px 10px; border-radius: 100px; font-weight: 700; }
+        .badge-active { background: rgba(16,185,129,0.12); color: #10b981; }
+        .badge-paused { background: rgba(75,85,99,0.2); color: #9CA3AF; }
         .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .img-placeholder { background: var(--dark3); border-radius: 10px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 1px dashed var(--border); }
-        .img-placeholder-icon { font-size: 32px; }
-        .img-placeholder-label { font-size: 12px; color: var(--muted); }
+        .img-placeholder { background: var(--dark3); border-radius: 10px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 1px dashed rgba(139,92,246,0.2); }
+        .img-placeholder-icon { font-size: 30px; }
+        .img-placeholder-label { font-size: 12px; color: var(--muted); font-weight: 500; }
         .wa-chat { display: flex; flex-direction: column; gap: 12px; }
-        .wa-msg { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.5; }
+        .wa-msg { max-width: 72%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.55; }
         .wa-msg.incoming { background: var(--dark3); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; }
-        .wa-msg.outgoing { background: rgba(255,107,43,0.2); color: var(--text); align-self: flex-end; border-bottom-right-radius: 4px; border: 1px solid rgba(255,107,43,0.3); }
-        .wa-sender { font-size: 11px; color: var(--orange); font-weight: 600; margin-bottom: 4px; }
+        .wa-msg.outgoing { background: rgba(139,92,246,0.15); color: var(--text); align-self: flex-end; border-bottom-right-radius: 4px; border: 1px solid rgba(139,92,246,0.25); }
+        .wa-sender { font-size: 11px; color: var(--purple-light); font-weight: 700; margin-bottom: 4px; }
         .wa-time { font-size: 11px; color: var(--muted); margin-top: 4px; text-align: right; }
 
         /* STATS */
         .stats-section { padding: 80px 0; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; }
         .stat-item { text-align: center; }
-        .stat-number { font-family: var(--font-display); font-size: clamp(40px, 5vw, 64px); font-weight: 800; color: var(--orange); line-height: 1; }
-        .stat-label { color: var(--muted); font-size: 16px; margin-top: 8px; }
+        .stat-number { font-size: clamp(38px, 5vw, 60px); font-weight: 900; letter-spacing: -2px; line-height: 1; background: linear-gradient(135deg, #a78bfa, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .stat-label { color: var(--muted); font-size: 15px; margin-top: 10px; font-weight: 500; }
 
         /* HOW */
         .how-section { padding: 80px 0; }
-        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px; margin-top: 56px; position: relative; }
+        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px; margin-top: 56px; }
         .step { text-align: center; padding: 0 16px; }
-        .step-num { width: 52px; height: 52px; border-radius: 50%; background: var(--orange-dim); border: 1px solid rgba(255,107,43,0.4); color: var(--orange); font-family: var(--font-display); font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
-        .step-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 10px; }
-        .step-desc { color: var(--muted); font-size: 15px; line-height: 1.6; }
+        .step-num { width: 52px; height: 52px; border-radius: 50%; background: var(--purple-dim); border: 1px solid var(--border-purple); color: var(--purple-light); font-size: 20px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+        .step-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.3px; }
+        .step-desc { color: var(--muted); font-size: 14px; line-height: 1.65; }
 
         /* TESTIMONIALS */
         .testimonials-section { padding: 80px 0; }
-        .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 56px; }
-        .testimonial-card { background: var(--dark2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
-        .stars { color: var(--orange); font-size: 16px; letter-spacing: 2px; margin-bottom: 16px; }
-        .testimonial-text { color: var(--muted); font-size: 15px; line-height: 1.7; margin-bottom: 20px; }
+        .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-top: 56px; }
+        .testimonial-card { background: var(--dark2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; transition: border-color 0.2s, transform 0.2s; }
+        .testimonial-card:hover { border-color: var(--border-purple); transform: translateY(-2px); }
+        .stars { color: var(--purple-light); font-size: 15px; letter-spacing: 2px; margin-bottom: 16px; }
+        .testimonial-text { color: var(--muted); font-size: 14px; line-height: 1.75; margin-bottom: 20px; }
         .testimonial-author { display: flex; align-items: center; gap: 12px; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--orange-dim); border: 1px solid rgba(255,107,43,0.3); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--orange); flex-shrink: 0; }
-        .author-name { font-size: 14px; font-weight: 600; }
-        .author-role { font-size: 13px; color: var(--muted); }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--purple-dim); border: 1px solid var(--border-purple); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--purple-light); flex-shrink: 0; }
+        .author-name { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; }
+        .author-role { font-size: 12px; color: var(--muted); margin-top: 1px; }
 
         /* PRICING */
         .pricing-section { padding: 80px 0; }
         .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 56px; align-items: start; }
         .pricing-card { background: var(--dark2); border: 1px solid var(--border); border-radius: 20px; padding: 32px; position: relative; transition: transform 0.2s; }
         .pricing-card:hover { transform: translateY(-4px); }
-        .pricing-card.featured { border-color: var(--orange); background: linear-gradient(160deg, rgba(255,107,43,0.08) 0%, var(--dark2) 60%); }
-        .pricing-badge { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: var(--orange); color: white; font-size: 12px; font-weight: 700; padding: 4px 20px; border-radius: 100px; white-space: nowrap; }
-        .pricing-name { font-family: var(--font-display); font-size: 22px; font-weight: 800; margin-bottom: 8px; }
-        .pricing-price { font-family: var(--font-display); font-size: 36px; font-weight: 800; color: var(--orange); line-height: 1; }
-        .pricing-period { font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+        .pricing-card.featured { border-color: var(--border-purple); background: linear-gradient(160deg, rgba(139,92,246,0.08) 0%, var(--dark2) 60%); box-shadow: 0 0 60px rgba(139,92,246,0.1); }
+        .pricing-badge { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; font-size: 12px; font-weight: 700; padding: 4px 20px; border-radius: 100px; white-space: nowrap; letter-spacing: 0.3px; }
+        .pricing-name { font-size: 22px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .pricing-price { font-size: 36px; font-weight: 900; color: var(--purple-light); line-height: 1; letter-spacing: -1.5px; }
+        .pricing-period { font-size: 14px; color: var(--muted); margin-bottom: 8px; font-weight: 500; }
         .pricing-highlights { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0; }
-        .pricing-hl { background: var(--dark3); border-radius: 6px; padding: 4px 12px; font-size: 12px; color: var(--muted); }
+        .pricing-hl { background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.15); border-radius: 6px; padding: 3px 10px; font-size: 12px; color: var(--purple-light); font-weight: 500; }
         .pricing-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
         .pricing-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
-        .pricing-features li { font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
-        .pricing-features li::before { content: '✓'; color: var(--orange); font-weight: 700; font-size: 14px; flex-shrink: 0; }
-        .btn-plan { width: 100%; padding: 14px; border-radius: 10px; font-family: var(--font-body); font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; display: block; text-align: center; transition: all 0.2s; }
-        .btn-plan-primary { background: var(--orange); color: white; border: none; }
-        .btn-plan-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn-plan-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
-        .btn-plan-ghost:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.04); }
+        .pricing-features li { font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; font-weight: 500; }
+        .pricing-features li::before { content: '✓'; color: var(--purple-light); font-weight: 800; font-size: 13px; flex-shrink: 0; }
+        .btn-plan { width: 100%; padding: 14px; border-radius: 10px; font-family: var(--font); font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none; display: block; text-align: center; transition: all 0.2s; letter-spacing: -0.2px; }
+        .btn-plan-primary { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; }
+        .btn-plan-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 30px rgba(139,92,246,0.35); }
+        .btn-plan-ghost { background: transparent; color: var(--text); border: 1px solid var(--border-purple); }
+        .btn-plan-ghost:hover { border-color: var(--purple); background: var(--purple-dim); }
 
         /* CTA FINAL */
         .cta-section { padding: 100px 0; text-align: center; }
-        .cta-box { background: var(--dark2); border: 1px solid var(--border); border-radius: 24px; padding: 72px 48px; position: relative; overflow: hidden; }
-        .cta-box::before { content: ''; position: absolute; bottom: -100px; left: 50%; transform: translateX(-50%); width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(255,107,43,0.12) 0%, transparent 70%); }
-        .cta-box h2 { font-family: var(--font-display); font-size: clamp(28px, 5vw, 52px); font-weight: 800; margin-bottom: 20px; letter-spacing: -1px; position: relative; z-index: 1; }
-        .cta-box p { color: var(--muted); font-size: 18px; margin-bottom: 40px; position: relative; z-index: 1; }
+        .cta-box { background: var(--dark2); border: 1px solid var(--border-purple); border-radius: 24px; padding: 72px 48px; position: relative; overflow: hidden; }
+        .cta-box::before { content: ''; position: absolute; bottom: -80px; left: 50%; transform: translateX(-50%); width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%); }
+        .cta-box::after { content: ''; position: absolute; top: -80px; right: -80px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%); }
+        .cta-box h2 { font-size: clamp(26px, 5vw, 50px); font-weight: 900; margin-bottom: 20px; letter-spacing: -1.5px; position: relative; z-index: 1; line-height: 1.1; }
+        .cta-box p { color: var(--muted); font-size: 17px; margin-bottom: 40px; position: relative; z-index: 1; font-weight: 500; }
         .cta-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
 
         /* FOOTER */
         footer { border-top: 1px solid var(--border); padding: 40px 0; }
         .footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-        .footer-copy { font-size: 14px; color: var(--muted); }
+        .footer-copy { font-size: 13px; color: var(--muted); font-weight: 500; }
         .footer-links { display: flex; gap: 24px; }
-        .footer-links a { font-size: 14px; color: var(--muted); text-decoration: none; }
+        .footer-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; font-weight: 500; }
         .footer-links a:hover { color: var(--text); }
 
         /* ANIMATIONS */
-        .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .fade-up { opacity: 0; transform: translateY(28px); transition: opacity 0.55s ease, transform 0.55s ease; }
         .fade-up.visible { opacity: 1; transform: translateY(0); }
-        .fade-up.delay-1 { transition-delay: 0.1s; }
-        .fade-up.delay-2 { transition-delay: 0.2s; }
-        .fade-up.delay-3 { transition-delay: 0.3s; }
 
         @media (max-width: 768px) {
           .nav-links { display: none; }
           .demo-stat-row { grid-template-columns: repeat(2, 1fr); }
           .img-grid { grid-template-columns: repeat(2, 1fr); }
           .cta-box { padding: 48px 24px; }
-          .solution-banner { padding: 36px 24px; }
+          .solution-banner { padding: 40px 28px; }
+          h1 { letter-spacing: -1.5px; }
         }
       `}</style>
 
@@ -408,7 +442,10 @@ export default function Landing() {
       <nav>
         <div className="container">
           <div className="nav-inner">
-            <a href="/" className="nav-logo">⚡ Meta<span>Flow</span>.AI</a>
+            <a href="/" className="nav-logo">
+              <div className="nav-logo-mark">⚡</div>
+              Meta<span>Flow</span>.AI
+            </a>
             <div className="nav-links">
               <a href="#features">Funciones</a>
               <a href="#how">Cómo funciona</a>
@@ -422,10 +459,9 @@ export default function Landing() {
 
       {/* HERO */}
       <section className="hero">
-        <div className="hero-bg">
-          <div className="hero-grid" />
-          <div className="hero-bg-circle" />
-        </div>
+        <canvas ref={canvasRef} className="hero-canvas" />
+        <div className="hero-overlay" />
+        <div className="hero-overlay-bottom" />
         <div className="container">
           <div className="hero-content">
             <div className="hero-badge">
@@ -440,7 +476,7 @@ export default function Landing() {
               Gestiona campañas, responde clientes 24/7, crea creativos y genera landing pages — todo con inteligencia artificial. Tú te enfocas en crecer.
             </p>
             <div className="hero-ctas">
-              <a href="https://metaflow.tech/?signup=1" className="btn-primary">⚡ Comenzar ahora</a>
+              <a href="#precios" className="btn-primary">⚡ Comenzar ahora</a>
               <a href="#features" className="btn-ghost">Ver funciones →</a>
             </div>
             <p className="hero-meta">Desde $99.900 COP/mes · Sin contrato de permanencia</p>
@@ -451,11 +487,7 @@ export default function Landing() {
       {/* PAIN */}
       <section className="pain-section">
         <div className="container">
-          <div
-            id="pain"
-            ref={setRef('pain')}
-            className={`fade-up ${visibleSections.pain ? 'visible' : ''}`}
-          >
+          <div id="pain" ref={setRef('pain')} className={`fade-up ${visibleSections.pain ? 'visible' : ''}`}>
             <p className="section-label">¿Te suena familiar?</p>
             <h2 className="section-title">Los problemas que<br />te frenan cada día</h2>
           </div>
@@ -476,13 +508,9 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* SOLUTION BANNER */}
+      {/* SOLUTION */}
       <div className="container">
-        <div
-          id="sol"
-          ref={setRef('sol')}
-          className={`solution-banner fade-up ${visibleSections.sol ? 'visible' : ''}`}
-        >
+        <div id="sol" ref={setRef('sol')} className={`solution-banner fade-up ${visibleSections.sol ? 'visible' : ''}`}>
           <h2>MetaFlow resuelve todo eso.</h2>
           <p>Una sola plataforma con IA que trabaja por ti las 24 horas, los 7 días de la semana.</p>
         </div>
@@ -491,11 +519,7 @@ export default function Landing() {
       {/* FEATURES */}
       <section className="features-section" id="features">
         <div className="container">
-          <div
-            id="feat-head"
-            ref={setRef('feat-head')}
-            className={`fade-up ${visibleSections['feat-head'] ? 'visible' : ''}`}
-          >
+          <div id="feat-head" ref={setRef('feat-head')} className={`fade-up ${visibleSections['feat-head'] ? 'visible' : ''}`}>
             <p className="section-label">Funcionalidades</p>
             <h2 className="section-title">Todo lo que necesitas<br />para escalar</h2>
             <p className="section-sub">Ocho módulos conectados entre sí para que tu negocio venda en piloto automático.</p>
@@ -518,14 +542,10 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* DEMO TABS */}
+      {/* DEMO */}
       <section className="demo-section">
         <div className="container">
-          <div
-            id="demo-head"
-            ref={setRef('demo-head')}
-            className={`fade-up ${visibleSections['demo-head'] ? 'visible' : ''}`}
-          >
+          <div id="demo-head" ref={setRef('demo-head')} className={`fade-up ${visibleSections['demo-head'] ? 'visible' : ''}`}>
             <p className="section-label">La plataforma</p>
             <h2 className="section-title">Ve cómo funciona<br />en tiempo real</h2>
           </div>
@@ -553,7 +573,13 @@ export default function Landing() {
                     <thead><tr><th>Campaña</th><th>Estado</th><th>Gasto</th><th>ROAS</th><th>CPA</th></tr></thead>
                     <tbody>
                       {[['Colección Verano 2026','active','$18.430','5.2x','$4.80'],['Retargeting Web','active','$12.100','3.8x','$7.20'],['Lookalike Compradores','paused','$8.940','1.9x','$14.50'],['Brand Awareness Q2','active','$9.870','4.1x','$5.90']].map(([n,s,g,r,c]) => (
-                        <tr key={n}><td>{n}</td><td><span className={`status-dot status-${s}`}/>{s === 'active' ? 'Activa' : 'Pausada'}</td><td>{g}</td><td style={{color:'var(--orange)',fontWeight:600}}>{r}</td><td>{c}</td></tr>
+                        <tr key={n}>
+                          <td>{n}</td>
+                          <td><span className={`status-dot status-${s}`}/>{s === 'active' ? 'Activa' : 'Pausada'}</td>
+                          <td>{g}</td>
+                          <td style={{ color: 'var(--purple-light)', fontWeight: 700 }}>{r}</td>
+                          <td>{c}</td>
+                        </tr>
                       ))}
                     </tbody>
                   </table>
@@ -571,7 +597,7 @@ export default function Landing() {
                   {[['Si ROAS < 1.5 por 2 días', '→ Pausar campaña automáticamente', 'active'],['Si CPA > $15 por 24h', '→ Reducir presupuesto 20%', 'active'],['Si gasto diario > $50.000', '→ Notificar al administrador', 'active'],['Si ROAS > 5.0 por 3 días', '→ Aumentar presupuesto 25%', 'paused']].map(([cond, action, s]) => (
                     <div key={cond} className="rule-row">
                       <span className="rule-icon">⚙️</span>
-                      <div className="rule-text"><span style={{color:'var(--text)'}}>{cond}</span><br /><span style={{fontSize:13}}>{action}</span></div>
+                      <div className="rule-text"><span style={{color:'var(--text)',fontWeight:600}}>{cond}</span><br /><span style={{fontSize:13}}>{action}</span></div>
                       <span className={`rule-badge ${s === 'active' ? 'badge-active' : 'badge-paused'}`}>{s === 'active' ? 'Activa' : 'Pausada'}</span>
                     </div>
                   ))}
@@ -603,11 +629,7 @@ export default function Landing() {
       {/* STATS */}
       <section className="stats-section">
         <div className="container">
-          <div
-            id="stats"
-            ref={setRef('stats')}
-            className={`stats-grid fade-up ${visibleSections.stats ? 'visible' : ''}`}
-          >
+          <div id="stats" ref={setRef('stats')} className={`stats-grid fade-up ${visibleSections.stats ? 'visible' : ''}`}>
             {[['4.8x', 'ROAS promedio de usuarios'], ['24/7', 'Tu agente siempre activo'], ['70%', 'Menos tiempo en gestión'], ['5 min', 'Para crear una campaña completa']].map(([n, l]) => (
               <div key={l} className="stat-item">
                 <div className="stat-number">{n}</div>
@@ -621,11 +643,7 @@ export default function Landing() {
       {/* HOW */}
       <section className="how-section" id="how">
         <div className="container">
-          <div
-            id="how-head"
-            ref={setRef('how-head')}
-            className={`fade-up ${visibleSections['how-head'] ? 'visible' : ''}`}
-          >
+          <div id="how-head" ref={setRef('how-head')} className={`fade-up ${visibleSections['how-head'] ? 'visible' : ''}`}>
             <p className="section-label">Cómo funciona</p>
             <h2 className="section-title">De cero a resultados<br />en minutos</h2>
           </div>
@@ -644,11 +662,7 @@ export default function Landing() {
       {/* TESTIMONIALS */}
       <section className="testimonials-section">
         <div className="container">
-          <div
-            id="test-head"
-            ref={setRef('test-head')}
-            className={`fade-up ${visibleSections['test-head'] ? 'visible' : ''}`}
-          >
+          <div id="test-head" ref={setRef('test-head')} className={`fade-up ${visibleSections['test-head'] ? 'visible' : ''}`}>
             <p className="section-label">Testimonios</p>
             <h2 className="section-title">Lo que dicen quienes<br />ya lo usan</h2>
           </div>
@@ -679,12 +693,7 @@ export default function Landing() {
       {/* PRICING */}
       <section className="pricing-section" id="precios">
         <div className="container">
-          <div
-            id="price-head"
-            ref={setRef('price-head')}
-            className={`fade-up ${visibleSections['price-head'] ? 'visible' : ''}`}
-            style={{ textAlign: 'center' }}
-          >
+          <div id="price-head" ref={setRef('price-head')} className={`fade-up ${visibleSections['price-head'] ? 'visible' : ''}`} style={{ textAlign: 'center' }}>
             <p className="section-label">Precios</p>
             <h2 className="section-title">Simple, transparente,<br />sin sorpresas</h2>
             <p className="section-sub" style={{ margin: '0 auto' }}>Todas las funciones incluidas en cada plan. Sin upgrades ocultos.</p>
@@ -711,16 +720,13 @@ export default function Landing() {
                 <ul className="pricing-features">
                   {plan.features.map((f) => <li key={f}>{f}</li>)}
                 </ul>
-                <a
-                  href="https://metaflow.tech/?signup=1"
-                  className={`btn-plan ${plan.highlight ? 'btn-plan-primary' : 'btn-plan-ghost'}`}
-                >
+                <a href="https://metaflow.tech/?signup=1" className={`btn-plan ${plan.highlight ? 'btn-plan-primary' : 'btn-plan-ghost'}`}>
                   Comenzar ahora
                 </a>
               </div>
             ))}
           </div>
-          <p style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 14, marginTop: 24 }}>
+          <p style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 13, marginTop: 24, fontWeight: 500 }}>
             🔒 Pago 100% seguro · Cancela cuando quieras
           </p>
         </div>

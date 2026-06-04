@@ -5011,6 +5011,21 @@ function LandingGeneratorView({ products, loading: productsLoading, user, metaCo
   const [language, setLanguage] = useState('Español');
   const [sectionType, setSectionType] = useState('Hero');
   const [shippingInfo, setShippingInfo] = useState('Envío Express (1 a 2 días hábiles), empaque de seguridad, Pago contraentrega');
+  const [primaryColor, setPrimaryColor] = useState('#1B5E45');
+  const [secondaryColor, setSecondaryColor] = useState('#F5F0E8');
+  const [offerPrices, setOfferPrices] = useState(['', '', '', '']);
+  const [beforeText, setBeforeText] = useState('');
+  const [afterText, setAfterText] = useState('');
+  const [benefitsText, setBenefitsText] = useState('');
+  const [ourAdvantages, setOurAdvantages] = useState('');
+  const [theirDisadvantages, setTheirDisadvantages] = useState('');
+  const [testimonials, setTestimonials] = useState(['', '', '']);
+  const [authorityName, setAuthorityName] = useState('');
+  const [authorityTitle, setAuthorityTitle] = useState('');
+  const [authorityQuote, setAuthorityQuote] = useState('');
+  const [usageSteps, setUsageSteps] = useState('');
+  const [paymentLogos, setPaymentLogos] = useState('');
+  const [faqs, setFaqs] = useState(Array.from({ length: 5 }, () => ({ question: '', answer: '' })));
   
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState(null);
@@ -5108,7 +5123,22 @@ function LandingGeneratorView({ products, loading: productsLoading, user, metaCo
         size,
         language,
         sectionType,
-        shippingInfo
+        shippingInfo,
+        primaryColor,
+        secondaryColor,
+        offerPrices: sectionType === 'Oferta' ? offerPrices.filter(p => p.trim()) : undefined,
+        beforeText: sectionType === 'Antes/Después' ? beforeText : undefined,
+        afterText: sectionType === 'Antes/Después' ? afterText : undefined,
+        benefitsText: sectionType === 'Beneficios' ? benefitsText : undefined,
+        ourAdvantages: sectionType === 'Tabla Comparativa' ? ourAdvantages : undefined,
+        theirDisadvantages: sectionType === 'Tabla Comparativa' ? theirDisadvantages : undefined,
+        testimonials: sectionType === 'Testimonios' ? testimonials.filter(t => t.trim()) : undefined,
+        authorityName: sectionType === 'Prueba de Autoridad' ? authorityName : undefined,
+        authorityTitle: sectionType === 'Prueba de Autoridad' ? authorityTitle : undefined,
+        authorityQuote: sectionType === 'Prueba de Autoridad' ? authorityQuote : undefined,
+        usageSteps: sectionType === 'Modo de Uso' ? usageSteps : undefined,
+        paymentLogos: sectionType === 'Logística' ? paymentLogos : undefined,
+        faqs: sectionType === 'Preguntas Frecuentes' ? faqs.filter(f => f.question.trim()) : undefined
       });
 
       setResult(response.data);
@@ -5277,22 +5307,323 @@ function LandingGeneratorView({ products, loading: productsLoading, user, metaCo
           </div>
         </div>
 
-        {/* SHIPPING AND PAYMENT DETAILS */}
-        <div className="landing-gen-form-group">
-          <label className="landing-gen-label">Información de Envío y Pago</label>
-          <textarea 
-            className="landing-gen-textarea" 
-            rows="2"
-            placeholder="Envío express, Pago contraentrega..."
-            value={shippingInfo}
-            onChange={(e) => setShippingInfo(e.target.value)}
-          />
+        {/* OFFER PRICES — only visible when Oferta is selected */}
+        {sectionType === 'Oferta' && (
+          <div className="landing-gen-form-group" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
+            <label className="landing-gen-label" style={{ color: '#5eead4', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '11px', fontWeight: 700 }}>
+              Configurar Precios de la Oferta
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
+              {offerPrices.map((price, i) => (
+                <input
+                  key={i}
+                  type="text"
+                  className="landing-gen-input"
+                  placeholder={`$${['104.900', '169.900', '231.900', '289.900'][i]}`}
+                  value={price}
+                  onChange={(e) => {
+                    const updated = [...offerPrices];
+                    updated[i] = e.target.value;
+                    setOfferPrices(updated);
+                  }}
+                  style={{ margin: 0 }}
+                />
+              ))}
+            </div>
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '10px 0 0', lineHeight: 1.5 }}>
+              * Estos precios aparecerán en los packs de tu diseño.
+            </p>
+          </div>
+        )}
+
+        {/* BEFORE/AFTER TRANSFORMATION — only visible when Antes/Después is selected */}
+        {sectionType === 'Antes/Después' && (
+          <div className="landing-gen-form-group" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
+            <label className="landing-gen-label" style={{ color: '#5eead4', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '11px', fontWeight: 700 }}>
+              Transformación del Cliente
+            </label>
+            <textarea
+              className="landing-gen-textarea"
+              rows="2"
+              placeholder="ANTES: le costaba levantarse, lloraba al caminar..."
+              value={beforeText}
+              onChange={(e) => setBeforeText(e.target.value)}
+              style={{ marginTop: '10px' }}
+            />
+            <textarea
+              className="landing-gen-textarea"
+              rows="2"
+              placeholder="DESPUÉS: Se levanta super fácil y rápido, nunca se queja de dolor..."
+              value={afterText}
+              onChange={(e) => setAfterText(e.target.value)}
+            />
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '4px 0 0', lineHeight: 1.5 }}>
+              * Describe el dolor vs la solución para generar el diseño comparativo.
+            </p>
+          </div>
+        )}
+
+        {/* BENEFITS TEXT — only visible when Beneficios is selected */}
+        {sectionType === 'Beneficios' && (
+          <div className="landing-gen-form-group" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
+            <label className="landing-gen-label" style={{ color: '#5eead4', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '11px', fontWeight: 700 }}>
+              Puntos Clave / Beneficios
+            </label>
+            <textarea
+              className="landing-gen-textarea"
+              rows="4"
+              placeholder="mejora la movilidad de tu mascota, reduce el dolor hasta un 95% pero lo mejor de todo es que mejoras su calidad de vida..."
+              value={benefitsText}
+              onChange={(e) => setBenefitsText(e.target.value)}
+              style={{ marginTop: '10px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '4px 0 0', lineHeight: 1.5 }}>
+              * Lista 3 o 5 beneficios para un diseño equilibrado.
+            </p>
+          </div>
+        )}
+
+        {/* COMPARISON TABLE — only visible when Tabla Comparativa is selected */}
+        {sectionType === 'Tabla Comparativa' && (
+          <div className="landing-gen-form-group" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
+            <label className="landing-gen-label" style={{ color: '#5eead4', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '11px', fontWeight: 700 }}>
+              Nosotros vs Ellos
+            </label>
+            <textarea
+              className="landing-gen-textarea"
+              rows="3"
+              placeholder="NOSOTROS: 100% Natural, Sin efectos secundarios, multibeneficio sistémico..."
+              value={ourAdvantages}
+              onChange={(e) => setOurAdvantages(e.target.value)}
+              style={{ marginTop: '10px' }}
+            />
+            <textarea
+              className="landing-gen-textarea"
+              rows="3"
+              placeholder="ELLOS: Daño Hepático, efecto sedante, daño hepático..."
+              value={theirDisadvantages}
+              onChange={(e) => setTheirDisadvantages(e.target.value)}
+            />
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '4px 0 0', lineHeight: 1.5 }}>
+              * Lista las ventajas del tuyo y las desventajas de la competencia.
+            </p>
+          </div>
+        )}
+
+        {/* TESTIMONIALS — only visible when Testimonios is selected */}
+        {sectionType === 'Testimonios' && (
+          <div className="landing-gen-form-group" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
+            <label className="landing-gen-label" style={{ color: '#5eead4', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '11px', fontWeight: 700 }}>
+              Historias de Clientes
+            </label>
+            {testimonials.map((t, i) => (
+              <textarea
+                key={i}
+                className="landing-gen-textarea"
+                rows="2"
+                placeholder={`Testimonio ${i + 1} (Ej: ${['¡Me encantó el producto!', 'Increíble calidad y envío rápido', 'Lo recomiendo al 100%'][i]} ...)`}
+                value={t}
+                onChange={(e) => {
+                  const updated = [...testimonials];
+                  updated[i] = e.target.value;
+                  setTestimonials(updated);
+                }}
+                style={{ marginTop: i === 0 ? '10px' : '0' }}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* AUTHORITY PROOF — only visible when Prueba de Autoridad is selected */}
+        {sectionType === 'Prueba de Autoridad' && (
+          <div className="landing-gen-form-group" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
+            <label className="landing-gen-label" style={{ color: '#5eead4', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '11px', fontWeight: 700 }}>
+              Validación Profesional
+            </label>
+            <input
+              type="text"
+              className="landing-gen-input"
+              placeholder="Nombre del profesional (Ej: Camilo Barrera)"
+              value={authorityName}
+              onChange={(e) => setAuthorityName(e.target.value)}
+              style={{ marginTop: '10px' }}
+            />
+            <input
+              type="text"
+              className="landing-gen-input"
+              placeholder="Título o cargo (Ej: Veterinario Egresado del CES)"
+              value={authorityTitle}
+              onChange={(e) => setAuthorityTitle(e.target.value)}
+            />
+            <textarea
+              className="landing-gen-textarea"
+              rows="3"
+              placeholder="Cita de respaldo (Ej: Excelente producto, lo recomiendo a todos mis pacientes...)"
+              value={authorityQuote}
+              onChange={(e) => setAuthorityQuote(e.target.value)}
+            />
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '4px 0 0', lineHeight: 1.5 }}>
+              * Se generará un modelo fotorrealista con uniforme profesional.
+            </p>
+          </div>
+        )}
+
+        {/* USAGE STEPS — only visible when Modo de Uso is selected */}
+        {sectionType === 'Modo de Uso' && (
+          <div className="landing-gen-form-group" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
+            <label className="landing-gen-label" style={{ color: '#5eead4', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '11px', fontWeight: 700 }}>
+              Manual de Uso (Pasos)
+            </label>
+            <textarea
+              className="landing-gen-textarea"
+              rows="4"
+              placeholder="Ej: La dosificación es la mitad del peso de tu mascota en gotas diarias, se puede dar cada 12 horas..."
+              value={usageSteps}
+              onChange={(e) => setUsageSteps(e.target.value)}
+              style={{ marginTop: '10px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '4px 0 0', lineHeight: 1.5 }}>
+              * Describe 3 pasos para que la IA genere las fotos secuenciales.
+            </p>
+          </div>
+        )}
+
+        {/* FAQS — only visible when Preguntas Frecuentes is selected */}
+        {sectionType === 'Preguntas Frecuentes' && (
+          <div className="landing-gen-form-group" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
+            <label className="landing-gen-label" style={{ color: '#5eead4', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '11px', fontWeight: 700 }}>
+              Preguntas Frecuentes (Máx. 10)
+            </label>
+            {faqs.map((faq, i) => (
+              <div key={i} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '12px', marginTop: '12px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#5eead4', display: 'block', marginBottom: '8px' }}>
+                  FAQ {i + 1}
+                </label>
+                <input
+                  type="text"
+                  className="landing-gen-input"
+                  placeholder="Escribe la pregunta..."
+                  value={faq.question}
+                  onChange={(e) => {
+                    const updated = [...faqs];
+                    updated[i] = { ...updated[i], question: e.target.value };
+                    setFaqs(updated);
+                  }}
+                  style={{ margin: '0 0 8px 0' }}
+                />
+                <textarea
+                  className="landing-gen-textarea"
+                  rows="2"
+                  placeholder="Escribe la respuesta..."
+                  value={faq.answer}
+                  onChange={(e) => {
+                    const updated = [...faqs];
+                    updated[i] = { ...updated[i], answer: e.target.value };
+                    setFaqs(updated);
+                  }}
+                  style={{ margin: 0 }}
+                />
+              </div>
+            ))}
+            {faqs.length < 10 && (
+              <button
+                type="button"
+                onClick={() => setFaqs([...faqs, { question: '', answer: '' }])}
+                style={{ marginTop: '12px', background: 'transparent', border: '1px dashed rgba(94,234,212,0.4)', color: '#5eead4', borderRadius: '8px', padding: '8px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', width: '100%' }}
+              >
+                + Agregar pregunta
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* LOGISTICS PANEL — only visible when Logística is selected */}
+        {sectionType === 'Logística' && (
+          <div className="landing-gen-form-group" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
+            <label className="landing-gen-label" style={{ color: '#5eead4', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '11px', fontWeight: 700 }}>
+              Información de Envío y Pago
+            </label>
+            <textarea
+              className="landing-gen-textarea"
+              rows="3"
+              placeholder="Envío Express (1 a 2 días hábiles), empaque de seguridad, guía de dosificación, Pago contraentrega..."
+              value={shippingInfo}
+              onChange={(e) => setShippingInfo(e.target.value)}
+              style={{ marginTop: '10px' }}
+            />
+            <input
+              type="text"
+              className="landing-gen-input"
+              placeholder="Medios de pago (Ej: Nequi, Bancolombia, Visa, Mastercard, Contraentrega)"
+              value={paymentLogos}
+              onChange={(e) => setPaymentLogos(e.target.value)}
+            />
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '4px 0 0', lineHeight: 1.5 }}>
+              * Lista los medios de pago para incluirlos como logos.
+            </p>
+          </div>
+        )}
+
+        {/* SHIPPING AND PAYMENT DETAILS — shown for all other sections */}
+        {sectionType !== 'Logística' && (
+          <div className="landing-gen-form-group">
+            <label className="landing-gen-label">Información de Envío y Pago</label>
+            <textarea
+              className="landing-gen-textarea"
+              rows="2"
+              placeholder="Envío express, Pago contraentrega..."
+              value={shippingInfo}
+              onChange={(e) => setShippingInfo(e.target.value)}
+            />
+          </div>
+        )}
+
+        {/* BRAND COLORS */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }} className="landing-gen-form-group">
+          <div>
+            <label className="landing-gen-label">Color Primario</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                type="color"
+                value={primaryColor}
+                onChange={(e) => setPrimaryColor(e.target.value)}
+                style={{ width: '38px', height: '38px', padding: '2px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', background: 'transparent', cursor: 'pointer' }}
+              />
+              <input
+                type="text"
+                className="landing-gen-input"
+                value={primaryColor}
+                onChange={(e) => setPrimaryColor(e.target.value)}
+                style={{ flex: 1, margin: 0 }}
+                placeholder="#1B5E45"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="landing-gen-label">Color Secundario</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                type="color"
+                value={secondaryColor}
+                onChange={(e) => setSecondaryColor(e.target.value)}
+                style={{ width: '38px', height: '38px', padding: '2px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', background: 'transparent', cursor: 'pointer' }}
+              />
+              <input
+                type="text"
+                className="landing-gen-input"
+                value={secondaryColor}
+                onChange={(e) => setSecondaryColor(e.target.value)}
+                style={{ flex: 1, margin: 0 }}
+                placeholder="#F5F0E8"
+              />
+            </div>
+          </div>
         </div>
 
         {/* GENERATE BUTTON */}
-        <button 
-          className="primary-button" 
-          type="submit" 
+        <button
+          className="primary-button"
+          type="submit"
           disabled={generating || !productName.trim()}
           style={{ width: '100%', marginTop: '10px' }}
         >

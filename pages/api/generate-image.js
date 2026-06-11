@@ -782,7 +782,7 @@ LAYOUT — VERTICAL COMPARISON SPLIT:
 1. SPLIT PHOTO BACKGROUND (y=23%–86%, vertical split at x=50% with a clean vertical divider line):
    • LEFT HALF (x 0%–50%): Moody, desaturated — target customer WITHOUT the product, struggling. Dark cool tones. Generic, blurry unbranded bottles on a table in the foreground.
    • RIGHT HALF (x 50%–100%): Bright, vibrant — same customer WITH the product, smiling and thriving. Warm golden tones, cannabis leaves or clean premium backdrop elements.
-   • SAFE ZONE FOR OVERLAY (x 58%–97%, y 44%–84%): Keep this zone on the right side completely clear of text, subjects, or clutter — a clean empty surface (marble table or clean grass) reserved for our premium product overlay.
+   • SAFE ZONE FOR OVERLAY (x 72%–96%, y 40%–84%): Keep this far-right zone completely clear of text, subjects, or clutter — a clean empty surface (marble table or clean grass) reserved for our premium product overlay.
 
 2. TOP HEADLINE BANNER (full width, y=9%–22%):
    • LEFT HALF (x 0%–50%, light desaturated background): "${h1}" in bold dark text. Below it in smaller dark text: "OTROS PRODUCTOS" or "FÓRMULAS CONVENCIONALES".
@@ -792,10 +792,10 @@ LAYOUT — VERTICAL COMPARISON SPLIT:
    • LEFT CARD (x 2%–48%, semi-transparent dark gray card):
      - "✗ ${b1}" in clean white text
      - "✗ ${b2}" in clean white text
-   • RIGHT CARD (x 52%–74%, semi-transparent brand-colored card):
+   • RIGHT CARD (x 52%–70%, semi-transparent brand-colored card):
      - "✓ ${a1}" in clean white text
      - "✓ ${a2}" in clean white text
-     (Note: This card is kept strictly between x=52% and x=74% to avoid overlapping the product overlay safe zone starting at x=75%).
+     (Note: This card is kept strictly between x=52% and x=70% to avoid overlapping the product overlay safe zone starting at x=72%).
 
 4. BOTTOM CTA STRIP (full width, y=86%–95%, solid dark background): "${cta}" in bold white uppercase centered.
 
@@ -1104,21 +1104,47 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, icon
       .toBuffer();
 
 
-    const { width: pw } = await sharp(resizedProduct).metadata();
+    const prodMeta = await sharp(resizedProduct).metadata();
+    const pw = prodMeta.width;
+    const ph = prodMeta.height;
 
-    // Full-design product zones match what each prompt tells Gemini to leave clear
+    // Soft contact shadow built from the product silhouette, so it sits IN the
+    // scene instead of looking like a flat pasted sticker. Blurred alpha → dark
+    // RGBA layer composited slightly below/right of the product.
+    let shadowImg = null;
+    try {
+      const shadowAlpha = await sharp(resizedProduct)
+        .ensureAlpha()
+        .extractChannel(3)
+        .blur(16)
+        .linear(0.5, 0) // cap opacity at ~50% so it stays soft
+        .toBuffer();
+      shadowImg = await sharp({
+        create: { width: pw, height: ph, channels: 3, background: { r: 6, g: 8, b: 14 } },
+      })
+        .joinChannel(shadowAlpha)
+        .png()
+        .toBuffer();
+    } catch {
+      shadowImg = null;
+    }
+
+    // Full-design product zones match what each prompt tells Gemini to leave clear.
+    // top values pushed below subheadline pills/bars (which end around y=54-56%);
+    // comparison left pushed past the right-card boundary (x=74%) to avoid overlap;
+    // authority left raised to match its safe zone (x=65%+).
     const FULL_DESIGN_ZONES = {
-      pain:         (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
-      desire:       (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.44) }),
+      pain:         (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.55) }),
+      desire:       (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.54) }),
       transformation:(cw,ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.32) }),
       objection:    (cw, ch, p) => ({ left: Math.max(0, Math.round((cw-p)/2)),                   top: Math.round(ch*0.48) }),
-      urgency:      (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
-      authority:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
-      comparison:   (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.75)-Math.round(p/2)), top: Math.round(ch*0.48) }),
-      guarantee:    (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.19) - Math.round(p/2)), top: Math.round(ch*0.48) }),
-      social_proof: (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
-      curiosity:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.52), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.48) }),
-      price:        (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.22) - Math.round(p/2)), top: Math.round(ch*0.48) }),
+      urgency:      (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.50) }),
+      authority:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.65), Math.round(cw*0.79)-Math.round(p/2)), top: Math.round(ch*0.48) }),
+      comparison:   (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.72), Math.round(cw*0.81)-Math.round(p/2)), top: Math.round(ch*0.44) }),
+      guarantee:    (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.19) - Math.round(p/2)), top: Math.round(ch*0.50) }),
+      social_proof: (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.54), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.50) }),
+      curiosity:    (cw, ch, p) => ({ left: Math.max(Math.round(cw*0.52), Math.round(cw*0.73)-Math.round(p/2)), top: Math.round(ch*0.50) }),
+      price:        (cw, ch, p) => ({ left: Math.max(20, Math.round(cw*0.22) - Math.round(p/2)), top: Math.round(ch*0.60) }),
     };
 
     let placement;
@@ -1128,6 +1154,16 @@ async function compositeAll({ backgroundBase64, templatePng, productBase64, icon
       placement = getProductPlacement(angle || 'desire', w, h, pw);
     }
 
+    // Drop the contact shadow first (offset down/right relative to product size),
+    // then the product on top — grounds it in the scene.
+    if (shadowImg) {
+      layers.push({
+        input: shadowImg,
+        left: Math.max(0, placement.left + Math.round(pw * 0.04)),
+        top: Math.max(0, placement.top + Math.round(ph * 0.05)),
+        blend: 'over',
+      });
+    }
     layers.push({ input: resizedProduct, ...placement, blend: 'over' });
   }
 

@@ -11,6 +11,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.0",
     "@napi-rs/canvas": "^1.0.0",
+    "@sparticuz/chromium": "^147.0.0",
     "@supabase/supabase-js": "^2.38.0",
     "axios": "^1.6.0",
     "dotenv": "^17.4.2",
@@ -18,6 +19,7 @@
     "lucide-react": "^0.378.0",
     "next": "^14.2.0",
     "openai": "^6.37.0",
+    "playwright-core": "^1.60.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sharp": "^0.34.5"

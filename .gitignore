@@ -20,3 +20,8 @@ coverage/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# scratch / POC artifacts (no commitear imágenes pesadas)
+scratch/output/
+scratch/*.png
+scratch/*.jpg

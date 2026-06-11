@@ -8,7 +8,7 @@ const { checkCredits, deductCredits, CREDIT_COSTS } = require('../../lib/credits
 
 export const config = {
   api: { bodyParser: { sizeLimit: '15mb' } },
-  maxDuration: 300, // Chromium + 2 llamadas a Gemini; requiere plan Vercel con 300s
+  maxDuration: 60, // límite del plan Hobby de Vercel (Pro permite hasta 300s)
 };
 
 export default async function handler(req, res) {

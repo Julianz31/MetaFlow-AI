@@ -2,8 +2,7 @@
   "framework": "nextjs",
   "functions": {
     "pages/api/generate-hero.js": {
-      "memory": 1769,
-      "maxDuration": 300
+      "maxDuration": 60
     }
   }
 }

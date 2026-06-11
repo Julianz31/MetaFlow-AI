@@ -67,7 +67,7 @@ ESTRUCTURAS EXACTAS POR SECCIÓN
       – Si no hay precios configurados, inventar precios representativos
       – font-size:16px, font-weight:600, color:white, line-height:2, padding-left:8px
     · Botón CTA — "PEDIR AHORA":
-      – background: color oscuro derivado del primario (usar `filter:brightness(0.75)` o tono manual)
+      – background: color oscuro derivado del primario (usar \`filter:brightness(0.75)\` o tono manual)
       – color: white, width:100%, padding:16px, border-radius:12px, font-size:18px
       – font-weight:900, text-transform:uppercase, letter-spacing:1px, margin-top:16px
       – border:none, cursor:pointer, href=productUrl

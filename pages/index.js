@@ -99,7 +99,7 @@ function App() {
   const [subscription, setSubscription] = useState(null); // null = loading, object = loaded
   const [imageGenLoading, setImageGenLoading] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
-  const [adForm, setAdForm] = useState({ productName: '', description: '', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'square', selectedProductId: '', productImageBase64: '', productImageName: '', angles: ['pain', 'desire', 'transformation', 'objection', 'urgency', 'authority', 'comparison', 'guarantee', 'social_proof', 'curiosity', 'price'], fullDesign: true });
+  const [adForm, setAdForm] = useState({ productName: '', description: '', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'vertical', selectedProductId: '', productImageBase64: '', productImageName: '', angles: ['desire', 'social_proof'], fullDesign: true });
   const [builderPrefill, setBuilderPrefill] = useState(null);
   const [libraryCreatives, setLibraryCreatives] = useState([]);
   const [libraryLoading, setLibraryLoading] = useState(false);

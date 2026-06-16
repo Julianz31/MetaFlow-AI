@@ -28,6 +28,7 @@ export default async function handler(req, res) {
     adjustmentInstruction,
     variationsCount = 1,
     existingCopy,
+    cleanLabel = true,
   } = req.body || {};
 
   if (!productName && !productImageBase64) {
@@ -72,6 +73,7 @@ Description: ${description || ''}`;
         variation: v,
         existingCopy: useExistingCopy ? existingCopy : undefined,
         adjustmentInstruction,
+        cleanLabel,
       }))
     );
 

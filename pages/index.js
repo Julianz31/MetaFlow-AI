@@ -831,6 +831,7 @@ function App() {
       format: adForm.format,
       angles: [img.angle],
       primaryColor: adForm.primaryColor,
+      secondaryColor: adForm.secondaryColor,
       productImageBase64: adForm.productImageBase64 || undefined,
       adjustmentInstruction: note,
       variationsCount: 1,
@@ -4731,6 +4732,7 @@ function AdCreatorView({ products, loading, generatedImages, adForm, onFormChang
         ? { autoAngles: true, angleCount: adForm.angleCount || 2 }
         : { angles: selectedAngles }),
       primaryColor: adForm.primaryColor,
+      secondaryColor: adForm.secondaryColor,
       productImageBase64: adForm.productImageBase64 || undefined,
       fullDesign: !!adForm.fullDesign,
     });

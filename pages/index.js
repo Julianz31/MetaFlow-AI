@@ -99,7 +99,7 @@ function App() {
   const [subscription, setSubscription] = useState(null); // null = loading, object = loaded
   const [imageGenLoading, setImageGenLoading] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
-  const [adForm, setAdForm] = useState({ productName: '', description: '', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'vertical', selectedProductId: '', productImageBase64: '', productImageName: '', angles: ['desire', 'social_proof'], fullDesign: true });
+  const [adForm, setAdForm] = useState({ productName: '', description: '', primaryColor: '#6366f1', secondaryColor: '#ffffff', format: 'vertical', selectedProductId: '', productImageBase64: '', productImageName: '', angles: ['desire', 'social_proof'], autoAngles: true, angleCount: 2, fullDesign: true });
   const [builderPrefill, setBuilderPrefill] = useState(null);
   const [libraryCreatives, setLibraryCreatives] = useState([]);
   const [libraryLoading, setLibraryLoading] = useState(false);
@@ -836,6 +836,7 @@ function App() {
       variationsCount: 1,
       fullDesign: !!adForm.fullDesign,
       existingCopy: img.copy,
+      skin: img.skin,
     }, { headers: authHeader, timeout: 300000 });
     const updated = response.data.images?.[0];
     if (updated) {
@@ -4717,13 +4718,18 @@ function AdCreatorView({ products, loading, generatedImages, adForm, onFormChang
     }
   };
 
+  const isAuto = adForm.autoAngles !== false;
+  const genCount = isAuto ? (adForm.angleCount || 2) : selectedAngles.length;
+
   const handleGenerate = (e) => {
     e.preventDefault();
     onGenerate({
       productName: adForm.productName,
       description: adForm.description,
       format: adForm.format,
-      angles: selectedAngles,
+      ...(isAuto
+        ? { autoAngles: true, angleCount: adForm.angleCount || 2 }
+        : { angles: selectedAngles }),
       primaryColor: adForm.primaryColor,
       productImageBase64: adForm.productImageBase64 || undefined,
       fullDesign: !!adForm.fullDesign,
@@ -4846,26 +4852,58 @@ function AdCreatorView({ products, loading, generatedImages, adForm, onFormChang
               <p className="acp-hint">Gemini usará estos colores como acento en los textos y elementos del creativo.</p>
             </div>
 
-            {/* Ángulos de venta */}
+            {/* Estrategia de venta: automática (IA elige ángulos) o manual */}
             <div className="acp-block">
-              <label className="acp-label">
-                Ángulos de venta
-                <span className="acp-optional">{selectedAngles.length} seleccionado{selectedAngles.length !== 1 ? 's' : ''}</span>
-              </label>
-              <div className="angle-grid">
-                {ANGLE_OPTIONS.map(a => (
-                  <button
-                    type="button"
-                    key={a.value}
-                    className={`angle-card ${selectedAngles.includes(a.value) ? 'active' : ''}`}
-                    onClick={() => toggleAngle(a.value)}
-                  >
-                    <span className="angle-emoji">{a.emoji}</span>
-                    <span className="angle-label">{a.label}</span>
-                    <span className="angle-desc">{a.desc}</span>
-                  </button>
-                ))}
+              <label className="acp-label">Estrategia de venta</label>
+              <div className="format-chips">
+                <button type="button"
+                  className={`format-chip ${isAuto ? 'active' : ''}`}
+                  onClick={() => onFormChange({ ...adForm, autoAngles: true })}>
+                  <span className="format-chip-ratio">✨ Automática</span>
+                  <span className="format-chip-sub">La IA elige</span>
+                </button>
+                <button type="button"
+                  className={`format-chip ${!isAuto ? 'active' : ''}`}
+                  onClick={() => onFormChange({ ...adForm, autoAngles: false })}>
+                  <span className="format-chip-ratio">🎯 Manual</span>
+                  <span className="format-chip-sub">Elijo los ángulos</span>
+                </button>
               </div>
+
+              {isAuto ? (
+                <>
+                  <p className="acp-hint">La IA analiza tu producto, elige los ángulos de venta con más probabilidad de convertir y genera cada creativo con un diseño diferente.</p>
+                  <label className="acp-label" style={{ marginTop: 12 }}>Cantidad de creativos</label>
+                  <div className="format-chips">
+                    {[2, 3, 4].map(n => (
+                      <button type="button" key={n}
+                        className={`format-chip ${(adForm.angleCount || 2) === n ? 'active' : ''}`}
+                        onClick={() => onFormChange({ ...adForm, angleCount: n })}>
+                        <span className="format-chip-ratio">{n}</span>
+                        <span className="format-chip-sub">creativos</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="acp-hint">{selectedAngles.length} ángulo{selectedAngles.length !== 1 ? 's' : ''} seleccionado{selectedAngles.length !== 1 ? 's' : ''}</p>
+                  <div className="angle-grid">
+                    {ANGLE_OPTIONS.map(a => (
+                      <button
+                        type="button"
+                        key={a.value}
+                        className={`angle-card ${selectedAngles.includes(a.value) ? 'active' : ''}`}
+                        onClick={() => toggleAngle(a.value)}
+                      >
+                        <span className="angle-emoji">{a.emoji}</span>
+                        <span className="angle-label">{a.label}</span>
+                        <span className="angle-desc">{a.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Formato */}
@@ -4885,8 +4923,8 @@ function AdCreatorView({ products, loading, generatedImages, adForm, onFormChang
 
             <button type="submit" className="generate-cta" disabled={loading}>
               {loading
-                ? <><Loader2 className="spin" size={18} /> Generando {selectedAngles.length} creativo{selectedAngles.length !== 1 ? 's' : ''}...</>
-                : <><Sparkles size={18} /> Generar {selectedAngles.length} creativo{selectedAngles.length !== 1 ? 's' : ''} con Gemini</>}
+                ? <><Loader2 className="spin" size={18} /> Generando {genCount} creativo{genCount !== 1 ? 's' : ''}...</>
+                : <><Sparkles size={18} /> Generar {genCount} creativo{genCount !== 1 ? 's' : ''} con IA</>}
             </button>
           </form>
         </div>
@@ -4901,7 +4939,7 @@ function AdCreatorView({ products, loading, generatedImages, adForm, onFormChang
           {loading && (
             <div className="result-loading">
               <div className="ai-pulse" />
-              <p>Gemini está generando {selectedAngles.length} creativo{selectedAngles.length !== 1 ? 's' : ''}...</p>
+              <p>La IA está generando {genCount} creativo{genCount !== 1 ? 's' : ''}...</p>
               <p className="result-hint">Puede tomar entre 30 y 90 segundos</p>
             </div>
           )}
@@ -4914,7 +4952,7 @@ function AdCreatorView({ products, loading, generatedImages, adForm, onFormChang
                 </div>
               </div>
               <p className="result-empty-title">Tus creativos aparecerán aquí</p>
-              <p className="result-hint">Selecciona ángulos y haz clic en Generar</p>
+              <p className="result-hint">Describe tu producto y haz clic en Generar</p>
             </div>
           )}
 

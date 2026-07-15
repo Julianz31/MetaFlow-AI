@@ -2,7 +2,7 @@
 // Reemplaza el motor viejo (Gemini dibujaba todo el diseño/texto). El código
 // viejo permanece en el historial de git. Mismo contrato de request/response.
 
-const { generateBatch, analyzeProduct } = require('../../lib/adEngine');
+const { generateBatch, analyzeProduct, pickAngles } = require('../../lib/adEngine');
 const { requireAuth } = require('../../lib/auth');
 const { checkCredits, deductCredits, CREDIT_COSTS } = require('../../lib/credits');
 
@@ -29,13 +29,15 @@ export default async function handler(req, res) {
     variationsCount = 1,
     existingCopy,
     cleanLabel = true,
+    autoAngles = false,
+    angleCount = 2,
+    skin,
   } = req.body || {};
 
   if (!productName && !productImageBase64) {
     return res.status(400).json({ error: 'Se requiere nombre del producto o imagen.' });
   }
 
-  const selectedAngles = Array.isArray(angles) && angles.length > 0 ? angles : [angle];
   const numVariations = Math.min(Math.max(1, variationsCount), 3);
 
   const creditCheck = await checkCredits(user.email, 'generate_image');
@@ -60,10 +62,15 @@ Product Name: ${productName}
 Description: ${description || ''}`;
     }
 
+    // Ángulos: explícitos > automáticos (la IA elige los mejores para el producto)
+    const explicitAngles = Array.isArray(angles) && angles.length > 0 ? angles : null;
+    const selectedAngles = explicitAngles
+      || (autoAngles ? await pickAngles(productContext, angleCount) : [angle]);
+
     // existingCopy solo aplica en ajuste de un único ángulo
     const useExistingCopy = existingCopy && selectedAngles.length === 1;
 
-    const jobs = selectedAngles.flatMap(a =>
+    const jobs = selectedAngles.flatMap((a, ai) =>
       Array.from({ length: numVariations }, (_, v) => ({
         angle: a,
         productContext,
@@ -71,6 +78,10 @@ Description: ${description || ''}`;
         productImageBase64,
         format,
         variation: v,
+        // Cada creativo del lote sale con un skin (diseño) distinto; en ajustes
+        // se respeta el skin original para no cambiarle el look al usuario.
+        skinId: skin || undefined,
+        skinIndex: ai * 2 + v,
         existingCopy: useExistingCopy ? existingCopy : undefined,
         adjustmentInstruction,
         cleanLabel,
@@ -95,6 +106,7 @@ Description: ${description || ''}`;
       metadata: {
         angles: selectedAngles,
         num_angles: selectedAngles.length,
+        auto_angles: !explicitAngles && !!autoAngles,
         variations_per_angle: numVariations,
         errors_count: errors.length,
         engine: 'adEngine_v2',
